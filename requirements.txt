@@ -7,3 +7,6 @@ pydantic
 python-dotenv
 tenacity
 json_repair
+curl_cffi
+httpx
+beautifulsoup4
