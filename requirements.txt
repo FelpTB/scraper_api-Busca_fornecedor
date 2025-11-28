@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+crawl4ai
+pymupdf
+openai
+pydantic
+python-dotenv
+tenacity
+json_repair
