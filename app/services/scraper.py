@@ -373,9 +373,10 @@ async def _system_curl_scrape_safe(url: str, proxy: Optional[str]) -> Tuple[str,
 # Let's revert to the pattern: Decorator on the Logic, Safe Wrapper for the Caller.
 
 # Redefining _cffi_scrape without the broad try/except, but with specific logic
-@retry(stop=stop_after_attempt(2), wait=wait_fixed(2))
+@retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
 async def _cffi_scrape_logic(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], Set[str]]:
-    async with AsyncSession(impersonate="chrome120", proxy=proxy, timeout=25) as s:
+    # Timeout reduzido para 15s (fail-fast)
+    async with AsyncSession(impersonate="chrome120", proxy=proxy, timeout=15) as s:
         resp = await s.get(url)
         if resp.status_code != 200: raise Exception(f"Status {resp.status_code}")
         return _parse_html(resp.text, url)
@@ -387,13 +388,13 @@ async def _cffi_scrape(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], S
         logger.debug(f"[CFFI] Erro ao fazer scrape de {url}: {type(e).__name__}: {str(e)}")
         return "", set(), set()
 
-@retry(stop=stop_after_attempt(2), wait=wait_fixed(2))
+@retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
 async def _system_curl_scrape_logic(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], Set[str]]:
-    cmd = ["curl", "-L", "-k", "-s"]
+    cmd = ["curl", "-L", "-k", "-s", "--max-time", "15"] # Timeout reduzido para 15s (fail-fast)
     if proxy: cmd.extend(["-x", proxy])
     cmd.extend(["-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36", url])
     
-    res = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, timeout=35)
+    res = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, timeout=20) # Timeout do subprocess um pouco maior que o do curl
     if res.returncode != 0 or not res.stdout: raise Exception("Curl Failed")
     return _parse_html(res.stdout, url)
 
