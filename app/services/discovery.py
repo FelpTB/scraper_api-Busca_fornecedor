@@ -314,6 +314,13 @@ async def find_company_website(
     if nf:
         q1 = f'{nf} {city} site oficial'.strip()
         queries.append(q1)
+
+    # Query 2: Razão Social + Municipio (se existir)
+    if rs:
+        # Remover "LTDA", "S.A.", "EIRELI", "ME", "EPP" para limpar a busca
+        clean_rs = rs.replace(" LTDA", "").replace(" S.A.", "").replace(" EIRELI", "").replace(" ME", "").replace(" EPP", "")
+        q2 = f'{clean_rs} {city} site oficial'.strip()
+        queries.append(q2)
     
     # Query 3: Busca apenas pelo primeiro nome (Marca) + site oficial
     # Isso ajuda quando o nome fantasia é longo (ECOMINERAL TECH LTDA) mas o site é curto (ecomineral.com.br)
@@ -325,6 +332,13 @@ async def find_company_website(
             # Query 4: Nome curto sem cidade (para empresas nacionais)
             q4 = f'{first_name} site oficial'.strip()
             queries.append(q4)
+    elif rs:
+         # Fallback para primeiro nome da razão social se não tiver fantasia
+        clean_rs = rs.replace(" LTDA", "").replace(" S.A.", "").replace(" EIRELI", "").replace(" ME", "").replace(" EPP", "")
+        first_name = clean_rs.split()[0]
+        if len(first_name) > 3:
+             q3 = f'{first_name} {city} site oficial'.strip()
+             queries.append(q3)
     
     # Se não gerou queries (input vazio), retorna
     if not queries:
