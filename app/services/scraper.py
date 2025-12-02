@@ -214,7 +214,8 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
         # Vamos dividir as URLs em chunks de 5. Para cada chunk, pegamos 1 proxy e usamos 1 sessão.
         
         # 1. Agrupar URLs em chunks
-        chunk_size = 5
+        # Reduzir tamanho do chunk para minimizar Head-of-Line Blocking (uma URL lenta travar as outras do mesmo proxy)
+        chunk_size = 3 
         url_chunks = [target_subpages[i:i + chunk_size] for i in range(0, len(target_subpages), chunk_size)]
         
         async def scrape_chunk(urls_chunk):
@@ -222,18 +223,15 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
             # Obter proxy e criar sessão para este chunk
             chunk_proxy = await proxy_manager.get_next_proxy()
             
-            # Timeout split: Connect 5s, Read 30s
-            # Como curl_cffi pode não suportar tupla diretamente dependendo da versão,
-            # configuramos um timeout total seguro de 35s.
-            # O "Fail Fast" no connect depende da libcurl interna.
-            
             # Usar Context Manager para garantir fechamento da sessão
             try:
+                # Timeout reduzido para ser mais agressivo (15s total para o chunk não ficar preso)
+                # O "Fail Fast" real acontece na conexão.
                 async with AsyncSession(
                     impersonate="chrome120", 
                     proxy=chunk_proxy, 
-                    timeout=35, # Aumentado para tolerar servidores lentos (Read Timeout)
-                    verify=False # Ignorar erros de certificado SSL em targets ruins
+                    timeout=15, # Reduzido de 35s para 15s (Ultra Aggressive per user request)
+                    verify=False 
                 ) as session:
                     
                     for sub_url in urls_chunk:
@@ -297,9 +295,10 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
             return chunk_results
 
         # Launch parallel chunks
-        # Ajustado semaphore para chunks (menos tasks, mas cada task faz N requests)
-        # Se temos 100 urls, chunk=5 -> 20 chunks. Semaphore=5 -> 5 chunks paralelos (25 reqs ativas + keepalive)
-        chunk_sem = asyncio.Semaphore(5) 
+        # Aumentar drasticamente o paralelismo de chunks
+        # Antes: 5 chunks (25 URLs max). Agora: 30 chunks (30 * 3 = 90 URLs max)
+        # Isso aproxima a performance da V2 (fire-and-forget) mantendo a estabilidade da sessão/proxy da V3
+        chunk_sem = asyncio.Semaphore(30) 
         
         async def scrape_chunk_wrapper(chunk):
             async with chunk_sem:
