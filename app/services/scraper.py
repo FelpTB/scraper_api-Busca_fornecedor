@@ -175,7 +175,29 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
                 aggregated_markdown.append(f"--- PAGE START: {url} ---\n{text}\n--- PAGE END ---\n")
                 all_pdf_links.update(pdfs)
             else:
-                return "", [], []
+                # TENTATIVA FINAL: Smart URL Retry (Adicionar/Remover www)
+                # Resolve problemas como deltaaut.com vs www.deltaaut.com se o DNS falhar
+                parsed = urlparse(url)
+                new_netloc = None
+                if parsed.netloc.startswith("www."):
+                    new_netloc = parsed.netloc[4:]
+                else:
+                    new_netloc = f"www.{parsed.netloc}"
+                
+                if new_netloc:
+                    new_url = parsed._replace(netloc=new_netloc).geturl()
+                    logger.warning(f"[Main] Falha total em {url}. Tentando variação: {new_url}")
+                    text, pdfs, links = await _system_curl_scrape(new_url, await proxy_manager.get_next_proxy())
+                    if text:
+                        visited_urls.append(new_url) # Registrar a URL que funcionou
+                        aggregated_markdown.append(f"--- PAGE START: {new_url} ---\n{text}\n--- PAGE END ---\n")
+                        all_pdf_links.update(pdfs)
+                        # Atualizar URL base para seleção de links subsequente
+                        url = new_url 
+                    else:
+                        return "", [], []
+                else:
+                    return "", [], []
 
     main_duration = time.perf_counter() - main_start
     logger.info(
@@ -676,6 +698,13 @@ def _prioritize_links(links: Set[str], base_url: str) -> List[str]:
         # Penalize deep nesting (often less relevant blog posts or detailed product specs)
         s -= len(urlparse(l).path.split('/'))
         
+        # Boost for pagination if it looks like a list (often contains products/projects)
+        # Fix for sites like EDJUNIOR where content is in page_1, page_2
+        if any(x in lower for x in ["page", "p=", "pagina", "nav"]):
+             # Apenas boost se não for um link explicitamente "low" (login, cart, etc)
+             if not any(k in lower for k in low):
+                s += 30
+
         scored.append((s, l))
         
     return [l for s, l in sorted(scored, key=lambda x: x[0], reverse=True) if s > -80]
@@ -796,7 +825,9 @@ TAREFA: Selecione os {max_links} links MAIS RELEVANTES da lista abaixo que prova
 
 IMPORTANTE: 
 - PRIORIZE páginas com palavras como "catalogo", "catalogo-digital", "portfolio", "produtos", "servicos"
-- EVITE: Blogs, notícias, políticas de privacidade, login, carrinho, termos de uso
+- considere páginas com extensões antigas (.asp, .aspx, .cfm) como conteúdo válido e relevante.
+- CASO ESPECIAL: Se o site usar navegação numerada (ex: page_1, page_2, p=12) ou genérica para listar portfólio/produtos, VOCÊ DEVE INCLUIR esses links.
+- EVITE: Blogs (exceto se for a única fonte de cases), notícias datadas, políticas de privacidade, login, carrinho, termos de uso
 - EVITE: Links que parecem ser imagens ou arquivos (já foram filtrados, mas seja cuidadoso)
 
 LISTA DE LINKS DO SITE {base_url}:
