@@ -7,40 +7,40 @@ from typing import List, Tuple, Set, Optional
 from urllib.parse import urljoin, urlparse, quote, unquote
 from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession, RequestsError
-from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode, BrowserConfig
-from crawl4ai.content_filter_strategy import PruningContentFilter
-from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
+# from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode, BrowserConfig
+# from crawl4ai.content_filter_strategy import PruningContentFilter
+# from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential, retry_if_exception_type, before_sleep_log, RetryError
 from app.core.proxy import proxy_manager
 
-# Playwright error imports para tratamento específico
-try:
-    from playwright._impl._errors import TargetClosedError, TimeoutError as PlaywrightTimeout
-except ImportError:
-    # Fallback se os tipos não estiverem disponíveis
-    TargetClosedError = Exception
-    PlaywrightTimeout = Exception
+# Playwright error imports removidos ou comentados
+# try:
+#     from playwright._impl._errors import TargetClosedError, TimeoutError as PlaywrightTimeout
+# except ImportError:
+#     # Fallback se os tipos não estiverem disponíveis
+#     TargetClosedError = Exception
+#     PlaywrightTimeout = Exception
 
 # Configurar logger
 logger = logging.getLogger(__name__)
 
 # --- SCRAPER CONFIGURATION ---
 # Parâmetros configuráveis dinamicamente para otimização
-# Configuração otimizada para velocidade agressiva (Round 4 Benchmark)
+# Configuração otimizada para velocidade agressiva (SEM PLAYWRIGHT)
 _scraper_config = {
-    'playwright_semaphore_limit': 40,
+    'site_semaphore_limit': 100, # Limite global de sites processados simultaneamente
     'circuit_breaker_threshold': 2,
     'page_timeout': 10000,
     'md_threshold': 0.6,
     'min_word_threshold': 4,
     'chunk_size': 20,
-    'chunk_semaphore_limit': 50,
+    'chunk_semaphore_limit': 100, # Mais concorrência permitida para subpáginas
     'session_timeout': 5
 }
 
-# Global semaphore to limit concurrent Playwright instances
-# Prevents resource exhaustion and browser crashes
-playwright_semaphore = asyncio.Semaphore(_scraper_config['playwright_semaphore_limit'])
+# Global semaphore to limit concurrent sites processing
+# Prevents resource exhaustion (network/file descriptors)
+site_semaphore = asyncio.Semaphore(_scraper_config['site_semaphore_limit'])
 
 # --- CIRCUIT BREAKER ---
 # Dicionário global para rastrear falhas consecutivas por domínio
@@ -50,7 +50,7 @@ domain_failures = {}
 CIRCUIT_BREAKER_THRESHOLD = _scraper_config['circuit_breaker_threshold']
 
 def configure_scraper_params(
-    playwright_semaphore_limit: int = 10,
+    site_semaphore_limit: int = 10,
     circuit_breaker_threshold: int = 5,
     page_timeout: int = 60000,
     md_threshold: float = 0.35,
@@ -63,20 +63,20 @@ def configure_scraper_params(
     Configura dinamicamente os parâmetros do scraper para otimização.
 
     Args:
-        playwright_semaphore_limit: Limite de instâncias Playwright concorrentes
+        site_semaphore_limit: Limite de sites sendo processados concorrentemente
         circuit_breaker_threshold: Limite de falhas para ativar circuit breaker
-        page_timeout: Timeout da página em ms
-        md_threshold: Threshold do markdown generator
+        page_timeout: Timeout da página em ms (para fallbacks)
+        md_threshold: Threshold do markdown generator (mantido para compatibilidade futura)
         min_word_threshold: Threshold mínimo de palavras
-        chunk_size: Tamanho dos chunks para processamento paralelo
+        chunk_size: Tamanho dos chunks para processamento paralelo de subpáginas
         chunk_semaphore_limit: Limite do semáforo de chunks
         session_timeout: Timeout das sessões em segundos
     """
-    global _scraper_config, playwright_semaphore, CIRCUIT_BREAKER_THRESHOLD
+    global _scraper_config, site_semaphore, CIRCUIT_BREAKER_THRESHOLD
 
     # Atualizar configuração global
     _scraper_config.update({
-        'playwright_semaphore_limit': playwright_semaphore_limit,
+        'site_semaphore_limit': site_semaphore_limit,
         'circuit_breaker_threshold': circuit_breaker_threshold,
         'page_timeout': page_timeout,
         'md_threshold': md_threshold,
@@ -87,15 +87,14 @@ def configure_scraper_params(
     })
 
     # Recriar semáforos com novos limites
-    playwright_semaphore = asyncio.Semaphore(playwright_semaphore_limit)
+    site_semaphore = asyncio.Semaphore(site_semaphore_limit)
     CIRCUIT_BREAKER_THRESHOLD = circuit_breaker_threshold
 
     # Resetar circuit breaker
     domain_failures.clear()
 
-    logger.info(f"🔧 Scraper reconfigurado: semaphore={playwright_semaphore_limit}, "
+    logger.info(f"🔧 Scraper reconfigurado: site_sem={site_semaphore_limit}, "
                 f"circuit_breaker={circuit_breaker_threshold}, page_timeout={page_timeout}, "
-                f"md_threshold={md_threshold}, min_word_threshold={min_word_threshold}, "
                 f"chunk_size={chunk_size}, chunk_semaphore={chunk_semaphore_limit}, "
                 f"session_timeout={session_timeout}")
 # Tempo de reset do circuito (não implementado full, apenas reset manual ou restart)
@@ -122,133 +121,48 @@ def _is_circuit_open(url: str) -> bool:
     domain = _get_domain(url)
     return domain_failures.get(domain, 0) >= CIRCUIT_BREAKER_THRESHOLD
 
-@retry(
-    retry=retry_if_exception_type((TargetClosedError, PlaywrightTimeout)),
-    wait=wait_exponential(multiplier=1, min=2, max=10),
-    stop=stop_after_attempt(2),
-    before_sleep=before_sleep_log(logger, logging.WARNING)
-)
-async def _playwright_scrape_with_retry(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], Set[str]]:
-    """
-    Wrapper com retry para chamadas do Playwright.
-    Tenta 2x com backoff exponencial antes de desistir.
-    Registra tempo total da navegação Playwright.
-    """
-    start_ts = time.perf_counter()
-    # Ajustar filtro para ser menos agressivo e preservar mais conteúdo
-    # threshold menor = menos agressivo (mantém mais conteúdo)
-    # min_word_threshold menor = aceita textos menores
-    md_generator = DefaultMarkdownGenerator(content_filter=PruningContentFilter(
-        threshold=_scraper_config['md_threshold'],
-        min_word_threshold=_scraper_config['min_word_threshold']
-    ))
-    run_config = CrawlerRunConfig(
-        cache_mode=CacheMode.BYPASS,
-        exclude_external_images=True,
-        markdown_generator=md_generator,
-        page_timeout=_scraper_config['page_timeout']
-    )
-    browser_config = BrowserConfig(
-        browser_type="chromium", 
-        headless=True, 
-        proxy_config=proxy, 
-        user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-    )
-    
-    crawler = None
-    try:
-        async with AsyncWebCrawler(config=browser_config) as crawler:
-            result = await crawler.arun(url=url, config=run_config, magic=True)
-            
-            if not result.success or not result.markdown or len(result.markdown) < 200:
-                raise Exception("Playwright failed or content too short")
-            
-            # Extrair links de Markdown E HTML para garantir cobertura total
-            # Markdown falha em links de imagem (nested brackets) -> HTML resolve
-            pdfs_md, links_md = _extract_links(result.markdown, url)
-            pdfs_html, links_html = _extract_links_html(result.html, url)
-            
-            # Combinar resultados (união de sets)
-            pdfs = pdfs_md | pdfs_html
-            links = links_md | links_html
-            
-            duration = time.perf_counter() - start_ts
-            logger.info(
-                f"[PERF] scraper step=playwright_main url={url} "
-                f"duration={duration:.3f}s markdown_chars={len(result.markdown)} "
-                f"pdfs={len(pdfs)} links={len(links)}"
-            )
-            return result.markdown, pdfs, links
-            
-    finally:
-        # ✅ CORREÇÃO 4: Garantir cleanup adequado
-        if crawler is not None:
-            try:
-                await crawler.close()
-            except:
-                pass  # Já foi fechado ou erro ao fechar
+# Função Playwright removida para economizar recursos
+# async def _playwright_scrape_with_retry(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], Set[str]]:
+#    ... (removido)
 
 async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str], List[str]]:
     """
     High-performance scraper with IP Rotation and Parallelism.
     Strategy:
-    1. Main Page: Playwright (JS support) with fresh proxy.
-    2. Subpages: Parallel Curl Impersonation tasks (max concurrency 10) with unique IPs.
-    Registra métricas de tempo por etapa (main, seleção de links, subpáginas).
+    1. Main Page: Curl Impersonation (mimics Chrome) with fresh proxy.
+    2. Fallback: System Curl if Impersonation fails.
+    3. Subpages: Parallel Curl Impersonation tasks with unique IPs.
+    Registra métricas de tempo por etapa.
     """
     overall_start = time.perf_counter()
     aggregated_markdown = []
     all_pdf_links = set()
     visited_urls = []
 
-    # --- 1. SCRAPE MAIN PAGE (Playwright) ---
-    # ✅ CORREÇÃO 3: Usar semaphore para limitar concorrência
+    # --- 1. SCRAPE MAIN PAGE (Curl Impersonation + System Curl Fallback) ---
+    # Removido Playwright para eliminar gargalo de memória e CPU
     main_start = time.perf_counter()
-    async with playwright_semaphore:
+    
+    # Usar site_semaphore para limitar concorrência geral de processamento de sites
+    async with site_semaphore:
         print(f"[Scraper] Processing Main: {url}")
         main_proxy = await proxy_manager.get_next_proxy()
         
         try:
-            # ✅ CORREÇÃO 5: Usar função com retry automático
-            markdown, pdfs, links = await _playwright_scrape_with_retry(url, main_proxy)
+            # Tentar primeiro com Curl Impersonation (mais robusto que requests simples)
+            text, pdfs, links = await _cffi_scrape_safe(url, main_proxy)
             
-            visited_urls.append(url)
-            aggregated_markdown.append(f"--- PAGE START: {url} ---\n{markdown}\n--- PAGE END ---\n")
-            all_pdf_links.update(pdfs)
-            
-        except TargetClosedError as e:
-            # ✅ CORREÇÃO 2: Tratamento específico de TargetClosedError
-            logger.warning(f"[Main] Playwright browser closed unexpectedly: {e}. Using Curl fallback.")
-            text, pdfs, links = await _system_curl_scrape(url, await proxy_manager.get_next_proxy())
-            if text:
-                visited_urls.append(url)
-                aggregated_markdown.append(f"--- PAGE START: {url} ---\n{text}\n--- PAGE END ---\n")
-                all_pdf_links.update(pdfs)
-            else:
-                return "", [], []
-                
-        except (PlaywrightTimeout, asyncio.TimeoutError) as e:
-            # ✅ CORREÇÃO 2: Tratamento específico de timeout
-            logger.warning(f"[Main] Playwright timeout: {e}. Using Curl fallback.")
-            text, pdfs, links = await _system_curl_scrape(url, await proxy_manager.get_next_proxy())
-            if text:
-                visited_urls.append(url)
-                aggregated_markdown.append(f"--- PAGE START: {url} ---\n{text}\n--- PAGE END ---\n")
-                all_pdf_links.update(pdfs)
-            else:
-                return "", [], []
-                
-        except Exception as e:
-            # ✅ CORREÇÃO 2: Catch-all com fallback
-            logger.error(f"[Main] Playwright failed: {e}. Trying System Curl Fallback.")
-            text, pdfs, links = await _system_curl_scrape(url, await proxy_manager.get_next_proxy())
+            if not text or len(text) < 100:
+                # Se falhar ou conteúdo muito pequeno, tentar system curl como fallback
+                logger.warning(f"[Main] Curl Impersonation falhou ou conteúdo insuficiente em {url}. Tentando System Curl.")
+                text, pdfs, links = await _system_curl_scrape_safe(url, await proxy_manager.get_next_proxy())
+
             if text:
                 visited_urls.append(url)
                 aggregated_markdown.append(f"--- PAGE START: {url} ---\n{text}\n--- PAGE END ---\n")
                 all_pdf_links.update(pdfs)
             else:
                 # TENTATIVA FINAL: Smart URL Retry (Adicionar/Remover www)
-                # Resolve problemas como deltaaut.com vs www.deltaaut.com se o DNS falhar
                 parsed = urlparse(url)
                 new_netloc = None
                 if parsed.netloc.startswith("www."):
@@ -259,17 +173,20 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
                 if new_netloc:
                     new_url = parsed._replace(netloc=new_netloc).geturl()
                     logger.warning(f"[Main] Falha total em {url}. Tentando variação: {new_url}")
-                    text, pdfs, links = await _system_curl_scrape(new_url, await proxy_manager.get_next_proxy())
+                    text, pdfs, links = await _system_curl_scrape_safe(new_url, await proxy_manager.get_next_proxy())
                     if text:
-                        visited_urls.append(new_url) # Registrar a URL que funcionou
+                        visited_urls.append(new_url)
                         aggregated_markdown.append(f"--- PAGE START: {new_url} ---\n{text}\n--- PAGE END ---\n")
                         all_pdf_links.update(pdfs)
-                        # Atualizar URL base para seleção de links subsequente
                         url = new_url 
                     else:
                         return "", [], []
                 else:
                     return "", [], []
+
+        except Exception as e:
+            logger.error(f"[Main] Falha fatal no processamento da home {url}: {e}")
+            return "", [], []
 
     main_duration = time.perf_counter() - main_start
     logger.info(
