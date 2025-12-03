@@ -378,8 +378,8 @@ async def find_company_website(
         return None
         
     # Logar resultados consolidados para debug
-    logger.info(f"🔍 Resultados consolidados enviados para IA ({len(all_results)} itens):")
-    logger.info(json.dumps(all_results, indent=2, ensure_ascii=False))
+    logger.info(f"🔍 Resultados consolidados enviados para IA ({len(all_results)} itens)")
+    logger.debug(json.dumps(all_results, indent=2, ensure_ascii=False))
 
     # 3. Analisar com LLM
     client = AsyncOpenAI(api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL)
@@ -401,14 +401,17 @@ async def find_company_website(
     """
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.LLM_MODEL,
-            messages=[
-                {"role": "system", "content": DISCOVERY_PROMPT},
-                {"role": "user", "content": user_content}
-            ],
-            temperature=0.0,
-            response_format={"type": "json_object"}
+        response = await asyncio.wait_for(
+            client.chat.completions.create(
+                model=settings.LLM_MODEL,
+                messages=[
+                    {"role": "system", "content": DISCOVERY_PROMPT},
+                    {"role": "user", "content": user_content}
+                ],
+                temperature=0.0,
+                response_format={"type": "json_object"}
+            ),
+            timeout=20.0
         )
         
         content = response.choices[0].message.content.strip()
@@ -438,6 +441,9 @@ async def find_company_website(
             logger.info(f"❌ Site não encontrado ou não oficial. Justificativa: {data.get('justificativa')}")
             return None
             
+    except asyncio.TimeoutError:
+        logger.warning("⚠️ Timeout na análise do LLM para descoberta de site (20s). Retornando None.")
+        return None
     except Exception as e:
         logger.error(f"❌ Erro na análise do LLM para descoberta de site: {e}")
         return None
