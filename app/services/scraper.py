@@ -24,7 +24,21 @@ from app.core.proxy import proxy_manager
 # Configurar logger
 logger = logging.getLogger(__name__)
 
-# --- SCRAPER CONFIGURATION ---
+# --- HEADERS PADRÃO ---
+# Headers que imitam um navegador real para evitar bloqueios WAF e erros 404/403
+_DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Cache-Control": "max-age=0"
+}
 # Parâmetros configuráveis dinamicamente para otimização
 # Configuração otimizada para velocidade agressiva (SEM PLAYWRIGHT)
 _scraper_config = {
@@ -162,26 +176,49 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
                 aggregated_markdown.append(f"--- PAGE START: {url} ---\n{text}\n--- PAGE END ---\n")
                 all_pdf_links.update(pdfs)
             else:
-                # TENTATIVA FINAL: Smart URL Retry (Adicionar/Remover www)
+                # TENTATIVA FINAL: Smart URL Retry (Adicionar/Remover www e protocolo)
+                # Tentar variações: https://www., http://www., https://, http://
                 parsed = urlparse(url)
-                new_netloc = None
-                if parsed.netloc.startswith("www."):
-                    new_netloc = parsed.netloc[4:]
+                domain = parsed.netloc
+                if domain.startswith("www."):
+                    domain_no_www = domain[4:]
+                    variations = [
+                        f"https://{domain_no_www}",
+                        f"http://{domain_no_www}",
+                    ]
                 else:
-                    new_netloc = f"www.{parsed.netloc}"
+                    variations = [
+                        f"https://www.{domain}",
+                        f"http://www.{domain}",
+                    ]
                 
-                if new_netloc:
-                    new_url = parsed._replace(netloc=new_netloc).geturl()
-                    logger.warning(f"[Main] Falha total em {url}. Tentando variação: {new_url}")
-                    text, pdfs, links = await _system_curl_scrape_safe(new_url, await proxy_manager.get_next_proxy())
-                    if text:
-                        visited_urls.append(new_url)
-                        aggregated_markdown.append(f"--- PAGE START: {new_url} ---\n{text}\n--- PAGE END ---\n")
-                        all_pdf_links.update(pdfs)
-                        url = new_url 
-                    else:
-                        return "", [], []
+                # Adicionar variação de protocolo se não estiver na lista
+                if parsed.scheme == "https":
+                    variations.append(f"http://{domain}")
                 else:
+                    variations.append(f"https://{domain}")
+                
+                # Remover duplicatas e a original
+                variations = [v for v in variations if v != url]
+                # Tentar apenas as 2 primeiras para não demorar muito
+                variations = variations[:2]
+                
+                success = False
+                for new_url in variations:
+                    logger.warning(f"[Main] Falha em {url}. Tentando variação: {new_url}")
+                    try:
+                        text, pdfs, links = await _system_curl_scrape_safe(new_url, await proxy_manager.get_next_proxy())
+                        if text:
+                            visited_urls.append(new_url)
+                            aggregated_markdown.append(f"--- PAGE START: {new_url} ---\n{text}\n--- PAGE END ---\n")
+                            all_pdf_links.update(pdfs)
+                            url = new_url 
+                            success = True
+                            break
+                    except:
+                        continue
+                
+                if not success:
                     return "", [], []
 
         except Exception as e:
@@ -490,30 +527,28 @@ async def _system_curl_scrape_safe(url: str, proxy: Optional[str]) -> Tuple[str,
 # REMOVIDO @retry AQUI pois o retry é gerenciado no loop principal com rotação de proxy
 # E agora suporta reutilização de sessão
 async def _cffi_scrape_logic(url: str, session: Optional[AsyncSession] = None, proxy: Optional[str] = None) -> Tuple[str, Set[str], Set[str]]:
-    # Timeout segregado: 5s para conectar (fail fast no proxy), 30s para ler (paciência com servidor)
-    # Requer curl_cffi >= 0.6.0b6 para suportar tuple/RequestsTimeout, ou apenas float
-    # Vamos usar float simples se a versão não suportar, mas idealmente seria tuple
-    # Por segurança e compatibilidade, vamos usar timeout total de 30s, mas confiar que
-    # o proxy manager nos dá proxies bons, e se falhar no connect, falha rápido.
-    # Mas para implementar o "Fail Fast" no connect, o ideal é o split.
-    # Assumindo suporte a tuple (connect, read) ou configurando na session.
+    # Configurar headers completos para evitar bloqueios
+    headers = _DEFAULT_HEADERS.copy()
+    headers["Referer"] = "https://www.google.com/"
     
     # Se sessão fornecida, usar ela (Keep-Alive!)
     if session:
-        # Nota: curl_cffi não permite trocar proxy de sessão existente facilmente sem criar nova connection pool
-        # Então assumimos que a session já está configurada com o proxy correto ou sem proxy
-        resp = await session.get(url)
+        # Atualizar headers da sessão se possível ou garantir que a requisição use os headers
+        resp = await session.get(url, headers=headers)
     else:
-        # Fallback: criar nova sessão (sem reuse) - comportamento antigo
-        # Usar timeout dividido se possível, ou 30s total
-        # Mas para garantir o "fail fast" de proxy, precisamos de connect curto.
-        # Implementação segura: 25s total, mas connect implícito do libcurl é geralmente ~30s.
-        # Vamos tentar forçar via argumento se a lib suportar, senão 25s total.
+        # Fallback: criar nova sessão
         timeout_cfg = 25
-        async with AsyncSession(impersonate="chrome120", proxy=proxy, timeout=timeout_cfg) as s:
+        async with AsyncSession(
+            impersonate="chrome120", 
+            proxy=proxy, 
+            timeout=timeout_cfg,
+            headers=headers
+        ) as s:
             resp = await s.get(url)
             
-    if resp.status_code != 200: 
+    if resp.status_code != 200:
+        # Logar erro específico para debug
+        logger.warning(f"CFFI Status {resp.status_code} para {url}")
         raise Exception(f"Status {resp.status_code}")
     
     return _parse_html(resp.text, url)
@@ -528,12 +563,33 @@ async def _cffi_scrape(url: str, proxy: Optional[str], session: Optional[AsyncSe
 
 @retry(stop=stop_after_attempt(1), wait=wait_fixed(0))
 async def _system_curl_scrape_logic(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], Set[str]]:
-    cmd = ["curl", "-L", "-k", "-s", "--max-time", "6"] # Timeout ultra agressivo de 6s
-    if proxy: cmd.extend(["-x", proxy])
-    cmd.extend(["-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36", url])
+    # Adicionar headers completos no curl do sistema também
+    headers_args = []
+    for k, v in _DEFAULT_HEADERS.items():
+        headers_args.extend(["-H", f"{k}: {v}"])
+    # Adicionar Referer
+    headers_args.extend(["-H", "Referer: https://www.google.com/"])
     
-    res = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, timeout=10) # Timeout do subprocess um pouco maior que o do curl
-    if res.returncode != 0 or not res.stdout: raise Exception("Curl Failed")
+    cmd = ["curl", "-L", "-k", "-s", "--max-time", "15"] # Aumentado timeout para 15s (6s era muito agressivo)
+    
+    # Tentar forçar HTTP/1.1 se falhar (alguns servidores rejeitam HTTP/2 do curl)
+    # Mas como padrão, deixamos o curl negociar.
+    
+    if proxy: cmd.extend(["-x", proxy])
+    cmd.extend(headers_args)
+    cmd.append(url)
+    
+    res = await asyncio.to_thread(subprocess.run, cmd, capture_output=True, text=True, timeout=20)
+    if res.returncode != 0 or not res.stdout: 
+        # Tentar uma vez sem headers complexos (modo simples) se falhar
+        logger.warning(f"Curl com headers falhou para {url}, tentando modo simples...")
+        cmd_simple = ["curl", "-L", "-k", "-s", "--max-time", "15", "-A", "Mozilla/5.0", url]
+        if proxy: cmd_simple.extend(["-x", proxy])
+        res = await asyncio.to_thread(subprocess.run, cmd_simple, capture_output=True, text=True, timeout=20)
+        
+        if res.returncode != 0 or not res.stdout:
+            raise Exception("Curl Failed")
+            
     return _parse_html(res.stdout, url)
 
 async def _system_curl_scrape(url: str, proxy: Optional[str]) -> Tuple[str, Set[str], Set[str]]:
@@ -546,12 +602,30 @@ async def _system_curl_scrape(url: str, proxy: Optional[str]) -> Tuple[str, Set[
 
 def _parse_html(html: str, url: str) -> Tuple[str, Set[str], Set[str]]:
     try:
-        soup = BeautifulSoup(html, 'html.parser')
-        for tag in soup(["script", "style", "nav", "footer", "svg"]): tag.extract()
+        # Usar lxml para parsing mais tolerante e rápido se disponível, fallback para html.parser
+        # Instalar lxml se necessário: pip install lxml
+        try:
+            soup = BeautifulSoup(html, 'lxml')
+        except:
+            soup = BeautifulSoup(html, 'html.parser')
+            
+        # Limpeza menos agressiva: manter nav e footer pode ser útil se tiverem links importantes
+        # Remover apenas elementos estritamente técnicos ou invisíveis
+        for tag in soup(["script", "style", "noscript", "iframe", "svg", "path", "defs", "symbol", "use"]): 
+            tag.extract()
+            
+        # Extrair texto preservando estrutura de blocos para melhor contexto
+        # O separador \n\n ajuda o LLM a entender parágrafos
         text = soup.get_text(separator='\n\n')
-        clean = '\n'.join(l.strip() for l in text.splitlines() if l.strip())
-        return clean, *_extract_links_html(str(soup), url)
-    except: return "", set(), set()
+        
+        # Limpeza de linhas vazias excessivas, mas mantendo estrutura
+        lines = [line.strip() for line in text.splitlines()]
+        clean_text = '\n'.join(line for line in lines if line)
+        
+        return clean_text, *_extract_links_html(str(soup), url)
+    except Exception as e:
+        logger.error(f"Erro no parsing HTML de {url}: {e}")
+        return "", set(), set()
 
 def _extract_links_html(html: str, base_url: str) -> Tuple[Set[str], Set[str]]:
     """
