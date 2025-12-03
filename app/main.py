@@ -19,10 +19,14 @@ from app.services.llm import start_health_monitor
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# Iniciar monitor de saúde dos providers LLM
-start_health_monitor()
-
 app = FastAPI(title="B2B Flash Profiler")
+
+# Iniciar monitor de saúde dos providers LLM no startup
+@app.on_event("startup")
+async def startup_event():
+    """Executado quando a aplicação inicia"""
+    start_health_monitor()
+    logger.info("🚀 Aplicação inicializada com sucesso")
 
 class CompanyRequest(BaseModel):
     url: Optional[HttpUrl] = None
