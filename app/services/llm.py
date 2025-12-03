@@ -12,29 +12,75 @@ from app.schemas.profile import CompanyProfile
 # Configurar logger
 logger = logging.getLogger(__name__)
 
-# Semaphores individuais por provedor LLM (respeitar rate limits)
-llm_semaphores = {
-    # Gemini 1.5 Flash: 
-    # - 10M tokens/min (TPM)
-    # - 2.000 requisições/min (RPM)
-    # Ajuste Agressivo/Seguro: 300
-    # Permite bursts para sites pequenos sem estourar RPM, e segura sites grandes no TPM.
-    "Google Gemini": asyncio.Semaphore(300),      
+# --- LLM CONFIGURATION ---
+# Parâmetros centralizados e configuráveis dinamicamente
+# Configuração otimizada para alta vazão (Target: 1000 sites/min)
+_llm_config = {
+    # Concorrência e Throttling
+    'global_semaphore_limit': 500,     # Limite global de requisições simultâneas
+    'gemini_semaphore_limit': 300,     # Limite específico para Gemini (RPM/TPM)
+    'openai_semaphore_limit': 250,     # Limite específico para OpenAI
     
-    # OpenAI GPT-4o-mini (Tier 4+):
-    # - 10M tokens/min (TPM)
-    # - 10k RPM
-    # Ajuste Agressivo/Seguro: 250
-    "OpenAI": asyncio.Semaphore(250),             
+    # Token Management
+    'max_chunk_tokens': 800_000,       # Tamanho máximo do chunk (Gemini suporta 1M+)
+    'system_prompt_overhead': 2500,    # Estimativa de tokens do prompt de sistema
+    'chars_per_token': 3,              # Média conservadora para PT-BR
+    
+    # Chunking Strategy
+    'group_target_tokens': 20_000,     # Alvo de tokens para agrupar páginas pequenas
+    'min_chunk_chars': 500,            # Tamanho mínimo para logar warning
+    
+    # Retries e Timeouts
+    'retry_attempts': 3,               # Número de tentativas por provedor
+    'retry_min_wait': 2,               # Espera mínima (segundos)
+    'retry_max_wait': 120,             # Espera máxima (segundos)
+    
+    # Text Processing
+    'similarity_threshold': 0.3,       # Threshold para detectar textos complementares no merge
+    'text_score_divisor': 10           # Divisor para score de completude (tamanho texto / X)
 }
 
-# Semaphore global para throttling geral
-# ALVO: Maximização de Throughput (Híbrido Sites Pequenos/Grandes)
-# Configuração "Meio Termo": 500 slots simultâneos
-# - Sites Pequenos (2k tokens): ~5.000 RPM (limitado pelos providers)
-# - Sites Médios (12k tokens): ~1.200 RPM (limitado por tokens)
-# - Capacidade de pico teórica: 500 reqs * (60s/5s) = 6.000 RPM
-llm_global_semaphore = asyncio.Semaphore(500)
+# --- SEMAPHORES ---
+# Inicializados com base na configuração
+llm_semaphores = {
+    "Google Gemini": asyncio.Semaphore(_llm_config['gemini_semaphore_limit']),      
+    "OpenAI": asyncio.Semaphore(_llm_config['openai_semaphore_limit']),             
+}
+
+llm_global_semaphore = asyncio.Semaphore(_llm_config['global_semaphore_limit'])
+
+def configure_llm_params(
+    global_limit: Optional[int] = None,
+    gemini_limit: Optional[int] = None,
+    openai_limit: Optional[int] = None,
+    max_chunk_tokens: Optional[int] = None,
+    retry_attempts: Optional[int] = None
+):
+    """
+    Atualiza dinamicamente as configurações do LLM Service.
+    Útil para tuning em tempo real ou testes de carga.
+    """
+    global _llm_config, llm_semaphores, llm_global_semaphore
+    
+    if global_limit:
+        _llm_config['global_semaphore_limit'] = global_limit
+        llm_global_semaphore = asyncio.Semaphore(global_limit)
+        
+    if gemini_limit:
+        _llm_config['gemini_semaphore_limit'] = gemini_limit
+        llm_semaphores["Google Gemini"] = asyncio.Semaphore(gemini_limit)
+        
+    if openai_limit:
+        _llm_config['openai_semaphore_limit'] = openai_limit
+        llm_semaphores["OpenAI"] = asyncio.Semaphore(openai_limit)
+        
+    if max_chunk_tokens:
+        _llm_config['max_chunk_tokens'] = max_chunk_tokens
+        
+    if retry_attempts:
+        _llm_config['retry_attempts'] = retry_attempts
+    
+    logger.info(f"🔧 LLM Config atualizada: {_llm_config}")
 
 # Configuração de fallback chain
 FALLBACK_CHAIN = [
@@ -151,17 +197,13 @@ Schema (Mantenha as chaves em inglês, valores em Português):
 def estimate_tokens(text: str, include_overhead: bool = True) -> int:
     """
     Estima a quantidade de tokens em um texto.
-    Aproximação melhorada para português e conteúdo HTML/Markdown:
-    - 1 token ≈ 3 caracteres (média conservadora para PT-BR)
-    - include_overhead: Se True, adiciona overhead do prompt do sistema
+    Aproximação melhorada para português e conteúdo HTML/Markdown.
+    Usa configuração centralizada.
     """
-    base_tokens = len(text) // 3  # Ajustado para 3 chars/token (PT-BR)
+    base_tokens = len(text) // _llm_config['chars_per_token']
     
     if include_overhead:
-        # Prompt do sistema tem ~2k tokens na realidade.
-        # 50k era um exagero que causava chunking excessivo.
-        system_prompt_tokens = 2500  
-        return int(base_tokens + system_prompt_tokens)
+        return int(base_tokens + _llm_config['system_prompt_overhead'])
     
     return int(base_tokens)
 
@@ -198,9 +240,8 @@ def chunk_content(text: str, max_tokens: int = 500_000) -> List[str]:
             raw_pages.append(page_content)
             
     # Agrupar páginas em chunks maiores
-    # Alvo: ~20k tokens por chunk (balanceado para evitar "Lost in the Middle")
-    # Reduzido de 100k para 20k para garantir que o modelo capture detalhes de todos os itens
-    GROUP_TARGET_TOKENS = 20_000
+    # Alvo: Tokens por chunk para evitar "Lost in the Middle"
+    GROUP_TARGET_TOKENS = _llm_config['group_target_tokens']
     
     grouped_chunks = []
     current_group = ""
@@ -367,7 +408,7 @@ def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
                         if isinstance(sub_value, list):
                             score += len(sub_value)  # Mais itens = mais completo
                         elif isinstance(sub_value, str):
-                            score += len(sub_value) // 10  # Textos maiores = mais completo
+                            score += len(sub_value) // _llm_config['text_score_divisor']  # Textos maiores = mais completo
                         else:
                             score += 1
             elif isinstance(value, list) and len(value) > 0:
@@ -395,12 +436,15 @@ def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
         # Mergear campos de texto de forma inteligente
         # CRÍTICO: Descrições podem começar em um chunk e terminar em outro
         # Precisamos detectar se são complementares e concatenar, não apenas escolher uma
-        def are_texts_complementary(text1: str, text2: str, similarity_threshold: float = 0.3) -> bool:
+        def are_texts_complementary(text1: str, text2: str, similarity_threshold: float = None) -> bool:
             """
             Detecta se dois textos são complementares (não duplicados).
             Se houver sobreposição significativa, são duplicados.
             Se forem muito diferentes, podem ser complementares.
             """
+            if similarity_threshold is None:
+                similarity_threshold = _llm_config['similarity_threshold']
+
             if not text1 or not text2:
                 return False
             
@@ -1153,7 +1197,7 @@ async def process_chunk_with_retry(chunk: str, chunk_num: int, total_chunks: int
     
     # Log do conteúdo do chunk se for muito pequeno (pode indicar problema de scraping)
     chunk_size = len(chunk)
-    if chunk_size < 500:
+    if chunk_size < _llm_config['min_chunk_chars']:
         logger.warning(f"⚠️ Chunk {chunk_num}/{total_chunks} tem apenas {chunk_size} chars - pode ter pouco conteúdo para extrair")
         # Mostrar primeiras linhas do conteúdo para debug
         first_lines = '\n'.join(chunk.split('\n')[:10])
@@ -1217,9 +1261,8 @@ async def analyze_content(text_content: str) -> CompanyProfile:
     
     # SEMPRE dividir por páginas (uma página por requisição LLM)
     # Isso garante que todas as páginas sejam analisadas, mesmo que o conteúdo total seja pequeno
-    # Aumentado para 800k para aproveitar janelas de contexto maiores (Gemini 1.5 tem 1M+)
-    # Isso reduz requests desnecessários em páginas grandes
-    MAX_TOKENS = 800_000  
+    # Usar valor configurado para aproveitar janelas de contexto maiores
+    MAX_TOKENS = _llm_config['max_chunk_tokens']
     
     chunk_start = time.perf_counter()
     logger.info("Aplicando chunking por página (uma página por requisição LLM)...")
