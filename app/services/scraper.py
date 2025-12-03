@@ -69,24 +69,19 @@ async def _playwright_scrape_with_retry(url: str, proxy: Optional[str]) -> Tuple
     Wrapper com retry para chamadas do Playwright.
     Tenta 2x com backoff exponencial antes de desistir.
     Registra tempo total da navegação Playwright.
-    
-    CORREÇÕES APLICADAS (2025-12-03):
-    - PruningContentFilter menos agressivo (threshold 0.20, min_word 3)
-    - wait_for="networkidle" para aguardar carregamento de JS
-    - Retry automático se conteúdo muito pequeno (< 500 chars)
     """
     start_ts = time.perf_counter()
-    # ✅ CORREÇÃO: Filtro MENOS AGRESSIVO para preservar mais conteúdo
+    # Ajustar filtro para ser menos agressivo e preservar mais conteúdo
     # threshold menor = menos agressivo (mantém mais conteúdo)
     # min_word_threshold menor = aceita textos menores
-    # Reduzido de 0.35/5 para 0.20/3 para capturar sites com estrutura não-convencional (ex: deltaaut.com)
-    md_generator = DefaultMarkdownGenerator(content_filter=PruningContentFilter(threshold=0.20, min_word_threshold=3))
+    # ✅ CORREÇÃO: Reduzido threshold de 0.35 para 0.25 e min_word de 5 para 3
+    # para preservar conteúdo de sites SPA e estruturas não-convencionais (ex: deltaaut.com)
+    md_generator = DefaultMarkdownGenerator(content_filter=PruningContentFilter(threshold=0.25, min_word_threshold=3))
     run_config = CrawlerRunConfig(
         cache_mode=CacheMode.BYPASS, 
         exclude_external_images=True, 
         markdown_generator=md_generator, 
-        page_timeout=60000,  # 60s timeout
-        wait_for="networkidle"  # ✅ CORREÇÃO: Aguardar rede ficar ociosa (JS carregado)
+        page_timeout=60000  # ✅ CORREÇÃO 1: Aumentado de 30s para 60s
     )
     browser_config = BrowserConfig(
         browser_type="chromium", 
@@ -100,15 +95,10 @@ async def _playwright_scrape_with_retry(url: str, proxy: Optional[str]) -> Tuple
         async with AsyncWebCrawler(config=browser_config) as crawler:
             result = await crawler.arun(url=url, config=run_config, magic=True)
             
-            # ✅ CORREÇÃO: Se conteúdo muito pequeno, aguardar mais e tentar novamente
-            # Sites com JS pesado podem demorar para renderizar (ex: davimecanicadiesel.com.br)
-            if result.success and result.markdown and len(result.markdown) < 500:
-                logger.warning(f"⚠️ Conteúdo muito pequeno ({len(result.markdown)} chars), aguardando JS e tentando novamente...")
-                await asyncio.sleep(3)  # Aguardar JS renderizar
-                result = await crawler.arun(url=url, config=run_config, magic=True)
-            
-            if not result.success or not result.markdown or len(result.markdown) < 200:
-                raise Exception("Playwright failed or content too short")
+            # ✅ CORREÇÃO: Aumentado threshold de 200 para 500 chars
+            # Sites com pouco conteúdo cairão no fallback curl mais rapidamente
+            if not result.success or not result.markdown or len(result.markdown) < 500:
+                raise Exception("Playwright failed or content too short - triggering curl fallback")
             
             # Extrair links de Markdown E HTML para garantir cobertura total
             # Markdown falha em links de imagem (nested brackets) -> HTML resolve
@@ -224,27 +214,19 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
         f"duration={main_duration:.3f}s pages=1 pdfs={len(all_pdf_links)} links={len(links)}"
     )
 
-    # ✅ CORREÇÃO: Fallback para SPAs (Single Page Applications)
-    # Sites como deltaaut.com não têm links internos - todo conteúdo está na página principal
-    # Se não encontrou links mas o conteúdo da main page é substancial, usar apenas o conteúdo principal
-    main_content = aggregated_markdown[0] if aggregated_markdown else ""
-    main_content_size = len(main_content)
-    
-    if len(links) == 0 and main_content_size > 500:
-        logger.warning(f"⚠️ [SPA DETECTADO] Site sem links internos mas com conteúdo substancial ({main_content_size} chars)")
-        logger.info(f"📝 Usando apenas conteúdo da página principal (possível SPA ou site one-page)")
-        
-        total_duration = time.perf_counter() - overall_start
-        logger.info(
-            f"[PERF] scraper step=total url={url} "
-            f"duration={total_duration:.3f}s pages=1 pdfs={len(all_pdf_links)} spa_fallback=true"
-        )
-        return "\n".join(aggregated_markdown), list(all_pdf_links), visited_urls
-
     # --- 2. SCRAPE SUBPAGES (Parallel + Rotation) ---
-    # Usar LLM para seleção inteligente de links (muito melhor que regras hardcoded!)
-    logger.info(f"[Scraper] Encontrados {len(links)} links. Usando LLM para selecionar os mais relevantes...")
-    target_subpages = await _select_links_with_llm(links, url, max_links=max_subpages)
+    # ✅ CORREÇÃO: Detectar sites SPA (sem links internos) para evitar chamada LLM desnecessária
+    if not links or len(links) == 0:
+        if len(aggregated_markdown[0]) > 500 if aggregated_markdown else False:
+            logger.info(f"[Scraper] Site SPA detectado (sem links internos). Usando apenas conteúdo da main page.")
+            target_subpages = []  # Não processar subpages - economia de tempo
+        else:
+            logger.warning(f"[Scraper] Site sem links E pouco conteúdo - possível falha de scraping")
+            target_subpages = []
+    else:
+        # Usar LLM para seleção inteligente de links (muito melhor que regras hardcoded!)
+        logger.info(f"[Scraper] Encontrados {len(links)} links. Usando LLM para selecionar os mais relevantes...")
+        target_subpages = await _select_links_with_llm(links, url, max_links=max_subpages)
     
     if target_subpages:
         subpages_start = time.perf_counter()
