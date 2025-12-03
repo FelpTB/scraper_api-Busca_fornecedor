@@ -14,18 +14,29 @@ logger = logging.getLogger(__name__)
 
 # Semaphores individuais por provedor LLM (respeitar rate limits)
 llm_semaphores = {
-    # Gemini: 10M tokens/min, 10k RPM. 
-    # Usamos 15 concurrency seguro.
-    "Google Gemini": asyncio.Semaphore(15),      
+    # Gemini 1.5 Flash: 
+    # - 10M tokens/min (TPM)
+    # - 2.000 requisições/min (RPM) oficialmente, mas suporta bursts maiores em pay-as-you-go
+    # Cálculo para 1000 sites/min:
+    # - Necessitamos ~1000 RPM (requisições por minuto)
+    # - Com latência média de 5s, precisamos de ~100 concorrência para atingir 1000 RPM
+    # - Margem de segurança: 150
+    "Google Gemini": asyncio.Semaphore(200),      
     
-    # OpenAI: 4M tokens/min, 5k RPM.
-    # Usamos 10 concurrency seguro.
-    "OpenAI": asyncio.Semaphore(10),             
+    # OpenAI GPT-4o-mini (Tier 4+):
+    # - 10M tokens/min (TPM)
+    # - 10k RPM
+    # Concorrência segura: 150
+    "OpenAI": asyncio.Semaphore(150),             
 }
 
-# Semaphore global para throttling geral (max 20 requisições simultâneas ao total)
-# Limitado pelo servidor da aplicação, não apenas pelas APIs
-llm_global_semaphore = asyncio.Semaphore(20)
+# Semaphore global para throttling geral
+# ALVO: 1000 sites/minuto
+# Cálculo: 1000 sites / 60 segs = 16.6 req/segundo
+# Se cada req demora ~5s (inferência):
+# Concorrência Necessária = 16.6 * 5 = 83 slots simultâneos
+# Configurando com margem de sobra para absorver picos e latência de rede
+llm_global_semaphore = asyncio.Semaphore(350)
 
 # Configuração de fallback chain
 FALLBACK_CHAIN = [
@@ -143,13 +154,15 @@ def estimate_tokens(text: str, include_overhead: bool = True) -> int:
     """
     Estima a quantidade de tokens em um texto.
     Aproximação melhorada para português e conteúdo HTML/Markdown:
-    - 1 token ≈ 2.5 caracteres (mais conservador que 4)
-    - include_overhead: Se True, adiciona overhead do prompt do sistema (~50k tokens)
+    - 1 token ≈ 3 caracteres (média conservadora para PT-BR)
+    - include_overhead: Se True, adiciona overhead do prompt do sistema
     """
-    base_tokens = len(text) // 2.5  # Melhor para português
+    base_tokens = len(text) // 3  # Ajustado para 3 chars/token (PT-BR)
     
     if include_overhead:
-        system_prompt_tokens = 50000  # Overhead do SYSTEM_PROMPT
+        # Prompt do sistema tem ~2k tokens na realidade.
+        # 50k era um exagero que causava chunking excessivo.
+        system_prompt_tokens = 2500  
         return int(base_tokens + system_prompt_tokens)
     
     return int(base_tokens)
@@ -1206,7 +1219,9 @@ async def analyze_content(text_content: str) -> CompanyProfile:
     
     # SEMPRE dividir por páginas (uma página por requisição LLM)
     # Isso garante que todas as páginas sejam analisadas, mesmo que o conteúdo total seja pequeno
-    MAX_TOKENS = 500_000  # 50% do limite do Gemini 2.0 Flash (1.048.575) - Muito conservador
+    # Aumentado para 800k para aproveitar janelas de contexto maiores (Gemini 1.5 tem 1M+)
+    # Isso reduz requests desnecessários em páginas grandes
+    MAX_TOKENS = 800_000  
     
     chunk_start = time.perf_counter()
     logger.info("Aplicando chunking por página (uma página por requisição LLM)...")
