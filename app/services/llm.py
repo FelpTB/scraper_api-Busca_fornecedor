@@ -65,10 +65,21 @@ class LLMPerformanceTracker:
             'rate_limits': 0,
             'total_response_time': 0,
             'last_reset': time.time(),
-            'chunk_sizes': [],
-            'waiting_times': []
+            'chunk_sizes_success': [],
+            'chunk_sizes_timeout': [],
+            'waiting_times': [],
+            'active_requests': 0,
+            'max_concurrency': 0
         })
         self.lock = threading.Lock()
+
+    def start_request(self, provider_name: str):
+        """Registra início de uma requisição para monitorar concorrência"""
+        with self.lock:
+            stats = self.stats[provider_name]
+            stats['active_requests'] += 1
+            if stats['active_requests'] > stats['max_concurrency']:
+                stats['max_concurrency'] = stats['active_requests']
 
     def record_request(self, provider_name: str, success: bool = False, timeout: bool = False,
                       error: bool = False, rate_limit: bool = False, response_time: float = 0,
@@ -76,19 +87,23 @@ class LLMPerformanceTracker:
         """Registra uma requisição no tracker"""
         with self.lock:
             stats = self.stats[provider_name]
+            stats['active_requests'] = max(0, stats['active_requests'] - 1)
+            
             stats['requests'] += 1
             if success:
                 stats['successes'] += 1
+                if chunk_size > 0:
+                    stats['chunk_sizes_success'].append(min(chunk_size, 100000))
             if timeout:
                 stats['timeouts'] += 1
+                if chunk_size > 0:
+                    stats['chunk_sizes_timeout'].append(min(chunk_size, 100000))
             if error:
                 stats['errors'] += 1
             if rate_limit:
                 stats['rate_limits'] += 1
             if response_time > 0:
                 stats['total_response_time'] += response_time
-            if chunk_size > 0:
-                stats['chunk_sizes'].append(min(chunk_size, 100000))  # Limitar para evitar memória excessiva
             if waiting_time > 0:
                 stats['waiting_times'].append(min(waiting_time, 300))  # Max 5 minutos
 
@@ -107,18 +122,30 @@ class LLMPerformanceTracker:
                 error_rate = (stats['errors'] / stats['requests']) * 100
                 rate_limit_rate = (stats['rate_limits'] / stats['requests']) * 100
                 avg_response_time = stats['total_response_time'] / max(stats['requests'], 1)
-                avg_chunk_size = sum(stats['chunk_sizes']) / max(len(stats['chunk_sizes']), 1)
+                
+                # Calcular médias de tamanho de chunk separadas
+                avg_chunk_success = 0
+                if stats['chunk_sizes_success']:
+                    avg_chunk_success = sum(stats['chunk_sizes_success']) / len(stats['chunk_sizes_success'])
+                
+                avg_chunk_timeout = 0
+                if stats['chunk_sizes_timeout']:
+                    avg_chunk_timeout = sum(stats['chunk_sizes_timeout']) / len(stats['chunk_sizes_timeout'])
+                
                 avg_waiting_time = sum(stats['waiting_times']) / max(len(stats['waiting_times']), 1)
 
                 logger.info(f"📊 [PROVIDER_SUMMARY] {p_name} - "
-                           f"Requests: {stats['requests']}, "
+                           f"Requests: {stats['requests']} (Active: {stats['active_requests']}, Max: {stats['max_concurrency']}), "
                            f"Success: {success_rate:.1f}%, "
                            f"Timeouts: {timeout_rate:.1f}%, "
                            f"Errors: {error_rate:.1f}%, "
-                           f"Rate Limits: {rate_limit_rate:.1f}%, "
-                           f"Avg Response: {avg_response_time:.2f}s, "
-                           f"Avg Chunk Size: {avg_chunk_size:.0f} chars, "
+                           f"Avg Time: {avg_response_time:.2f}s, "
                            f"Avg Wait: {avg_waiting_time:.2f}s")
+                
+                if avg_chunk_timeout > 0:
+                     logger.info(f"   📏 [CHUNK_STATS] {p_name} - "
+                                f"Avg Chunk (Success): {avg_chunk_success:.0f} chars vs "
+                                f"Avg Chunk (Timeout): {avg_chunk_timeout:.0f} chars")
 
     def detect_timeout_patterns(self):
         """Detecta padrões problemáticos que podem causar timeouts"""
@@ -135,11 +162,15 @@ class LLMPerformanceTracker:
                                   f"({stats['timeouts']}/{stats['requests']} requests)")
 
                 # Timeouts concentrados em chunks grandes
-                if stats['chunk_sizes']:
-                    large_chunks = [size for size in stats['chunk_sizes'] if size > 50000]
-                    if large_chunks and len(large_chunks) / len(stats['chunk_sizes']) > 0.8:
-                        logger.warning(f"🚨 [PATTERN_DETECTED] {provider_name} falhando principalmente "
-                                      f"em chunks grandes (>50k chars)")
+                if stats['chunk_sizes_timeout']:
+                    avg_timeout_size = sum(stats['chunk_sizes_timeout']) / len(stats['chunk_sizes_timeout'])
+                    avg_success_size = 0
+                    if stats['chunk_sizes_success']:
+                         avg_success_size = sum(stats['chunk_sizes_success']) / len(stats['chunk_sizes_success'])
+                    
+                    if avg_success_size > 0 and avg_timeout_size > avg_success_size * 1.5:
+                         logger.warning(f"🚨 [PATTERN_DETECTED] {provider_name}: Chunks com timeout são 50% maiores "
+                                       f"que os bem-sucedidos ({avg_timeout_size:.0f} vs {avg_success_size:.0f} chars)")
 
                 # Tempos de espera muito altos
                 if stats['waiting_times']:
@@ -156,6 +187,9 @@ async def periodic_health_monitor():
     """
     Monitor de saúde periódico que log métricas de performance dos providers LLM.
     """
+    # Aguardar inicialização completa antes de começar
+    await asyncio.sleep(60)
+    
     while True:
         try:
             await asyncio.sleep(300)  # A cada 5 minutos
@@ -163,19 +197,34 @@ async def periodic_health_monitor():
             logger.info("🏥 [HEALTH_CHECK] Iniciando verificação de saúde dos providers LLM")
 
             # Log métricas de todos os providers
-            performance_tracker.log_summary()
+            try:
+                performance_tracker.log_summary()
+            except Exception as e:
+                logger.error(f"❌ [HEALTH_CHECK] Erro ao logar resumo de performance: {e}")
 
             # Verificar status dos semáforos
-            global_available = _llm_config['global_semaphore_limit'] - len(llm_global_semaphore._waiters) if hasattr(llm_global_semaphore, '_waiters') else _llm_config['global_semaphore_limit']
-            logger.info(f"🏥 [HEALTH_CHECK] Semaphore global: {global_available}/{_llm_config['global_semaphore_limit']} disponível")
+            try:
+                global_waiters = len(llm_global_semaphore._waiters) if hasattr(llm_global_semaphore, '_waiters') and llm_global_semaphore._waiters is not None else 0
+                global_available = _llm_config['global_semaphore_limit'] - global_waiters
+                logger.info(f"🏥 [HEALTH_CHECK] Semaphore global: {global_available}/{_llm_config['global_semaphore_limit']} disponível (Waiters: {global_waiters})")
 
-            for provider_name, semaphore in llm_semaphores.items():
-                provider_limit = _llm_config.get(f'{provider_name.lower().replace(" ", "_")}_semaphore_limit', 3)
-                provider_available = provider_limit - len(semaphore._waiters) if hasattr(semaphore, '_waiters') else provider_limit
-                logger.info(f"🏥 [HEALTH_CHECK] Semaphore {provider_name}: {provider_available}/{provider_limit} disponível")
+                for provider_name, semaphore in llm_semaphores.items():
+                    provider_limit = _llm_config.get(f'{provider_name.lower().replace(" ", "_")}_semaphore_limit', 3)
+                    
+                    waiters = 0
+                    if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
+                         waiters = len(semaphore._waiters)
+                    
+                    provider_available = provider_limit - waiters
+                    logger.info(f"🏥 [HEALTH_CHECK] Semaphore {provider_name}: {provider_available}/{provider_limit} disponível (Waiters: {waiters})")
+            except Exception as e:
+                logger.error(f"❌ [HEALTH_CHECK] Erro ao verificar semáforos: {e}")
 
             # Detectar padrões problemáticos
-            performance_tracker.detect_timeout_patterns()
+            try:
+                performance_tracker.detect_timeout_patterns()
+            except Exception as e:
+                logger.error(f"❌ [HEALTH_CHECK] Erro ao detectar padrões: {e}")
 
         except Exception as e:
             logger.error(f"❌ [HEALTH_CHECK] Erro no monitor de saúde: {e}")
@@ -1373,6 +1422,10 @@ async def analyze_content_with_fallback(text_content: str, provider_name: Option
 
                     # Tentar análise
                     llm_start = time.time()
+                    
+                    # Registrar início da requisição para monitoramento de concorrência
+                    performance_tracker.start_request(name)
+                    
                     profile = await _call_llm(provider_client, model, text_content)
                     llm_duration = time.time() - llm_start
 
