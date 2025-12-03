@@ -1109,6 +1109,8 @@ async def analyze_content_with_fallback(text_content: str, provider_name: Option
     """
     start_ts = time.perf_counter()
     # Throttling global
+    if llm_global_semaphore.locked():
+         logger.warning(f"⚠️ Global LLM semaphore full ({_llm_config['global_semaphore_limit']}), waiting...")
     async with llm_global_semaphore:
         # Se um provedor específico foi solicitado, tentar apenas ele
         if provider_name:
@@ -1122,6 +1124,8 @@ async def analyze_content_with_fallback(text_content: str, provider_name: Option
             # Throttling específico do provedor
             provider_semaphore = llm_semaphores.get(name, asyncio.Semaphore(3))  # Default: 3
             
+            if provider_semaphore.locked():
+                 logger.warning(f"⚠️ {name} semaphore full, waiting...")
             async with provider_semaphore:
                 try:
                     logger.info(f"Tentando análise com {name} ({model})...")

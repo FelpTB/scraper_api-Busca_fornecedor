@@ -12,9 +12,10 @@ from app.services.pdf import download_and_extract
 from app.services.llm import analyze_content
 from app.services.discovery import find_company_website
 from app.core.security import get_api_key
+from app.core.logging_utils import setup_logging
 
-# Configurar Logging
-logging.basicConfig(level=logging.INFO)
+# Configurar Logging (JSON Structured)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="B2B Flash Profiler")

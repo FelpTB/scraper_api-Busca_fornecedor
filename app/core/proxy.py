@@ -1,7 +1,10 @@
 import random
 import httpx
+import logging
 from typing import List, Optional
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class ProxyManager:
     def __init__(self):
@@ -30,10 +33,10 @@ class ProxyManager:
                 
                 if new_proxies:
                     self.proxies = new_proxies
-                    print(f"[ProxyManager] Loaded {len(self.proxies)} proxies.")
+                    logger.info(f"[ProxyManager] Loaded {len(self.proxies)} proxies.")
                     
         except Exception as e:
-            print(f"[ProxyManager] Failed to refresh proxies: {e}")
+            logger.error(f"[ProxyManager] Failed to refresh proxies: {e}")
 
     async def get_next_proxy(self) -> Optional[str]:
         """Returns a random proxy from the pool, refreshing if empty."""

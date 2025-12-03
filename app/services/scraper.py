@@ -158,8 +158,11 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
     main_start = time.perf_counter()
     
     # Usar site_semaphore para limitar concorrência geral de processamento de sites
+    if site_semaphore.locked():
+        logger.warning(f"[Scraper] Site semaphore full ({_scraper_config['site_semaphore_limit']}), waiting... url={url}")
+    
     async with site_semaphore:
-        print(f"[Scraper] Processing Main: {url}")
+        logger.info(f"[Scraper] Processing Main: {url}")
         main_proxy = await proxy_manager.get_next_proxy()
         
         try:
@@ -222,7 +225,7 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
     
     if target_subpages:
         subpages_start = time.perf_counter()
-        print(f"[Scraper] Processing {len(target_subpages)} subpages with Parallel IP Rotation & Session Reuse")
+        logger.info(f"[Scraper] Processing {len(target_subpages)} subpages with Parallel IP Rotation & Session Reuse")
         
         # Semaphore to limit concurrency (avoid overwhelming proxy provider or local resources)
         sem = asyncio.Semaphore(10) 
