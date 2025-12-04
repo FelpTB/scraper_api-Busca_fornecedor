@@ -438,51 +438,51 @@ async def find_company_website(
             start_time = asyncio.get_event_loop().time()
             
             async with get_semaphore_for_provider(selected_provider):
-        response = await asyncio.wait_for(
-            client.chat.completions.create(
+                response = await asyncio.wait_for(
+                    client.chat.completions.create(
                         model=model,
-                messages=[
-                    {"role": "system", "content": DISCOVERY_PROMPT},
-                    {"role": "user", "content": user_content}
-                ],
-                temperature=0.0,
-                response_format={"type": "json_object"}
-            ),
+                        messages=[
+                            {"role": "system", "content": DISCOVERY_PROMPT},
+                            {"role": "user", "content": user_content}
+                        ],
+                        temperature=0.0,
+                        response_format={"type": "json_object"}
+                    ),
                     timeout=DISCOVERY_TIMEOUT
-        )
-        
+                )
+            
             duration = asyncio.get_event_loop().time() - start_time
-        content = response.choices[0].message.content.strip()
+            content = response.choices[0].message.content.strip()
             logger.info(f"🧠 Decisão do LLM ({selected_provider}): {content}")
             
             # Registrar sucesso
             performance_tracker.record_request(selected_provider, success=True, response_time=duration)
-        
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError:
-            # Tentar limpar markdown se houver
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-                data = json.loads(content)
-            else:
-                raise
-
-        # Tratamento para caso a IA retorne uma lista em vez de um objeto
-        if isinstance(data, list):
-            if len(data) > 0:
-                data = data[0]
-            else:
-                logger.warning("⚠️ IA retornou lista vazia.")
-                return None
-        
-        if data.get("site_oficial") == "sim" and data.get("site") and data.get("site") != "nao_encontrado":
-            return data.get("site")
-        else:
-                logger.debug(f"Site não encontrado. Justificativa: {data.get('justificativa')}")
-            return None
             
-    except asyncio.TimeoutError:
+            try:
+                data = json.loads(content)
+            except json.JSONDecodeError:
+                # Tentar limpar markdown se houver
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0].strip()
+                    data = json.loads(content)
+                else:
+                    raise
+
+            # Tratamento para caso a IA retorne uma lista em vez de um objeto
+            if isinstance(data, list):
+                if len(data) > 0:
+                    data = data[0]
+                else:
+                    logger.warning("⚠️ IA retornou lista vazia.")
+                    return None
+            
+            if data.get("site_oficial") == "sim" and data.get("site") and data.get("site") != "nao_encontrado":
+                return data.get("site")
+            else:
+                logger.debug(f"Site não encontrado. Justificativa: {data.get('justificativa')}")
+                return None
+            
+        except asyncio.TimeoutError:
             duration = asyncio.get_event_loop().time() - start_time if 'start_time' in dir() else DISCOVERY_TIMEOUT
             performance_tracker.record_request(selected_provider, timeout=True, response_time=duration)
             logger.warning(f"⚠️ Timeout na análise do LLM ({selected_provider}) para descoberta de site ({DISCOVERY_TIMEOUT}s). "
@@ -490,7 +490,7 @@ async def find_company_website(
             last_error = "timeout"
             continue  # Tentar novamente com outro provedor
             
-    except Exception as e:
+        except Exception as e:
             duration = asyncio.get_event_loop().time() - start_time if 'start_time' in dir() else 0
             performance_tracker.record_request(selected_provider, error=True, response_time=duration)
             logger.warning(f"⚠️ Erro na análise do LLM ({selected_provider}): {e}. "
@@ -501,5 +501,5 @@ async def find_company_website(
     # Todas as tentativas falharam
     logger.error(f"❌ Erro na análise do LLM para descoberta de site após {DISCOVERY_MAX_RETRIES} tentativas. "
                 f"Último erro: {last_error}")
-        return None
+    return None
 
