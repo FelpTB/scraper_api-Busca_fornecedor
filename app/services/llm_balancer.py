@@ -3,7 +3,7 @@ Serviço centralizado de Load Balancing para chamadas LLM.
 
 Responsável por:
 - Gerenciar semáforos de concorrência por provedor
-- Selecionar o provedor com menor carga
+- Selecionar o provedor com distribuição round-robin + fallback
 - Fornecer clientes configurados para cada provedor
 - Registrar métricas de performance
 
@@ -14,6 +14,7 @@ import asyncio
 import logging
 import time
 import threading
+import itertools
 from typing import Optional, Tuple, List
 from collections import defaultdict
 from openai import AsyncOpenAI
@@ -21,6 +22,11 @@ from openai import AsyncOpenAI
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# --- ROUND-ROBIN STATE ---
+# Contador thread-safe para distribuição round-robin
+_round_robin_lock = threading.Lock()
+_round_robin_index = 0
 
 # --- CONFIGURAÇÃO DE PROVEDORES ---
 # Limites de concorrência por provedor
@@ -129,15 +135,87 @@ performance_tracker = LLMPerformanceTracker()
 
 
 # --- FUNÇÕES DE LOAD BALANCING ---
+
+def _get_next_round_robin_index() -> int:
+    """
+    Retorna o próximo índice para round-robin de forma thread-safe.
+    """
+    global _round_robin_index
+    with _round_robin_lock:
+        idx = _round_robin_index
+        _round_robin_index = (_round_robin_index + 1) % len(AVAILABLE_PROVIDERS)
+        return idx
+
+
+def _is_provider_available(provider_name: str) -> bool:
+    """
+    Verifica se um provedor está disponível (semáforo não está locked).
+    
+    Args:
+        provider_name: Nome do provedor
+        
+    Returns:
+        True se disponível, False se semáforo está locked
+    """
+    semaphore = llm_semaphores.get(provider_name)
+    if semaphore is None:
+        return False
+    return not semaphore.locked()
+
+
 def select_least_loaded_provider() -> str:
     """
+    Seleciona o provedor LLM usando estratégia HÍBRIDA:
+    
+    1. ROUND-ROBIN: Alterna entre provedores para distribuição uniforme (50/50)
+    2. FALLBACK: Se o provedor selecionado estiver com semáforo locked,
+       usa o próximo disponível
+    
+    Estratégia:
+    - Garante distribuição uniforme quando ambos provedores estão disponíveis
+    - Evita espera desnecessária quando um provedor está sobrecarregado
+    
+    Performance: ~1μs por chamada (thread-safe com lock mínimo)
+    
+    Returns:
+        str: Nome do provedor selecionado
+    """
+    if len(AVAILABLE_PROVIDERS) == 1:
+        return AVAILABLE_PROVIDERS[0][0]
+    
+    # 1. Obter próximo provedor via round-robin
+    idx = _get_next_round_robin_index()
+    primary_provider = AVAILABLE_PROVIDERS[idx][0]
+    
+    # 2. Verificar se o provedor está disponível (semáforo não locked)
+    if _is_provider_available(primary_provider):
+        logger.info(f"🔄 [ROUND_ROBIN] Selecionado: {primary_provider} (índice {idx})")
+        return primary_provider
+    
+    # 3. Fallback: tentar outros provedores
+    for i in range(len(AVAILABLE_PROVIDERS)):
+        fallback_idx = (idx + i + 1) % len(AVAILABLE_PROVIDERS)
+        fallback_provider = AVAILABLE_PROVIDERS[fallback_idx][0]
+        
+        if _is_provider_available(fallback_provider):
+            logger.info(f"🔄 [ROUND_ROBIN] Fallback: {fallback_provider} "
+                       f"({primary_provider} está com semáforo locked)")
+            return fallback_provider
+    
+    # 4. Todos locked: retornar o primário mesmo assim (vai esperar no semáforo)
+    logger.warning(f"⚠️ [ROUND_ROBIN] Todos provedores com semáforo locked, "
+                  f"usando {primary_provider} (vai aguardar)")
+    return primary_provider
+
+
+def select_provider_by_load() -> str:
+    """
     Seleciona o provedor LLM com menor carga no momento.
+    Método alternativo ao round-robin para casos específicos.
     
     Estratégia de seleção (O(n) onde n = número de provedores):
     1. Calcula score de carga: locked (1000) + waiters (quantidade na fila)
     2. Retorna provedor com menor score
-    
-    Performance: ~1μs por chamada (apenas leitura de atributos, sem I/O)
     
     Returns:
         str: Nome do provedor com menor carga
@@ -146,21 +224,18 @@ def select_least_loaded_provider() -> str:
         return AVAILABLE_PROVIDERS[0][0]
     
     min_load = float('inf')
-    selected_provider = AVAILABLE_PROVIDERS[0][0]  # Fallback default
+    selected_provider = AVAILABLE_PROVIDERS[0][0]
     
     for provider_name, _, _, _ in AVAILABLE_PROVIDERS:
         semaphore = llm_semaphores.get(provider_name)
         if semaphore is None:
             continue
         
-        # Calcular carga: locked adiciona peso alto, waiters adiciona peso proporcional
         load_score = 0
         
-        # Se locked, todas as vagas estão ocupadas
         if semaphore.locked():
             load_score += 1000
         
-        # Adicionar número de waiters na fila (se disponível)
         if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
             load_score += len(semaphore._waiters)
         
@@ -169,6 +244,21 @@ def select_least_loaded_provider() -> str:
             selected_provider = provider_name
     
     return selected_provider
+
+
+def get_round_robin_stats() -> dict:
+    """
+    Retorna estatísticas do round-robin para monitoramento.
+    
+    Returns:
+        dict com índice atual e total de provedores
+    """
+    with _round_robin_lock:
+        return {
+            'current_index': _round_robin_index,
+            'total_providers': len(AVAILABLE_PROVIDERS),
+            'providers': [p[0] for p in AVAILABLE_PROVIDERS]
+        }
 
 
 def get_provider_config(provider_name: str) -> Optional[Tuple[str, str, str]]:

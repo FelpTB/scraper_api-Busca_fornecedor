@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """
-Análise de logs para identificar discrepância entre empresas processadas
-e chamadas de LLM no discovery.
-
-Objetivo: Encontrar por que 250 empresas resultaram em apenas 201 chamadas LLM
+Análise de logs para o fluxo de discovery de sites.
+Atualizado para refletir as modificações de load balancing e retry.
 """
 
 import json
@@ -14,9 +12,9 @@ from datetime import datetime
 def analyze_discovery_logs(file_path: str):
     """Analisa logs focando no fluxo de discovery de sites"""
     
-    print("=" * 80)
-    print("ANÁLISE DE LOGS - DISCOVERY DE SITES")
-    print("=" * 80)
+    print("=" * 100)
+    print("🔍 ANÁLISE DE LOGS - DISCOVERY DE SITES (v2 - Load Balancing)")
+    print("=" * 100)
     
     # Carregar logs
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -28,8 +26,8 @@ def analyze_discovery_logs(file_path: str):
     stats = {
         # Fluxo principal
         'analyze_company_start': 0,
-        'analyze_company_com_url': 0,  # Requisições que JÁ vieram com URL
-        'analyze_company_sem_url': 0,  # Requisições que precisaram discovery
+        'analyze_company_com_url': 0,
+        'analyze_company_sem_url': 0,
         
         # Serper
         'serper_buscas': 0,
@@ -38,8 +36,8 @@ def analyze_discovery_logs(file_path: str):
         'serper_erros': 0,
         
         # Discovery
-        'discovery_iniciado': 0,  # [DISCOVERY] Iniciando busca
-        'discovery_site_identificado': 0,  # [DISCOVERY] Site identificado
+        'discovery_iniciado': 0,
+        'discovery_site_identificado': 0,
         'discovery_sem_queries': 0,
         'discovery_sem_resultados_google': 0,
         'discovery_llm_chamadas': 0,
@@ -49,45 +47,43 @@ def analyze_discovery_logs(file_path: str):
         'discovery_site_encontrado': 0,
         'discovery_site_nao_encontrado': 0,
         
+        # Load Balancing (NOVO)
+        'load_balance_decisions': 0,
+        'provider_gemini': 0,
+        'provider_openai': 0,
+        
+        # Retry (NOVO)
+        'discovery_retries': 0,
+        
         # Profile LLM
         'llm_profile_chamadas': 0,
     }
     
-    # PRIMEIRA PASSAGEM: Contar todos os padrões de mensagens
-    all_messages = []
-    for entry in data:
-        msg = entry.get('message', '') if isinstance(entry, dict) else str(entry)
-        all_messages.append(msg)
-    
-    # URLs processadas diretamente (sem discovery)
-    urls_diretas = []
+    # URLs descobertas
     urls_descobertas = []
     
-    for msg in all_messages:
-        # ========================================
-        # FLUXO PRINCIPAL (main.py)
-        # ========================================
+    # Detalhes de falhas
+    falhas_discovery = []
+    
+    for entry in data:
+        msg = entry.get('message', '') if isinstance(entry, dict) else str(entry)
+        timestamp = entry.get('timestamp', '') if isinstance(entry, dict) else ''
         
-        # Início do processamento
-        if '[PERF] analyze_company start url=' in msg:
+        # === FLUXO PRINCIPAL ===
+        if '[PERF] analyze_company start' in msg:
             stats['analyze_company_start'] += 1
         
-        # Discovery iniciado (significa que NÃO tinha URL)
         if '[DISCOVERY] Iniciando busca para:' in msg:
             stats['discovery_iniciado'] += 1
             stats['analyze_company_sem_url'] += 1
         
-        # Site identificado pelo discovery
         if '[DISCOVERY] Site identificado:' in msg:
             stats['discovery_site_identificado'] += 1
             match = re.search(r'\[DISCOVERY\] Site identificado: (.+)$', msg)
             if match:
                 urls_descobertas.append(match.group(1))
         
-        # ========================================
-        # SERPER (discovery.py)
-        # ========================================
-        
+        # === SERPER ===
         if 'Buscando no Google via Serper' in msg:
             stats['serper_buscas'] += 1
         
@@ -102,10 +98,7 @@ def analyze_discovery_logs(file_path: str):
         if 'Erro na Serper API' in msg or 'Erro na execução da busca Serper' in msg:
             stats['serper_erros'] += 1
         
-        # ========================================
-        # DISCOVERY LLM (discovery.py)
-        # ========================================
-        
+        # === DISCOVERY LLM ===
         if 'Sem Nome Fantasia ou Razão Social para busca' in msg:
             stats['discovery_sem_queries'] += 1
         
@@ -115,148 +108,144 @@ def analyze_discovery_logs(file_path: str):
         if 'Resultados consolidados enviados para IA' in msg:
             stats['discovery_llm_chamadas'] += 1
         
+        # Decisão do LLM (com provider no log agora)
         if 'Decisão do LLM' in msg:
             stats['discovery_llm_success'] += 1
-            if '"site_oficial": "sim"' in msg or '"site_oficial":"sim"' in msg:
-                stats['discovery_site_encontrado'] += 1
-            elif '"site_oficial": "nao"' in msg or '"site_oficial":"nao"' in msg or 'nao_encontrado' in msg:
+            if '"site": "nao_encontrado"' in msg or '"site":"nao_encontrado"' in msg:
                 stats['discovery_site_nao_encontrado'] += 1
+            elif '"site_oficial": "sim"' in msg or '"site_oficial":"sim"' in msg:
+                stats['discovery_site_encontrado'] += 1
         
-        if 'Timeout na análise do LLM para descoberta de site' in msg:
+        # Timeout (novo formato com 35s)
+        if 'Timeout na análise do LLM' in msg and 'descoberta de site' in msg:
             stats['discovery_llm_timeouts'] += 1
+            falhas_discovery.append({
+                'type': 'timeout',
+                'message': msg[:200],
+                'timestamp': timestamp
+            })
         
-        if 'Erro na análise do LLM para descoberta de site' in msg:
+        # Erro (novo formato)
+        if 'Erro na análise do LLM' in msg and 'descoberta de site' in msg:
             stats['discovery_llm_erros'] += 1
+            falhas_discovery.append({
+                'type': 'error',
+                'message': msg[:200],
+                'timestamp': timestamp
+            })
         
-        if 'Site não encontrado ou não oficial' in msg:
-            stats['discovery_site_nao_encontrado'] += 1
+        # === LOAD BALANCING (NOVO) ===
+        if '[LOAD_BALANCE]' in msg:
+            stats['load_balance_decisions'] += 1
         
-        # ========================================
-        # LLM PROFILE (llm.py)
-        # ========================================
+        # === RETRY (NOVO) ===
+        if 'Discovery retry' in msg:
+            stats['discovery_retries'] += 1
         
+        # === PROVIDER TRACKING ===
+        # Nas chamadas de discovery, verificar qual provider foi usado
+        if 'Decisão do LLM' in msg:
+            if 'Google Gemini' in msg or 'gemini' in msg.lower():
+                stats['provider_gemini'] += 1
+            elif 'OpenAI' in msg or 'gpt' in msg.lower():
+                stats['provider_openai'] += 1
+        
+        # === PROFILE LLM ===
         if '[LLM_REQUEST_START]' in msg:
             stats['llm_profile_chamadas'] += 1
     
     # Calcular requisições com URL direta
     stats['analyze_company_com_url'] = stats['analyze_company_start'] - stats['analyze_company_sem_url']
     
-    # Relatório
-    print("\n" + "=" * 80)
-    print("📊 FLUXO PRINCIPAL (main.py - analyze_company)")
-    print("=" * 80)
-    print(f"  Total requisições processadas:        {stats['analyze_company_start']}")
-    print(f"  Requisições COM URL (sem discovery):  {stats['analyze_company_com_url']}")
-    print(f"  Requisições SEM URL (com discovery):  {stats['analyze_company_sem_url']}")
+    # === RELATÓRIO ===
+    print("\n" + "=" * 100)
+    print("📊 FLUXO PRINCIPAL")
+    print("=" * 100)
+    print(f"  Total requisições:                    {stats['analyze_company_start']}")
+    print(f"  COM URL (sem discovery):              {stats['analyze_company_com_url']}")
+    print(f"  SEM URL (com discovery):              {stats['analyze_company_sem_url']}")
     
-    print("\n" + "=" * 80)
-    print("📊 DISCOVERY (find_company_website)")
-    print("=" * 80)
-    print(f"  [DISCOVERY] Iniciando busca:          {stats['discovery_iniciado']}")
-    print(f"  [DISCOVERY] Site identificado:        {stats['discovery_site_identificado']}")
+    print("\n" + "=" * 100)
+    print("📊 DISCOVERY")
+    print("=" * 100)
+    print(f"  Iniciado:                             {stats['discovery_iniciado']}")
+    print(f"  Sites identificados:                  {stats['discovery_site_identificado']}")
     
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 100)
     print("📊 SERPER (BUSCA GOOGLE)")
-    print("=" * 80)
-    print(f"  Total de buscas Serper:               {stats['serper_buscas']}")
-    print(f"  Buscas com resultados > 0:            {stats['serper_resultados_ok']}")
-    print(f"  Buscas com 0 resultados:              {stats['serper_sem_resultados']}")
-    print(f"  Erros na API Serper:                  {stats['serper_erros']}")
+    print("=" * 100)
+    print(f"  Total de buscas:                      {stats['serper_buscas']}")
+    print(f"  Com resultados:                       {stats['serper_resultados_ok']}")
+    print(f"  Sem resultados:                       {stats['serper_sem_resultados']}")
+    print(f"  Erros:                                {stats['serper_erros']}")
     
-    print("\n" + "=" * 80)
-    print("📊 DISCOVERY LLM (análise de resultados)")
-    print("=" * 80)
-    print(f"  Saída: Sem queries válidas:           {stats['discovery_sem_queries']}")
-    print(f"  Saída: Sem resultados Google:         {stats['discovery_sem_resultados_google']}")
-    print(f"  Chamadas LLM para discovery:          {stats['discovery_llm_chamadas']}")
-    print(f"  LLM respostas bem-sucedidas:          {stats['discovery_llm_success']}")
-    print(f"  LLM Timeouts:                         {stats['discovery_llm_timeouts']}")
-    print(f"  LLM Erros:                            {stats['discovery_llm_erros']}")
-    print(f"  Sites oficiais encontrados:           {stats['discovery_site_encontrado']}")
-    print(f"  Sites não oficiais/inválidos:         {stats['discovery_site_nao_encontrado']}")
+    print("\n" + "=" * 100)
+    print("📊 DISCOVERY LLM (com Load Balancing)")
+    print("=" * 100)
+    print(f"  Chamadas LLM:                         {stats['discovery_llm_chamadas']}")
+    print(f"  Respostas OK:                         {stats['discovery_llm_success']}")
+    print(f"  Sites encontrados:                    {stats['discovery_site_encontrado']}")
+    print(f"  Sites não encontrados:                {stats['discovery_site_nao_encontrado']}")
+    print(f"  Timeouts (35s):                       {stats['discovery_llm_timeouts']}")
+    print(f"  Erros:                                {stats['discovery_llm_erros']}")
+    print(f"  Retries:                              {stats['discovery_retries']}")
     
-    print("\n" + "=" * 80)
-    print("📊 LLM PROFILE (analyze_content)")
-    print("=" * 80)
-    print(f"  Chamadas LLM para perfil:             {stats['llm_profile_chamadas']}")
+    if stats['discovery_llm_chamadas'] > 0:
+        success_rate = (stats['discovery_llm_success'] / stats['discovery_llm_chamadas']) * 100
+        print(f"  Taxa de sucesso:                      {success_rate:.1f}%")
     
-    # Análise da discrepância
-    print("\n" + "=" * 80)
-    print("🔍 ANÁLISE DA DISCREPÂNCIA")
-    print("=" * 80)
+    print("\n" + "=" * 100)
+    print("📊 DISTRIBUIÇÃO POR PROVIDER (Discovery)")
+    print("=" * 100)
+    total_provider = stats['provider_gemini'] + stats['provider_openai']
+    if total_provider > 0:
+        print(f"  Google Gemini:                        {stats['provider_gemini']} ({stats['provider_gemini']/total_provider*100:.1f}%)")
+        print(f"  OpenAI:                               {stats['provider_openai']} ({stats['provider_openai']/total_provider*100:.1f}%)")
+    else:
+        print("  ⚠️  Nenhum provider identificado nos logs")
     
-    esperado = 250
-    total_processado = stats['analyze_company_start']
-    discovery_iniciado = stats['discovery_iniciado']
-    discovery_llm = stats['discovery_llm_chamadas']
+    print(f"\n  Load Balance Decisions:               {stats['load_balance_decisions']}")
     
-    print(f"\n  🎯 CENÁRIO ESPERADO:")
-    print(f"     Empresas esperadas:                {esperado}")
+    # === FALHAS ===
+    if falhas_discovery:
+        print("\n" + "=" * 100)
+        print("⚠️  FALHAS NO DISCOVERY")
+        print("=" * 100)
+        print(f"  Total: {len(falhas_discovery)}")
+        for f in falhas_discovery[:5]:
+            print(f"    [{f['type']}] {f['message'][:100]}...")
     
-    print(f"\n  📊 REALIDADE DOS LOGS:")
-    print(f"     Total requisições processadas:     {total_processado}")
-    print(f"     Requisições COM URL (diretas):     {stats['analyze_company_com_url']}")
-    print(f"     Requisições SEM URL (discovery):   {stats['analyze_company_sem_url']}")
+    # === RESUMO ===
+    print("\n" + "=" * 100)
+    print("💡 RESUMO")
+    print("=" * 100)
     
-    print(f"\n  📋 FLUXO DO DISCOVERY:")
-    print(f"     Discovery iniciado:                {discovery_iniciado}")
-    print(f"     -> Sem queries (exit):             {stats['discovery_sem_queries']}")
-    print(f"     -> Sem resultados Google (exit):   {stats['discovery_sem_resultados_google']}")
-    print(f"     -> Chamadas LLM discovery:         {discovery_llm}")
-    print(f"        -> Sucesso:                     {stats['discovery_llm_success']}")
-    print(f"        -> Timeout:                     {stats['discovery_llm_timeouts']}")
-    print(f"        -> Erro:                        {stats['discovery_llm_erros']}")
+    total_falhas = stats['discovery_llm_timeouts'] + stats['discovery_llm_erros']
     
-    # Verificar consistência
-    print(f"\n  ⚠️  VERIFICAÇÃO DE CONSISTÊNCIA:")
+    print(f"""
+    📌 EMPRESAS:
+       - {stats['analyze_company_start']} empresas processadas
+       - {stats['analyze_company_com_url']} com URL direta
+       - {stats['analyze_company_sem_url']} precisaram discovery
     
-    discovery_exits = (
-        stats['discovery_sem_queries'] + 
-        stats['discovery_sem_resultados_google'] + 
-        stats['discovery_llm_success'] +
-        stats['discovery_llm_timeouts'] +
-        stats['discovery_llm_erros']
-    )
-    print(f"     Discovery saídas totais:           {discovery_exits}")
-    print(f"     Discovery iniciado:                {discovery_iniciado}")
-    if discovery_exits != discovery_iniciado:
-        print(f"     ⚠️  DIFERENÇA: {discovery_iniciado - discovery_exits} (possível saída não mapeada)")
+    📌 DISCOVERY LLM:
+       - {stats['discovery_llm_chamadas']} chamadas
+       - {stats['discovery_llm_success']} respostas ({(stats['discovery_llm_success']/stats['discovery_llm_chamadas']*100) if stats['discovery_llm_chamadas'] > 0 else 0:.1f}%)
+       - {total_falhas} falhas (timeout/erro)
+       - {stats['discovery_retries']} retries executados
     
-    # Conclusão
-    print("\n" + "=" * 80)
-    print("💡 CONCLUSÃO")
-    print("=" * 80)
-    
-    if stats['analyze_company_com_url'] > 0:
-        print(f"\n  ✅ CAUSA IDENTIFICADA:")
-        print(f"     {stats['analyze_company_com_url']} requisições JÁ VIERAM COM URL.")
-        print(f"     Para essas requisições, find_company_website() NÃO É CHAMADA.")
-        print(f"     Portanto, NÃO há chamada LLM de discovery para elas.")
-    
-    print(f"\n  📊 RESUMO FINAL:")
-    print(f"     - {stats['analyze_company_com_url']} empresas com URL direta (sem discovery LLM)")
-    print(f"     - {stats['analyze_company_sem_url']} empresas precisaram discovery")
-    print(f"       -> {stats['discovery_llm_chamadas']} chamadas LLM discovery")
-    print(f"       -> {stats['discovery_site_identificado']} sites identificados com sucesso")
-    
-    # URLs descobertas
-    if urls_descobertas:
-        print(f"\n  🔗 Primeiras 5 URLs descobertas pelo discovery:")
-        for url in urls_descobertas[:5]:
-            print(f"     - {url}")
+    📌 LOAD BALANCING:
+       - Gemini: {stats['provider_gemini']} chamadas
+       - OpenAI: {stats['provider_openai']} chamadas
+       - {stats['load_balance_decisions']} decisões de balanceamento
+    """)
     
     # Salvar resultado
     result = {
         'timestamp': datetime.now().isoformat(),
+        'log_file': file_path,
         'stats': stats,
-        'conclusion': {
-            'total_requisicoes': total_processado,
-            'requisicoes_com_url': stats['analyze_company_com_url'],
-            'requisicoes_sem_url': stats['analyze_company_sem_url'],
-            'discovery_llm_calls': discovery_llm,
-            'explicacao': f"{stats['analyze_company_com_url']} requisições já vieram com URL, "
-                         f"portanto find_company_website() não foi chamada para elas."
-        },
+        'falhas': falhas_discovery[:20],
         'urls_descobertas': urls_descobertas[:20]
     }
     
@@ -269,4 +258,6 @@ def analyze_discovery_logs(file_path: str):
     return result
 
 if __name__ == "__main__":
-    analyze_discovery_logs("logs_app.json")
+    import sys
+    file_path = sys.argv[1] if len(sys.argv) > 1 else "logs_app.json"
+    analyze_discovery_logs(file_path)

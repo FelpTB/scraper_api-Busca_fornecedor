@@ -1,0 +1,167 @@
+[
+  {
+    "domain": "",
+    "url": "em https://www.assistenciatecnicamr.com.br/5-erros-comuns-que-podem-danificar-sua-maquina-de-lavar-e-como-evita-los/",
+    "error_types": [
+      "unknown",
+      "soft_404",
+      "empty_content"
+    ],
+    "status_codes": [
+      404,
+      503
+    ]
+  },
+  {
+    "domain": "rochamotores.com.br",
+    "url": "http://rochamotores.com.br/contato/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "www.rk.com.br",
+    "url": "https://www.rk.com.br/produto/rk-componentes-industriais/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "atonenergy.com.br",
+    "url": "https://atonenergy.com.br/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "techfer.com.br",
+    "url": "http://techfer.com.br/produtos/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "trulynolen.com.br",
+    "url": "https://trulynolen.com.br/nossos-servicos/teps/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "www.tecnofluid.com.br",
+    "url": "https://www.tecnofluid.com.br/category/produtos/medidores-de-vazao/medidor-de-vazao-eletromagnetico-tvm,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "ativaop.com.br",
+    "url": "https://ativaop.com.br/site/servicos/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "www.comercialporto.com.br",
+    "url": "https://www.comercialporto.com.br/catalogo?marcas%5B%5D=M945,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "cdnassistencia.com.br",
+    "url": "https://cdnassistencia.com.br/assistencia-tecnica-masseira,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "www.agsi.com.br",
+    "url": "http://www.agsi.com.br/contato/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "tecal.com.br",
+    "url": "https://tecal.com.br/solucoes/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "sulbrasilestufas.com.br",
+    "url": "https://sulbrasilestufas.com.br/estufas/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "atacadez.com.br",
+    "url": "http://atacadez.com.br/?page_id=511,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "www.mestech.com.br",
+    "url": "http://www.mestech.com.br/common/formulario_contato.php,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "www.mitec.com.br",
+    "url": "https://www.mitec.com.br/consultoria/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "abcsmart.com.br",
+    "url": "https://abcsmart.com.br/conserto-de-celular-motorola/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "correaserviceconserto.com.br",
+    "url": "https://correaserviceconserto.com.br/blog/,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "teamfix.com.br,",
+    "url": "https://teamfix.com.br,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  },
+  {
+    "domain": "placetec.com.br",
+    "url": "http://placetec.com.br/servicos,",
+    "error_types": [
+      "unknown"
+    ],
+    "status_codes": []
+  }
+]
