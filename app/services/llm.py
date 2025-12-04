@@ -65,17 +65,17 @@ async def periodic_health_monitor():
             await asyncio.sleep(5)  # Intervalo de 5 segundos para monitoramento de semáforos
             
             # Log do status dos semáforos (INFO para aparecer nos logs)
-                global_waiters = 0
-                if hasattr(llm_global_semaphore, '_waiters') and llm_global_semaphore._waiters is not None:
-                     global_waiters = len(llm_global_semaphore._waiters)
+            global_waiters = 0
+            if hasattr(llm_global_semaphore, '_waiters') and llm_global_semaphore._waiters is not None:
+                global_waiters = len(llm_global_semaphore._waiters)
             global_locked = llm_global_semaphore.locked()
                 
             logger.info(f"🔒 [SEMAPHORE_STATUS] Global: locked={global_locked}, waiters={global_waiters}")
 
-                for provider_name, semaphore in llm_semaphores.items():
-                    waiters = 0
-                    if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
-                         waiters = len(semaphore._waiters)
+            for provider_name, semaphore in llm_semaphores.items():
+                waiters = 0
+                if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
+                    waiters = len(semaphore._waiters)
                 locked = semaphore.locked()
                 
                 # Obter estatísticas do tracker
