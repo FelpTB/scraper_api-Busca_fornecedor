@@ -2,6 +2,7 @@ import asyncio
 import logging
 import json
 import urllib.parse
+import random
 from typing import Optional, List, Dict, Any
 from bs4 import BeautifulSoup
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
@@ -9,8 +10,23 @@ from openai import AsyncOpenAI
 
 from app.core.config import settings
 from app.core.proxy import proxy_manager
+from app.services.llm_balancer import (
+    select_least_loaded_provider,
+    get_client_for_provider,
+    get_model_for_provider,
+    get_semaphore_for_provider,
+    get_global_semaphore,
+    performance_tracker,
+    AVAILABLE_PROVIDERS
+)
 
 logger = logging.getLogger(__name__)
+
+# --- CONFIGURAÇÃO DE DISCOVERY ---
+DISCOVERY_TIMEOUT = 35.0  # Timeout para chamadas LLM de discovery (segundos)
+DISCOVERY_MAX_RETRIES = 3  # Número máximo de tentativas
+DISCOVERY_BACKOFF_BASE = 2  # Base para backoff exponencial (segundos)
+DISCOVERY_BACKOFF_MAX = 16  # Máximo de backoff (segundos)
 
 DISCOVERY_PROMPT = """# Prompt: Agente Especialista em Localizar Sites Oficiais de Empresas
 
@@ -381,10 +397,7 @@ async def find_company_website(
     logger.info(f"🔍 Resultados consolidados enviados para IA ({len(all_results)} itens)")
     logger.debug(json.dumps(all_results, indent=2, ensure_ascii=False))
 
-    # 3. Analisar com LLM
-    client = AsyncOpenAI(api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL)
-    
-    # Preparar input para o LLM
+    # 3. Analisar com LLM (com load balancing e retry)
     results_text = json.dumps(all_results, indent=2, ensure_ascii=False)
     
     user_content = f"""
@@ -400,51 +413,93 @@ async def find_company_website(
     {results_text}
     """
     
-    try:
-        response = await asyncio.wait_for(
-            client.chat.completions.create(
-                model=settings.LLM_MODEL,
-                messages=[
-                    {"role": "system", "content": DISCOVERY_PROMPT},
-                    {"role": "user", "content": user_content}
-                ],
-                temperature=0.0,
-                response_format={"type": "json_object"}
-            ),
-            timeout=20.0
-        )
+    # Retry com backoff exponencial e load balancing
+    last_error = None
+    
+    for attempt in range(DISCOVERY_MAX_RETRIES):
+        # Selecionar provedor com menor carga
+        selected_provider = select_least_loaded_provider()
+        client = get_client_for_provider(selected_provider)
+        model = get_model_for_provider(selected_provider)
         
-        content = response.choices[0].message.content.strip()
-        logger.info(f"🧠 Decisão do LLM: {content}")
+        if client is None or model is None:
+            logger.error(f"❌ Falha ao obter cliente para {selected_provider}")
+            continue
+        
+        # Calcular backoff para retry (0 na primeira tentativa)
+        if attempt > 0:
+            backoff = min(DISCOVERY_BACKOFF_BASE ** attempt + random.uniform(0, 1), DISCOVERY_BACKOFF_MAX)
+            logger.debug(f"🔄 Discovery retry {attempt + 1}/{DISCOVERY_MAX_RETRIES} após {backoff:.1f}s")
+            await asyncio.sleep(backoff)
         
         try:
-            data = json.loads(content)
-        except json.JSONDecodeError:
-            # Tentar limpar markdown se houver
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-                data = json.loads(content)
-            else:
-                raise
-
-        # Tratamento para caso a IA retorne uma lista em vez de um objeto
-        if isinstance(data, list):
-            if len(data) > 0:
-                data = data[0]
-            else:
-                logger.warning("⚠️ IA retornou lista vazia.")
-                return None
-        
-        if data.get("site_oficial") == "sim" and data.get("site") and data.get("site") != "nao_encontrado":
-            return data.get("site")
-        else:
-            logger.info(f"❌ Site não encontrado ou não oficial. Justificativa: {data.get('justificativa')}")
-            return None
+            # Registrar início da requisição
+            performance_tracker.start_request(selected_provider)
+            start_time = asyncio.get_event_loop().time()
             
-    except asyncio.TimeoutError:
-        logger.warning("⚠️ Timeout na análise do LLM para descoberta de site (20s). Retornando None.")
-        return None
-    except Exception as e:
-        logger.error(f"❌ Erro na análise do LLM para descoberta de site: {e}")
-        return None
+            async with get_semaphore_for_provider(selected_provider):
+                response = await asyncio.wait_for(
+                    client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": DISCOVERY_PROMPT},
+                            {"role": "user", "content": user_content}
+                        ],
+                        temperature=0.0,
+                        response_format={"type": "json_object"}
+                    ),
+                    timeout=DISCOVERY_TIMEOUT
+                )
+            
+            duration = asyncio.get_event_loop().time() - start_time
+            content = response.choices[0].message.content.strip()
+            logger.info(f"🧠 Decisão do LLM ({selected_provider}): {content}")
+            
+            # Registrar sucesso
+            performance_tracker.record_request(selected_provider, success=True, response_time=duration)
+            
+            try:
+                data = json.loads(content)
+            except json.JSONDecodeError:
+                # Tentar limpar markdown se houver
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0].strip()
+                    data = json.loads(content)
+                else:
+                    raise
+
+            # Tratamento para caso a IA retorne uma lista em vez de um objeto
+            if isinstance(data, list):
+                if len(data) > 0:
+                    data = data[0]
+                else:
+                    logger.warning("⚠️ IA retornou lista vazia.")
+                    return None
+            
+            if data.get("site_oficial") == "sim" and data.get("site") and data.get("site") != "nao_encontrado":
+                return data.get("site")
+            else:
+                logger.debug(f"Site não encontrado. Justificativa: {data.get('justificativa')}")
+                return None
+                
+        except asyncio.TimeoutError:
+            duration = asyncio.get_event_loop().time() - start_time if 'start_time' in dir() else DISCOVERY_TIMEOUT
+            performance_tracker.record_request(selected_provider, timeout=True, response_time=duration)
+            logger.warning(f"⚠️ Timeout na análise do LLM ({selected_provider}) para descoberta de site ({DISCOVERY_TIMEOUT}s). "
+                          f"Tentativa {attempt + 1}/{DISCOVERY_MAX_RETRIES}")
+            last_error = "timeout"
+            continue  # Tentar novamente com outro provedor
+            
+        except Exception as e:
+            duration = asyncio.get_event_loop().time() - start_time if 'start_time' in dir() else 0
+            performance_tracker.record_request(selected_provider, error=True, response_time=duration)
+            logger.warning(f"⚠️ Erro na análise do LLM ({selected_provider}): {e}. "
+                          f"Tentativa {attempt + 1}/{DISCOVERY_MAX_RETRIES}")
+            last_error = str(e)
+            continue  # Tentar novamente com outro provedor
+    
+    # Todas as tentativas falharam
+    logger.error(f"❌ Erro na análise do LLM para descoberta de site após {DISCOVERY_MAX_RETRIES} tentativas. "
+                f"Último erro: {last_error}")
+    return None
 

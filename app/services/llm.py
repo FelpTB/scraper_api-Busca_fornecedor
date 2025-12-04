@@ -11,18 +11,26 @@ from app.schemas.profile import CompanyProfile
 from collections import defaultdict, Counter
 import threading
 
+# Importar do serviço centralizado de load balancing
+from app.services.llm_balancer import (
+    select_least_loaded_provider,
+    get_client_for_provider,
+    get_model_for_provider,
+    get_semaphore_for_provider,
+    get_global_semaphore,
+    performance_tracker,
+    AVAILABLE_PROVIDERS,
+    LLM_CONFIG,
+    llm_semaphores,
+    llm_global_semaphore,
+)
+
 # Configurar logger
 logger = logging.getLogger(__name__)
 
 # --- LLM CONFIGURATION ---
-# Parâmetros centralizados e configuráveis dinamicamente
-# Configuração otimizada para alta vazão (Target: 1000 sites/min)
+# Parâmetros locais para processamento de conteúdo (não relacionados a semáforos)
 _llm_config = {
-    # Concorrência e Throttling
-    'global_semaphore_limit': 500,     # Limite global de requisições simultâneas
-    'gemini_semaphore_limit': 300,     # Limite específico para Gemini (RPM/TPM)
-    'openai_semaphore_limit': 250,     # Limite específico para OpenAI
-    
     # Token Management
     'max_chunk_tokens': 800_000,       # Tamanho máximo do chunk (Gemini suporta 1M+)
     'system_prompt_overhead': 2500,    # Estimativa de tokens do prompt de sistema
@@ -42,236 +50,58 @@ _llm_config = {
     'text_score_divisor': 10           # Divisor para score de completude (tamanho texto / X)
 }
 
-# --- SEMAPHORES ---
-# Inicializados com base na configuração
-llm_semaphores = {
-    "Google Gemini": asyncio.Semaphore(_llm_config['gemini_semaphore_limit']),      
-    "OpenAI": asyncio.Semaphore(_llm_config['openai_semaphore_limit']),             
-}
-
-llm_global_semaphore = asyncio.Semaphore(_llm_config['global_semaphore_limit'])
-
-# --- LLM PERFORMANCE TRACKER ---
-class LLMPerformanceTracker:
-    """
-    Rastreia métricas de performance dos providers LLM para diagnóstico de timeouts.
-    """
-    def __init__(self):
-        self.stats = defaultdict(lambda: {
-            'requests': 0,
-            'successes': 0,
-            'timeouts': 0,
-            'errors': 0,
-            'rate_limits': 0,
-            'total_response_time': 0,
-            'last_reset': time.time(),
-            'chunk_sizes_success': [],
-            'chunk_sizes_timeout': [],
-            'waiting_times': [],
-            'active_requests': 0,
-            'max_concurrency': 0
-        })
-        self.lock = threading.Lock()
-
-    def start_request(self, provider_name: str):
-        """Registra início de uma requisição para monitorar concorrência"""
-        with self.lock:
-            stats = self.stats[provider_name]
-            stats['active_requests'] += 1
-            if stats['active_requests'] > stats['max_concurrency']:
-                stats['max_concurrency'] = stats['active_requests']
-
-    def record_request(self, provider_name: str, success: bool = False, timeout: bool = False,
-                      error: bool = False, rate_limit: bool = False, response_time: float = 0,
-                      chunk_size: int = 0, waiting_time: float = 0):
-        """Registra uma requisição no tracker"""
-        with self.lock:
-            stats = self.stats[provider_name]
-            stats['active_requests'] = max(0, stats['active_requests'] - 1)
-            
-            stats['requests'] += 1
-            if success:
-                stats['successes'] += 1
-            if chunk_size > 0:
-                stats['chunk_sizes_success'].append(min(chunk_size, 100000))
-            if timeout:
-                stats['timeouts'] += 1
-                if chunk_size > 0:
-                    stats['chunk_sizes_timeout'].append(min(chunk_size, 100000))
-            if error:
-                stats['errors'] += 1
-            if rate_limit:
-                stats['rate_limits'] += 1
-            if response_time > 0:
-                stats['total_response_time'] += response_time
-            if waiting_time > 0:
-                stats['waiting_times'].append(min(waiting_time, 300))  # Max 5 minutos
-
-    def log_summary(self, provider_name: str = None):
-        """Log resumo de performance"""
-        with self.lock:
-            providers = [provider_name] if provider_name else list(self.stats.keys())
-
-            for p_name in providers:
-                stats = self.stats[p_name]
-                if stats['requests'] == 0:
-                    continue
-
-                success_rate = (stats['successes'] / stats['requests']) * 100
-                timeout_rate = (stats['timeouts'] / stats['requests']) * 100
-                error_rate = (stats['errors'] / stats['requests']) * 100
-                rate_limit_rate = (stats['rate_limits'] / stats['requests']) * 100
-                avg_response_time = stats['total_response_time'] / max(stats['requests'], 1)
-                
-                # Calcular médias de tamanho de chunk separadas
-                avg_chunk_success = 0
-                chunk_sizes_success = stats.get('chunk_sizes_success') or []
-                if chunk_sizes_success:
-                    avg_chunk_success = sum(chunk_sizes_success) / len(chunk_sizes_success)
-                
-                avg_chunk_timeout = 0
-                chunk_sizes_timeout = stats.get('chunk_sizes_timeout') or []
-                if chunk_sizes_timeout:
-                    avg_chunk_timeout = sum(chunk_sizes_timeout) / len(chunk_sizes_timeout)
-                
-                waiting_times = stats.get('waiting_times') or []
-                avg_waiting_time = sum(waiting_times) / max(len(waiting_times), 1)
-
-                logger.info(f"📊 [PROVIDER_SUMMARY] {p_name} - "
-                           f"Requests: {stats['requests']} (Active: {stats['active_requests']}, Max: {stats['max_concurrency']}), "
-                           f"Success: {success_rate:.1f}%, "
-                           f"Timeouts: {timeout_rate:.1f}%, "
-                           f"Errors: {error_rate:.1f}%, "
-                           f"Avg Time: {avg_response_time:.2f}s, "
-                           f"Avg Wait: {avg_waiting_time:.2f}s")
-                
-                if avg_chunk_timeout > 0:
-                     logger.info(f"   📏 [CHUNK_STATS] {p_name} - "
-                                f"Avg Chunk (Success): {avg_chunk_success:.0f} chars vs "
-                                f"Avg Chunk (Timeout): {avg_chunk_timeout:.0f} chars")
-
-    def detect_timeout_patterns(self):
-        """Detecta padrões problemáticos que podem causar timeouts"""
-        with self.lock:
-            for provider_name, stats in self.stats.items():
-                if stats['requests'] < 5:  # Precisa de amostra mínima
-                    continue
-
-                timeout_rate = (stats['timeouts'] / stats['requests']) * 100
-
-                # Timeouts muito altos indicam problema sério
-                if timeout_rate > 50:
-                    logger.warning(f"🚨 [PATTERN_DETECTED] {provider_name} com {timeout_rate:.1f}% de timeouts! "
-                                  f"({stats['timeouts']}/{stats['requests']} requests)")
-
-                # Timeouts concentrados em chunks grandes
-                chunk_sizes_timeout = stats.get('chunk_sizes_timeout') or []
-                chunk_sizes_success = stats.get('chunk_sizes_success') or []
-                
-                if chunk_sizes_timeout:
-                    avg_timeout_size = sum(chunk_sizes_timeout) / len(chunk_sizes_timeout)
-                    avg_success_size = 0
-                    if chunk_sizes_success:
-                         avg_success_size = sum(chunk_sizes_success) / len(chunk_sizes_success)
-                    
-                    if avg_success_size > 0 and avg_timeout_size > avg_success_size * 1.5:
-                         logger.warning(f"🚨 [PATTERN_DETECTED] {provider_name}: Chunks com timeout são 50% maiores "
-                                       f"que os bem-sucedidos ({avg_timeout_size:.0f} vs {avg_success_size:.0f} chars)")
-
-                # Tempos de espera muito altos
-                waiting_times = stats.get('waiting_times') or []
-                if waiting_times:
-                    high_waits = [wait for wait in waiting_times if wait > 30]
-                    if high_waits and len(high_waits) / len(waiting_times) > 0.5:
-                        logger.warning(f"🚨 [PATTERN_DETECTED] {provider_name} com esperas excessivas "
-                                      f"(>30s em {len(high_waits)}/{len(waiting_times)} requests)")
-
-# Instância global do tracker
-performance_tracker = LLMPerformanceTracker()
+# LLMPerformanceTracker importado de llm_balancer
 
 # --- PERIODIC HEALTH MONITORING ---
 async def periodic_health_monitor():
     """
     Monitor de saúde periódico que log métricas de performance dos providers LLM.
+    Intervalo de 5s para monitoramento detalhado de semáforos.
     """
-    # Aguardar inicialização completa antes de começar
-    await asyncio.sleep(30)
+    await asyncio.sleep(5)
     
     while True:
         try:
-            # Intervalo reduzido para 60 segundos para maior visibilidade
-            await asyncio.sleep(60)
-
-            logger.info("🏥 [HEALTH_CHECK] Iniciando verificação de saúde dos providers LLM")
-
-            # Log métricas de todos os providers
-            try:
-                performance_tracker.log_summary()
-            except Exception as e:
-                logger.error(f"❌ [HEALTH_CHECK] Erro ao logar resumo de performance: {e}")
-
-            # Verificar status dos semáforos
-            try:
-                # Proteção extra contra NoneType error
-                global_waiters = 0
-                if hasattr(llm_global_semaphore, '_waiters') and llm_global_semaphore._waiters is not None:
-                     global_waiters = len(llm_global_semaphore._waiters)
+            await asyncio.sleep(5)  # Intervalo de 5 segundos para monitoramento de semáforos
+            
+            # Log do status dos semáforos (INFO para aparecer nos logs)
+            global_waiters = 0
+            if hasattr(llm_global_semaphore, '_waiters') and llm_global_semaphore._waiters is not None:
+                global_waiters = len(llm_global_semaphore._waiters)
+            global_locked = llm_global_semaphore.locked()
+            
+            logger.info(f"🔒 [SEMAPHORE_STATUS] Global: locked={global_locked}, waiters={global_waiters}")
+            
+            for provider_name, semaphore in llm_semaphores.items():
+                waiters = 0
+                if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
+                    waiters = len(semaphore._waiters)
+                locked = semaphore.locked()
                 
-                global_available = _llm_config['global_semaphore_limit'] - global_waiters
-                logger.info(f"🏥 [HEALTH_CHECK] Semaphore global: {global_available}/{_llm_config['global_semaphore_limit']} disponível (Waiters: {global_waiters})")
-
-                for provider_name, semaphore in llm_semaphores.items():
-                    provider_limit = _llm_config.get(f'{provider_name.lower().replace(" ", "_")}_semaphore_limit', 3)
-                    
-                    waiters = 0
-                    if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
-                         waiters = len(semaphore._waiters)
-                    
-                    provider_available = provider_limit - waiters
-                    logger.info(f"🏥 [HEALTH_CHECK] Semaphore {provider_name}: {provider_available}/{provider_limit} disponível (Waiters: {waiters})")
-            except Exception as e:
-                logger.error(f"❌ [HEALTH_CHECK] Erro ao verificar semáforos: {e}")
-
-            # Detectar padrões problemáticos
-            try:
-                performance_tracker.detect_timeout_patterns()
-            except Exception as e:
-                logger.error(f"❌ [HEALTH_CHECK] Erro ao detectar padrões: {e}")
-
+                # Obter estatísticas do tracker
+                stats = performance_tracker.get_summary(provider_name)
+                active = stats.get('active_requests', 0) if stats else 0
+                
+                logger.info(f"🔒 [SEMAPHORE_STATUS] {provider_name}: locked={locked}, waiters={waiters}, active={active}")
+            
         except Exception as e:
-            logger.error(f"❌ [HEALTH_CHECK] Erro no monitor de saúde: {e}")
-            await asyncio.sleep(30)  # Aguardar antes de tentar novamente
+            logger.error(f"❌ [HEALTH_CHECK] Erro: {e}")
+            await asyncio.sleep(5)
 
-# Função para iniciar o monitor (chamada na inicialização da app)
 def start_health_monitor():
     """Inicia o monitor de saúde em background"""
     asyncio.create_task(periodic_health_monitor())
-    logger.info("🏥 [HEALTH_CHECK] Monitor de saúde dos providers LLM iniciado")
+    logger.info("🏥 [HEALTH_CHECK] Monitor de semáforos iniciado (intervalo: 5s)")
 
 def configure_llm_params(
-    global_limit: Optional[int] = None,
-    gemini_limit: Optional[int] = None,
-    openai_limit: Optional[int] = None,
     max_chunk_tokens: Optional[int] = None,
     retry_attempts: Optional[int] = None
 ):
     """
-    Atualiza dinamicamente as configurações do LLM Service.
-    Útil para tuning em tempo real ou testes de carga.
+    Atualiza dinamicamente as configurações locais do LLM Service.
+    Nota: Configurações de semáforos são gerenciadas pelo llm_balancer.
     """
-    global _llm_config, llm_semaphores, llm_global_semaphore
-    
-    if global_limit:
-        _llm_config['global_semaphore_limit'] = global_limit
-        llm_global_semaphore = asyncio.Semaphore(global_limit)
-        
-    if gemini_limit:
-        _llm_config['gemini_semaphore_limit'] = gemini_limit
-        llm_semaphores["Google Gemini"] = asyncio.Semaphore(gemini_limit)
-        
-    if openai_limit:
-        _llm_config['openai_semaphore_limit'] = openai_limit
-        llm_semaphores["OpenAI"] = asyncio.Semaphore(openai_limit)
+    global _llm_config
         
     if max_chunk_tokens:
         _llm_config['max_chunk_tokens'] = max_chunk_tokens
@@ -279,57 +109,10 @@ def configure_llm_params(
     if retry_attempts:
         _llm_config['retry_attempts'] = retry_attempts
     
-    logger.info(f"🔧 LLM Config atualizada: {_llm_config}")
+    logger.debug(f"🔧 LLM Config atualizada: {_llm_config}")
 
-# Configuração de fallback chain
-FALLBACK_CHAIN = [
-    ("Google Gemini", settings.GOOGLE_API_KEY, settings.GOOGLE_BASE_URL, settings.GOOGLE_MODEL),
-    ("OpenAI", settings.OPENAI_API_KEY, settings.OPENAI_BASE_URL, settings.OPENAI_MODEL),
-]
-
-# Filtrar apenas provedores com chave configurada
-AVAILABLE_PROVIDERS = [(name, key, url, model) for name, key, url, model in FALLBACK_CHAIN if key]
-
-if not AVAILABLE_PROVIDERS:
-    logger.error("CRITICAL: Nenhum provedor de LLM configurado! Defina pelo menos uma API key.")
-
-def _select_least_loaded_provider() -> str:
-    """
-    Seleciona o provedor LLM com menor carga no momento.
-    
-    Estratégia de seleção (O(n) onde n = número de provedores):
-    1. Calcula score de carga: locked (1000) + waiters (quantidade na fila)
-    2. Retorna provedor com menor score
-    
-    Performance: ~1μs por chamada (apenas leitura de atributos, sem I/O)
-    """
-    if len(AVAILABLE_PROVIDERS) == 1:
-        return AVAILABLE_PROVIDERS[0][0]
-    
-    min_load = float('inf')
-    selected_provider = AVAILABLE_PROVIDERS[0][0]  # Fallback default
-    
-    for provider_name, _, _, _ in AVAILABLE_PROVIDERS:
-        semaphore = llm_semaphores.get(provider_name)
-        if semaphore is None:
-            continue
-        
-        # Calcular carga: locked adiciona peso alto, waiters adiciona peso proporcional
-        load_score = 0
-        
-        # Se locked, todas as vagas estão ocupadas
-        if semaphore.locked():
-            load_score += 1000
-        
-        # Adicionar número de waiters na fila (se disponível)
-        if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
-            load_score += len(semaphore._waiters)
-        
-        if load_score < min_load:
-            min_load = load_score
-            selected_provider = provider_name
-    
-    return selected_provider
+# FALLBACK_CHAIN e AVAILABLE_PROVIDERS importados de llm_balancer
+# _select_least_loaded_provider importado de llm_balancer como select_least_loaded_provider
 
 # Cliente primário (atual)
 client_args = {
@@ -484,7 +267,7 @@ def chunk_content(text: str, max_tokens: int = 500_000) -> List[str]:
     current_group = ""
     current_tokens = 0
     
-    logger.info(f"Agrupando {len(raw_pages)} páginas em chunks (Alvo: {GROUP_TARGET_TOKENS} tokens)...")
+    logger.debug(f"Agrupando {len(raw_pages)} páginas em chunks (Alvo: {GROUP_TARGET_TOKENS} tokens)")
     
     for page in raw_pages:
         # Usar contagem de tokens SEM overhead para agrupar conteúdo
@@ -507,7 +290,7 @@ def chunk_content(text: str, max_tokens: int = 500_000) -> List[str]:
     if current_group:
         grouped_chunks.append(current_group)
     
-    logger.info(f"✅ Conteúdo consolidado em {len(grouped_chunks)} chunks (era {len(raw_pages)} páginas)")
+    logger.debug(f"✅ Consolidado: {len(grouped_chunks)} chunks de {len(raw_pages)} páginas")
     return grouped_chunks
 
 def _split_large_page(page_content: str, max_tokens: int) -> List[str]:
@@ -594,7 +377,7 @@ def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
     Prioriza informações mais completas e remove duplicatas.
     Remove profiles None antes de processar.
     """
-    logger.info(f"🔄 Iniciando merge de {len(profiles)} perfis")
+    logger.debug(f"🔄 Merge de {len(profiles)} perfis")
     
     # Filtrar profiles None ou inválidos
     valid_profiles = [p for p in profiles if p is not None and isinstance(p, CompanyProfile)]
@@ -611,18 +394,8 @@ def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
         logger.info("ℹ️ Apenas 1 perfil válido, retornando sem merge")
         return valid_profiles[0]
     
-    # Analisar dados antes do merge
-    logger.info(f"📊 Analisando {len(valid_profiles)} perfis válidos antes do merge:")
-    for i, profile in enumerate(valid_profiles):
-        p_dict = profile.model_dump()
-        filled_fields = sum(1 for k, v in p_dict.items() 
-                          if v and (isinstance(v, dict) and any(v.values()) or isinstance(v, list) and len(v) > 0))
-        logger.info(f"  Perfil {i+1}: {filled_fields} campos preenchidos")
-        if filled_fields > 0:
-            # Mostrar quais campos têm dados
-            for key, value in p_dict.items():
-                if value and (isinstance(value, dict) and any(v for v in value.values() if v) or isinstance(value, list) and len(value) > 0):
-                    logger.debug(f"    - {key}: {len(value) if isinstance(value, list) else 'objeto com dados'}")
+    # Analisar dados antes do merge (log reduzido)
+    logger.debug(f"📊 Analisando {len(valid_profiles)} perfis válidos antes do merge")
     
     # Escolher perfil mais completo como base
     # IMPORTANTE: Todos os perfis serão mergeados depois, então a escolha do base
@@ -977,23 +750,15 @@ def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
                       if v and (isinstance(v, dict) and any(v.values()) or isinstance(v, list) and len(v) > 0))
     logger.info(f"✅ Merge concluído: {filled_fields} campos preenchidos no perfil final")
     
-    # Estatísticas detalhadas
+    # Estatísticas detalhadas (log reduzido)
     if "offerings" in merged and isinstance(merged["offerings"], dict):
         offerings = merged["offerings"]
-        total_products = len(offerings.get("products", []))
         total_categories = len(offerings.get("product_categories", []))
-        categories_with_items = sum(1 for cat in offerings.get("product_categories", []) if cat.get("items"))
         total_items = sum(len(cat.get("items", [])) for cat in offerings.get("product_categories", []))
-        logger.info(f"📦 Offerings: {total_products} produtos, {total_categories} categorias ({categories_with_items} com items, {total_items} items totais)")
+        logger.debug(f"📦 Offerings: {total_categories} categorias, {total_items} items")
     
     if filled_fields == 0:
-        logger.warning("⚠️ ATENÇÃO: Perfil final está completamente vazio após merge!")
-        logger.debug(f"📋 Estrutura do perfil final: {json.dumps(merged, indent=2, ensure_ascii=False)[:1000]}")
-    else:
-        # Mostrar quais campos têm dados
-        for key, value in merged.items():
-            if value and (isinstance(value, dict) and any(v for v in value.values() if v) or isinstance(value, list) and len(value) > 0):
-                logger.info(f"  ✅ {key}: {len(value) if isinstance(value, list) else 'objeto com dados'}")
+        logger.warning("⚠️ Perfil vazio após merge")
     
     try:
         return CompanyProfile(**merged)
@@ -1210,28 +975,13 @@ async def _call_llm(client: AsyncOpenAI, model: str, text_content: str) -> Compa
     request_id = f"{model}_{int(time.time()*1000)}"
     content_size = len(text_content)
 
-    logger.info(f"🚀 [LLM_REQUEST_START] {request_id} - Model: {model}, "
-               f"Content: {content_size:,} chars, "
-               f"Lines: {text_content.count(chr(10))+1}")
-
-    # 🔍 Diagnóstico de timeout - verificar condições problemáticas
-    if content_size > 100000:  # 100k chars
-        logger.warning(f"🔍 [TIMEOUT_DIAG] {request_id} - Content muito grande: {content_size:,} chars")
-    if content_size < 100:  # Muito pequeno
-        logger.warning(f"🔍 [TIMEOUT_DIAG] {request_id} - Content muito pequeno: {content_size} chars")
+    logger.info(f"🚀 [LLM_REQUEST_START] {model}: {content_size:,} chars")
 
     start_ts = time.perf_counter()
     
-    # Se o conteúdo for muito pequeno, logar para debug
+    # Log de conteúdo pequeno apenas em DEBUG
     if len(text_content) < 500:
-        logger.warning(f"⚠️ Conteúdo muito pequeno ({len(text_content)} chars) - pode indicar problema de scraping")
-        # Extrair URL da página se presente
-        if "--- PAGE START:" in text_content:
-            url_line = text_content.split("\n")[0]
-            logger.warning(f"📄 URL da página: {url_line.replace('--- PAGE START:', '').strip()}")
-        # Mostrar primeiras linhas do conteúdo
-        preview = '\n'.join(text_content.split('\n')[:15])
-        logger.warning(f"📄 Preview do conteúdo ({len(text_content)} chars):\n{preview}")
+        logger.debug(f"⚠️ Conteúdo pequeno ({len(text_content)} chars)")
     
     # Configuração da requisição com timeout customizado
     request_params = {
@@ -1242,21 +992,15 @@ async def _call_llm(client: AsyncOpenAI, model: str, text_content: str) -> Compa
         ],
         "temperature": 0.0,
         "response_format": {"type": "json_object"},
-        "timeout": 90.0  # Timeout específico para a API (menor que o nosso global)
+        "timeout": 90.0
     }
-
-    # 🔍 Log detalhado antes da chamada
-    logger.info(f"🔍 [TIMEOUT_DIAG] {request_id} - Enviando request com timeout de {request_params['timeout']}s")
 
     api_call_start = time.time()
     try:
         response = await client.chat.completions.create(**request_params)
-        api_duration = time.time() - api_call_start
-        logger.info(f"🔍 [TIMEOUT_DIAG] {request_id} - API call successful em {api_duration:.2f}s")
     except asyncio.TimeoutError:
         api_timeout_duration = time.time() - api_call_start
-        logger.error(f"🔍 [TIMEOUT_DIAG] {request_id} - API TIMEOUT após {api_timeout_duration:.2f}s "
-                    f"(configured: {request_params['timeout']}s, exceeded by: {api_timeout_duration - request_params['timeout']:.2f}s)")
+        logger.error(f"⏰ API TIMEOUT após {api_timeout_duration:.2f}s")
         raise
     
     # Verificar se há conteúdo na resposta
@@ -1281,8 +1025,7 @@ async def _call_llm(client: AsyncOpenAI, model: str, text_content: str) -> Compa
         logger.error(f"📊 Response completo: {response}")
         raise ValueError(error_msg)
     
-    logger.info(f"📥 Resposta recebida de {model} (tamanho: {len(raw_content)} chars)")
-    logger.info(f"📄 Primeiros 200 chars da resposta: {raw_content[:200]}")
+    logger.debug(f"📥 Resposta de {model}: {len(raw_content)} chars")
     
     # Limpar markdown se presente
     if raw_content.startswith("```json"):
@@ -1313,43 +1056,7 @@ async def _call_llm(client: AsyncOpenAI, model: str, text_content: str) -> Compa
              logger.warning(f"⚠️ JSON não é dict nem lista válida. Usando dict vazio.")
              data = {}
         
-        logger.debug(f"✅ JSON parseado com sucesso. Chaves principais: {list(data.keys())}")
-        
-        # Verificar se há dados extraídos
-        has_data = False
-        for key, value in data.items():
-            if value and (isinstance(value, dict) and any(v for v in value.values() if v) or isinstance(value, list) and len(value) > 0):
-                has_data = True
-                logger.info(f"📊 Dados encontrados em '{key}': {len(value) if isinstance(value, list) else 'objeto'}")
-                break
-        
-        # Verificar especificamente product_categories e seus items
-        if "offerings" in data and isinstance(data["offerings"], dict):
-            if "product_categories" in data["offerings"]:
-                categories = data["offerings"]["product_categories"]
-                total_categories = len(categories) if isinstance(categories, list) else 0
-                categories_with_items = 0
-                total_items = 0
-                if isinstance(categories, list):
-                    for cat in categories:
-                        if isinstance(cat, dict) and cat.get("items"):
-                            items = cat.get("items", [])
-                            if isinstance(items, list) and len(items) > 0:
-                                categories_with_items += 1
-                                total_items += len(items)
-                logger.info(f"📦 Product Categories: {total_categories} categorias, {categories_with_items} com items ({total_items} items totais)")
-                if categories_with_items < total_categories:
-                    empty_cats = [cat.get("category_name", "?") for cat in categories if isinstance(cat, dict) and not cat.get("items")]
-                    if total_categories > 0 and categories_with_items == 0:
-                        # Se todas as categorias estão vazias, é um warning forte
-                        logger.warning(f"⚠️ Todas as {total_categories} categorias encontradas estão SEM itens. O modelo identificou categorias mas não produtos específicos.")
-                    else:
-                        # Se apenas algumas estão vazias, logar como info ou debug para menos ruído
-                        logger.info(f"ℹ️ {total_categories - categories_with_items} categorias sem itens listados: {empty_cats[:5]}")
-        
-        if not has_data:
-            logger.warning(f"⚠️ Resposta do {model} não contém dados extraídos (todos os campos estão vazios)")
-            logger.warning(f"📋 Estrutura completa recebida: {json.dumps(data, indent=2, ensure_ascii=False)[:1000]}")
+        logger.debug(f"✅ JSON parseado: {list(data.keys())}")
         
         data = normalize_llm_response(data)
         logger.debug("✅ Dados normalizados com sucesso")
@@ -1419,24 +1126,15 @@ async def analyze_content_with_fallback(text_content: str, provider_name: Option
     start_ts = time.perf_counter()
     request_start = time.time()
 
-    # 📊 Métricas do chunk
+    # Métricas do chunk (log reduzido)
     chunk_size = len(text_content)
-    logger.info(f"📊 [CHUNK_METRICS] Iniciando análise. "
-               f"Tamanho: {chunk_size:,} chars, "
-               f"Linhas: {text_content.count(chr(10))+1}")
+    logger.debug(f"📊 Chunk: {chunk_size:,} chars")
 
-    # 🔄 Monitoramento de concorrência global
+    # Monitoramento de concorrência global
     global_wait_start = time.time()
-    semaphore_status = "available" if not llm_global_semaphore.locked() else "waiting"
-    logger.info(f"🔄 [CONCURRENCY_GLOBAL] Semaphore status: {semaphore_status}, "
-               f"Limite: {_llm_config['global_semaphore_limit']}")
-
-    if llm_global_semaphore.locked():
-         logger.warning(f"⚠️ [SEMAPHORE_GLOBAL] Global LLM semaphore full ({_llm_config['global_semaphore_limit']}), aguardando...")
 
     async with llm_global_semaphore:
         global_wait_time = time.time() - global_wait_start
-        logger.debug(f"🔄 [SEMAPHORE_GLOBAL] Entrou no semaphore global após {global_wait_time:.2f}s")
         # Se um provedor específico foi solicitado, tentar apenas ele
         if provider_name:
             providers_to_try = [p for p in AVAILABLE_PROVIDERS if p[0] == provider_name]
@@ -1448,23 +1146,14 @@ async def analyze_content_with_fallback(text_content: str, provider_name: Option
         for name, key, base_url, model in providers_to_try:
             provider_start = time.time()
 
-            # 🔄 Monitoramento de concorrência por provider
-            provider_semaphore = llm_semaphores.get(name, asyncio.Semaphore(3))  # Default: 3
-            provider_limit = _llm_config.get(f'{name.lower().replace(" ", "_")}_semaphore_limit', 3)
-
+            # Monitoramento de concorrência por provider
+            provider_semaphore = llm_semaphores.get(name, asyncio.Semaphore(3))
             provider_wait_start = time.time()
-            semaphore_status = "available" if not provider_semaphore.locked() else "waiting"
-            logger.info(f"🔄 [CONCURRENCY_PROVIDER] {name} - Semaphore status: {semaphore_status}, "
-                       f"Limite: {provider_limit}")
-
-            if provider_semaphore.locked():
-                 logger.warning(f"⚠️ [SEMAPHORE_PROVIDER] {name} semaphore full ({provider_limit}), aguardando...")
 
             async with provider_semaphore:
                 provider_wait_time = time.time() - provider_wait_start
-                logger.debug(f"🔄 [SEMAPHORE_PROVIDER] Entrou no semaphore {name} após {provider_wait_time:.2f}s")
                 try:
-                    logger.info(f"🚀 [LLM_ATTEMPT] Tentando análise com {name} ({model})...")
+                    logger.debug(f"🚀 [LLM_ATTEMPT] {name} ({model})")
 
                     # Criar cliente para este provedor
                     client_args = {"api_key": key, "base_url": base_url}
@@ -1481,64 +1170,45 @@ async def analyze_content_with_fallback(text_content: str, provider_name: Option
 
                     # Registrar sucesso no tracker
                     performance_tracker.record_request(
-                        name, success=True, response_time=llm_duration,
-                        chunk_size=chunk_size, waiting_time=provider_wait_time
+                        name, success=True, response_time=llm_duration
                     )
 
-                    logger.info(f"✅ [LLM_SUCCESS] Análise bem-sucedida com {name} em {llm_duration:.2f}s")
+                    logger.debug(f"✅ [LLM_SUCCESS] {name} em {llm_duration:.2f}s")
                     return profile
 
                 except RateLimitError as e:
                     request_duration = time.time() - provider_start
-                    logger.warning(f"⚠️ [LLM_RATE_LIMIT] {name} rate limited após {request_duration:.2f}s: {e}")
-                    performance_tracker.record_request(name, rate_limit=True, response_time=request_duration,
-                                                     chunk_size=chunk_size, waiting_time=provider_wait_time)
+                    logger.warning(f"⚠️ [LLM_RATE_LIMIT] {name}: {e}")
+                    performance_tracker.record_request(name, rate_limit=True, response_time=request_duration)
                     last_error = e
-                    continue  # Tentar próximo provedor
+                    continue
 
                 except BadRequestError as e:
                     request_duration = time.time() - provider_start
-                    logger.error(f"❌ [LLM_BAD_REQUEST] {name} bad request após {request_duration:.2f}s "
-                               f"(conteúdo muito grande: {chunk_size:,} chars): {e}")
-                    performance_tracker.record_request(name, error=True, response_time=request_duration,
-                                                     chunk_size=chunk_size, waiting_time=provider_wait_time)
+                    logger.error(f"❌ [LLM_BAD_REQUEST] {name}: {e}")
+                    performance_tracker.record_request(name, error=True, response_time=request_duration)
                     last_error = e
-                    # Não tentar outros provedores para BadRequest, propagar o erro
                     raise e
 
                 except APITimeoutError as e:
                     request_duration = time.time() - provider_start
-                    logger.error(f"⏰ [LLM_TIMEOUT] {name} timeout após {request_duration:.2f}s "
-                               f"(chunk: {chunk_size:,} chars, espera: {provider_wait_time:.2f}s): {e}")
-                    performance_tracker.record_request(name, timeout=True, response_time=request_duration,
-                                                     chunk_size=chunk_size, waiting_time=provider_wait_time)
+                    logger.warning(f"⏰ [LLM_TIMEOUT] {name} após {request_duration:.2f}s")
+                    performance_tracker.record_request(name, timeout=True, response_time=request_duration)
                     last_error = e
-                    continue  # Tentar próximo provedor
+                    continue
 
                 except Exception as e:
                     request_duration = time.time() - provider_start
-                    logger.error(f"❌ [LLM_ERROR] {name} falhou após {request_duration:.2f}s: {type(e).__name__}: {e}")
-                    performance_tracker.record_request(name, error=True, response_time=request_duration,
-                                                     chunk_size=chunk_size, waiting_time=provider_wait_time)
+                    logger.warning(f"❌ [LLM_ERROR] {name}: {type(e).__name__}")
+                    performance_tracker.record_request(name, error=True, response_time=request_duration)
                     last_error = e
-                    continue  # Tentar próximo provedor
+                    continue
         
         # Se chegou aqui, todos falharam
         total_duration = time.perf_counter() - start_ts
-        total_wait_time = time.time() - request_start
+        logger.error(f"💥 [LLM_ALL_FAILED] Todos provedores falharam em {total_duration:.2f}s")
 
-        # Detectar padrões de timeout
-        performance_tracker.detect_timeout_patterns()
-
-        error_msg = f"Todos os provedores LLM falharam. Último erro: {last_error}"
-        logger.error(f"💥 [LLM_ALL_FAILED] {error_msg}")
-        logger.error(f"[PERF] llm step=analyze_content_with_fallback_all_failed "
-                    f"duration={total_duration:.3f}s total_wait={total_wait_time:.2f}s "
-                    f"chunk_size={chunk_size:,} providers_tried={len(providers_to_try)}")
-
-    # EM VEZ DE LEVANTAR EXCEÇÃO, RETORNAR PERFIL VAZIO
-    # Isso permite que o fluxo continue e consolide o que foi possível extrair de outros chunks
-    logger.error("📭 [LLM_FALLBACK] Retornando perfil vazio para este chunk devido a falhas em todos os providers")
+    # Retornar perfil vazio para permitir consolidação de outros chunks
     return CompanyProfile()
 
 async def process_chunk_with_retry(chunk: str, chunk_num: int, total_chunks: int, primary_provider: Optional[str] = None) -> Optional[CompanyProfile]:
@@ -1663,8 +1333,8 @@ async def analyze_content(text_content: str) -> CompanyProfile:
     # Se houver apenas 1 chunk e for pequeno, ainda assim processar normalmente
     if len(chunks) == 1:
         # LOAD BALANCING: Selecionar provedor com menor carga para single-chunk
-        selected_provider = _select_least_loaded_provider()
-        logger.info(f"🔄 [LOAD_BALANCE] Single-chunk: selecionado {selected_provider} (menor carga)")
+        selected_provider = select_least_loaded_provider()
+        logger.debug(f"🔄 [LOAD_BALANCE] Single-chunk: {selected_provider}")
         
         # Adicionar timeout no processamento de chunk único para evitar travamento infinito
         try:
