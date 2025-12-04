@@ -293,6 +293,44 @@ AVAILABLE_PROVIDERS = [(name, key, url, model) for name, key, url, model in FALL
 if not AVAILABLE_PROVIDERS:
     logger.error("CRITICAL: Nenhum provedor de LLM configurado! Defina pelo menos uma API key.")
 
+def _select_least_loaded_provider() -> str:
+    """
+    Seleciona o provedor LLM com menor carga no momento.
+    
+    Estratégia de seleção (O(n) onde n = número de provedores):
+    1. Calcula score de carga: locked (1000) + waiters (quantidade na fila)
+    2. Retorna provedor com menor score
+    
+    Performance: ~1μs por chamada (apenas leitura de atributos, sem I/O)
+    """
+    if len(AVAILABLE_PROVIDERS) == 1:
+        return AVAILABLE_PROVIDERS[0][0]
+    
+    min_load = float('inf')
+    selected_provider = AVAILABLE_PROVIDERS[0][0]  # Fallback default
+    
+    for provider_name, _, _, _ in AVAILABLE_PROVIDERS:
+        semaphore = llm_semaphores.get(provider_name)
+        if semaphore is None:
+            continue
+        
+        # Calcular carga: locked adiciona peso alto, waiters adiciona peso proporcional
+        load_score = 0
+        
+        # Se locked, todas as vagas estão ocupadas
+        if semaphore.locked():
+            load_score += 1000
+        
+        # Adicionar número de waiters na fila (se disponível)
+        if hasattr(semaphore, '_waiters') and semaphore._waiters is not None:
+            load_score += len(semaphore._waiters)
+        
+        if load_score < min_load:
+            min_load = load_score
+            selected_provider = provider_name
+    
+    return selected_provider
+
 # Cliente primário (atual)
 client_args = {
     "api_key": settings.LLM_API_KEY,
@@ -1624,10 +1662,16 @@ async def analyze_content(text_content: str) -> CompanyProfile:
     
     # Se houver apenas 1 chunk e for pequeno, ainda assim processar normalmente
     if len(chunks) == 1:
-        logger.info(f"Uma única página detectada, processando diretamente...")
+        # LOAD BALANCING: Selecionar provedor com menor carga para single-chunk
+        selected_provider = _select_least_loaded_provider()
+        logger.info(f"🔄 [LOAD_BALANCE] Single-chunk: selecionado {selected_provider} (menor carga)")
+        
         # Adicionar timeout no processamento de chunk único para evitar travamento infinito
         try:
-            profile = await asyncio.wait_for(analyze_content_with_fallback(chunks[0]), timeout=120.0)
+            profile = await asyncio.wait_for(
+                analyze_content_with_fallback(chunks[0], provider_name=selected_provider), 
+                timeout=120.0
+            )
         except asyncio.TimeoutError:
             logger.error("❌ Timeout no processamento do chunk único (120s)")
             return CompanyProfile()
@@ -1637,7 +1681,7 @@ async def analyze_content(text_content: str) -> CompanyProfile:
             
         total_duration = time.perf_counter() - global_start
         logger.info(
-            f"[PERF] llm step=analyze_content_single_chunk duration={total_duration:.3f}s"
+            f"[PERF] llm step=analyze_content_single_chunk duration={total_duration:.3f}s provider={selected_provider}"
         )
         return profile
     

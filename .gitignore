@@ -8,3 +8,5 @@ results/
 
 resultado.json
 logs.*.json
+logs_app*.json
+analysis_*.json

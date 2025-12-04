@@ -21,6 +21,8 @@ def analyze_logs(file_path):
                         pass
 
     print(f"Total log entries: {len(data)}")
+    if len(data) > 0:
+        print(f"First entry sample: {str(data[0])[:200]}")
 
     # Counters
     levels = Counter()
@@ -31,13 +33,25 @@ def analyze_logs(file_path):
     patterns = []
     chunk_metrics = []
     
+    # Performance Metrics
+    profile_processing_times = []
+    model_inference_times = []
+    e2e_times = []
+    
     # Regex for cleaner aggregation
     error_cleaner = re.compile(r'(url=https?://[^ ]+|request_id=[^ ]+|chunk: \d+ chars)')
+    
+    # Regex for performance
+    perf_total_regex = re.compile(r'step=analyze_content_total duration=([\d\.]+)s')
+    perf_inference_regex = re.compile(r'step=model_inference .* duration=([\d\.]+)s')
+    perf_e2e_regex = re.compile(r'analyze_company end .* total=([\d\.]+)s')
 
     for entry in data:
         # Normalize fields
         msg = entry.get('message', '')
         attrs = entry.get('attributes', {})
+        
+        # Level Logic
         level = attrs.get('level', 'UNKNOWN').upper()
         if not level or level == 'UNKNOWN':
              # Try to infer from message if level attribute is missing
@@ -46,6 +60,29 @@ def analyze_logs(file_path):
              elif '[INFO]' in msg or '✅' in msg: level = 'INFO'
 
         levels[level] += 1
+
+        # Performance Extraction
+        if '[PERF]' in msg:
+            total_match = perf_total_regex.search(msg)
+            if total_match:
+                try:
+                    profile_processing_times.append(float(total_match.group(1)))
+                except ValueError:
+                    pass
+            
+            inference_match = perf_inference_regex.search(msg)
+            if inference_match:
+                try:
+                    model_inference_times.append(float(inference_match.group(1)))
+                except ValueError:
+                    pass
+            
+            e2e_match = perf_e2e_regex.search(msg)
+            if e2e_match:
+                try:
+                    e2e_times.append(float(e2e_match.group(1)))
+                except ValueError:
+                    pass
 
         # Health Checks
         if '[HEALTH_CHECK]' in msg:
@@ -64,12 +101,46 @@ def analyze_logs(file_path):
             chunk_metrics.append(msg)
 
         # Errors & Warnings Aggregation
-        if level == 'ERROR':
+        if level in ('ERROR', 'ERR'):
             clean_msg = error_cleaner.sub('...', msg)
             errors[clean_msg] += 1
-        elif level == 'WARNING':
+        elif level in ('WARNING', 'WARN'):
             clean_msg = error_cleaner.sub('...', msg)
             warnings[clean_msg] += 1
+
+    print("\n" + "="*50)
+    print("⏱️ PERFORMANCE METRICS")
+    print("="*50)
+    
+    if e2e_times:
+        avg_e2e = sum(e2e_times) / len(e2e_times)
+        max_e2e = max(e2e_times)
+        print(f"End-to-End Processing (Scrape + LLM):")
+        print(f"  Count: {len(e2e_times)}")
+        print(f"  Average: {avg_e2e:.2f}s")
+        print(f"  Max: {max_e2e:.2f}s")
+    else:
+        print("No end-to-end processing times found.")
+
+    if profile_processing_times:
+        avg_time = sum(profile_processing_times) / len(profile_processing_times)
+        max_time = max(profile_processing_times)
+        min_time = min(profile_processing_times)
+        print(f"\nLLM Analysis Phase:")
+        print(f"  Count: {len(profile_processing_times)}")
+        print(f"  Average: {avg_time:.2f}s")
+        print(f"  Min: {min_time:.2f}s")
+        print(f"  Max: {max_time:.2f}s")
+    else:
+        print("No LLM analysis times found.")
+
+    if model_inference_times:
+        avg_inf = sum(model_inference_times) / len(model_inference_times)
+        print(f"\nModel Inference (LLM only):")
+        print(f"  Count: {len(model_inference_times)}")
+        print(f"  Average: {avg_inf:.2f}s")
+    else:
+        print("\nNo model inference times found.")
 
     print("\n" + "="*50)
     print("📊 LOG LEVEL DISTRIBUTION")
@@ -126,5 +197,6 @@ def analyze_logs(file_path):
         print("No problematic patterns detected by the system.")
 
 if __name__ == "__main__":
-    analyze_logs("logs.1764794329321.json")
-
+    import sys
+    file_path = sys.argv[1] if len(sys.argv) > 1 else "logs.1764795759440.json"
+    analyze_logs(file_path)
