@@ -1,0 +1,638 @@
+"""
+Serviço principal de scraping v2.0.
+Orquestra todo o processo de scrape com adaptação automática.
+"""
+
+import asyncio
+import time
+import logging
+import random
+from urllib.parse import urlparse
+from typing import List, Tuple, Optional
+
+try:
+    from curl_cffi.requests import AsyncSession
+    HAS_CURL_CFFI = True
+except ImportError:
+    HAS_CURL_CFFI = False
+    AsyncSession = None
+
+from app.core.proxy import proxy_manager
+from app.services.learning import (
+    failure_tracker, FailureModule, FailureType,
+    site_knowledge, adaptive_config
+)
+from .models import (
+    SiteProfile, ScrapedContent, ScrapedPage, ScrapingStrategy
+)
+from .constants import scraper_config, DEFAULT_HEADERS
+from .circuit_breaker import record_failure, record_success, is_circuit_open
+from .http_client import cffi_scrape, cffi_scrape_safe, system_curl_scrape
+from .html_parser import is_cloudflare_challenge, is_soft_404, normalize_url
+from .link_selector import select_links_with_llm
+from .site_analyzer import site_analyzer
+from .protection_detector import protection_detector, ProtectionType
+from .strategy_selector import strategy_selector
+from .url_prober import url_prober, URLNotReachable
+
+logger = logging.getLogger(__name__)
+
+# Controle de concorrência por domínio e saúde de proxies
+_domain_semaphores = {}
+_proxy_failures = {}
+_proxy_quarantine_until = {}
+_PROXY_QUARANTINE_SECONDS = 300
+
+
+def _get_domain_semaphore(host: str) -> asyncio.Semaphore:
+    """Retorna o semáforo por domínio para limitar paralelismo no mesmo host."""
+    limit = max(1, scraper_config.per_domain_limit)
+    if host not in _domain_semaphores:
+        _domain_semaphores[host] = asyncio.Semaphore(limit)
+    return _domain_semaphores[host]
+
+
+def _proxy_is_quarantined(proxy: str) -> bool:
+    until = _proxy_quarantine_until.get(proxy)
+    return until is not None and until > time.time()
+
+
+def _record_proxy_failure(proxy: str):
+    _proxy_failures[proxy] = _proxy_failures.get(proxy, 0) + 1
+    if _proxy_failures[proxy] >= scraper_config.proxy_max_failures:
+        _proxy_quarantine_until[proxy] = time.time() + _PROXY_QUARANTINE_SECONDS
+        logger.debug(f"[Proxy] Quarentena aplicada ao proxy {proxy}")
+
+
+def _record_proxy_success(proxy: str):
+    _proxy_failures[proxy] = 0
+    _proxy_quarantine_until.pop(proxy, None)
+
+
+async def _test_proxy_latency(proxy_url: str) -> Tuple[float, bool]:
+    """Testa conexão TCP básica ao host do proxy para medir latência."""
+    try:
+        parsed = urlparse(proxy_url if "://" in proxy_url else f"http://{proxy_url}")
+        host = parsed.hostname
+        port = parsed.port or 80
+        start = time.perf_counter()
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port),
+            timeout=5.0
+        )
+        writer.close()
+        await writer.wait_closed()
+        latency_ms = (time.perf_counter() - start) * 1000
+        return latency_ms, True
+    except Exception:
+        return 0, False
+
+
+async def _get_healthy_proxy(max_attempts: int = 3) -> Optional[str]:
+    """
+    Obtém um proxy saudável:
+    - Pula proxies em quarentena
+    - Mede latência e recusa se > limiar
+    - Quarentena após repetidas falhas
+    """
+    for _ in range(max_attempts):
+        proxy = await proxy_manager.get_next_proxy()
+        if not proxy:
+            continue
+        if _proxy_is_quarantined(proxy):
+            continue
+        latency, ok = await _test_proxy_latency(proxy)
+        if ok and latency <= scraper_config.proxy_max_latency_ms:
+            _record_proxy_success(proxy)
+            return proxy
+        _record_proxy_failure(proxy)
+    return None
+
+# User-Agents para rotação
+USER_AGENTS = [
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+]
+
+
+async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str], List[str]]:
+    """
+    Scraper adaptativo v2.0 com Learning Engine.
+    
+    Fluxo:
+    1. Consultar conhecimento prévio do site
+    2. Probe URL (encontrar melhor variação)
+    3. Analisar site (detectar proteção e tipo)
+    4. Selecionar estratégia (considerando conhecimento prévio)
+    5. Scrape main page com fallback
+    6. Extrair e selecionar links
+    7. Scrape subpages em paralelo
+    8. Consolidar e registrar aprendizado
+    
+    Returns:
+        Tuple de (texto_agregado, lista_documentos, urls_visitadas)
+    """
+    overall_start = time.perf_counter()
+    
+    # 0. CONSULTAR CONHECIMENTO PRÉVIO OU USAR APRENDIZADO GLOBAL
+    site_profile_known = site_knowledge.get_profile(url)
+    
+    if site_profile_known and site_profile_known.total_attempts > 0:
+        # Site já conhecido - usar conhecimento específico
+        known_strategy = site_profile_known.best_strategy
+        known_protection = site_profile_known.protection_type
+        logger.info(f"📚 Conhecimento específico: proteção={known_protection}, estratégia={known_strategy}")
+    else:
+        # Site NOVO - usar aprendizado global dos padrões
+        known_strategy = adaptive_config.get_default_strategy_for_new_site()
+        known_protection = "none"
+        if known_strategy != "standard":
+            logger.info(f"🧠 Usando aprendizado global: estratégia={known_strategy} (baseado em padrões)")
+    
+    # 1. PROBE URL
+    try:
+        best_url, probe_time = await url_prober.probe(url)
+        logger.info(f"🎯 URL selecionada: {best_url} ({probe_time:.0f}ms)")
+        url = best_url
+    except URLNotReachable as e:
+        logger.error(f"❌ URL inacessível: {url} - {e}")
+        failure_tracker.record_failure(
+            module=FailureModule.SCRAPER,
+            error_type=FailureType.CONNECTION_ERROR,
+            url=url,
+            error_message=str(e),
+            duration_ms=(time.perf_counter() - overall_start) * 1000
+        )
+        return "", [], []
+    except Exception as e:
+        logger.warning(f"⚠️ Erro no probe, usando URL original: {e}")
+    
+    # 2. ANALISAR SITE
+    analysis_start = time.perf_counter()
+    site_profile = await site_analyzer.analyze(url)
+    analysis_time_ms = (time.perf_counter() - analysis_start) * 1000
+    
+    # 3. SELECIONAR ESTRATÉGIAS (priorizar conhecimento prévio)
+    strategies = strategy_selector.select(site_profile)
+    
+    # Se temos conhecimento prévio de uma estratégia melhor, priorizá-la
+    if known_strategy != "standard":
+        try:
+            known_strat_enum = ScrapingStrategy(known_strategy)
+            if known_strat_enum in strategies:
+                strategies.remove(known_strat_enum)
+            strategies.insert(0, known_strat_enum)
+            logger.info(f"📋 Estratégias (priorizando aprendizado): {[s.value for s in strategies]}")
+        except ValueError:
+            logger.info(f"📋 Estratégias: {[s.value for s in strategies]}")
+    else:
+        logger.info(f"📋 Estratégias: {[s.value for s in strategies]}")
+    
+    # 4. SCRAPE MAIN PAGE
+    main_page = await _scrape_main_page(url, strategies, site_profile)
+    
+    if not main_page or not main_page.success:
+        logger.error(f"❌ Falha ao obter main page de {url}")
+        failure_tracker.record_failure(
+            module=FailureModule.SCRAPER,
+            error_type=_classify_error(main_page.error if main_page else "unknown"),
+            url=url,
+            error_message=main_page.error if main_page else "No content",
+            context={"site_type": site_profile.site_type.value if site_profile else "unknown"},
+            strategy_used=str(strategies[0].value) if strategies else "",
+            duration_ms=(time.perf_counter() - overall_start) * 1000
+        )
+        site_knowledge.record_failure(url, main_page.error if main_page else "unknown")
+        return "", [], []
+    
+    # 5. DEFINIR MODO LENTO/RÁPIDO E LIMITE DINÂMICO DE SUBPÁGINAS
+    probe_ms = probe_time if 'probe_time' in locals() else 0
+    main_ms = getattr(main_page, "response_time_ms", 0) or 0
+    slow_mode = (
+        (probe_ms and probe_ms > scraper_config.slow_probe_threshold_ms) or
+        (analysis_time_ms > scraper_config.slow_main_threshold_ms) or
+        (main_ms > scraper_config.slow_main_threshold_ms)
+    )
+    effective_max_subpages = (
+        min(max_subpages, scraper_config.slow_subpage_cap)
+        if slow_mode else
+        max_subpages
+    )
+    per_request_timeout = (
+        scraper_config.slow_per_request_timeout
+        if slow_mode else
+        scraper_config.fast_per_request_timeout
+    )
+    
+    # 6. EXTRAIR E SELECIONAR LINKS (honrando limite dinâmico)
+    target_subpages = await select_links_with_llm(
+        set(main_page.links), url, max_links=effective_max_subpages
+    )
+    
+    # 7. SCRAPE SUBPAGES
+    subpages = []
+    if target_subpages:
+        subpages = await _scrape_subpages_adaptive(
+            target_subpages, 
+            main_page.strategy_used,
+            site_profile,
+            slow_mode=slow_mode,
+            subpage_cap=effective_max_subpages,
+            per_request_timeout=per_request_timeout
+        )
+    
+    # 8. CONSOLIDAR
+    content = ScrapedContent(
+        main_url=url,
+        main_page=main_page,
+        subpages=subpages,
+        total_time_ms=(time.perf_counter() - overall_start) * 1000,
+        strategies_tried=strategies
+    )
+    
+    total_duration = time.perf_counter() - overall_start
+    total_duration_ms = total_duration * 1000
+    
+    # 9. REGISTRAR APRENDIZADO
+    if content.success_rate > 0.5:
+        site_knowledge.record_success(
+            url, 
+            response_time_ms=total_duration_ms,
+            strategy_used=main_page.strategy_used.value if main_page.strategy_used else "standard"
+        )
+        # Atualizar proteção conhecida se detectada
+        if site_profile and site_profile.protection_type.value != "none":
+            site_knowledge.update_profile(
+                url,
+                protection_type=site_profile.protection_type.value
+            )
+    
+    logger.info(
+        f"[PERF] scrape_url total={total_duration:.3f}s "
+        f"pages={len(content.visited_urls)} success_rate={content.success_rate:.1%}"
+    )
+    
+    return content.aggregated_content, content.all_document_links, content.visited_urls
+
+
+def _classify_error(error_message: str) -> FailureType:
+    """Classifica uma mensagem de erro em um tipo de falha."""
+    if not error_message:
+        return FailureType.UNKNOWN
+    
+    error_lower = error_message.lower()
+    
+    if "timeout" in error_lower:
+        return FailureType.TIMEOUT
+    elif "cloudflare" in error_lower:
+        return FailureType.CLOUDFLARE
+    elif "403" in error_lower or "waf" in error_lower:
+        return FailureType.WAF
+    elif "captcha" in error_lower:
+        return FailureType.CAPTCHA
+    elif "rate" in error_lower and "limit" in error_lower:
+        return FailureType.RATE_LIMIT
+    elif "empty" in error_lower or "404" in error_lower:
+        return FailureType.EMPTY_CONTENT
+    elif "ssl" in error_lower or "certificate" in error_lower:
+        return FailureType.SSL_ERROR
+    elif "dns" in error_lower or "resolve" in error_lower:
+        return FailureType.DNS_ERROR
+    elif "connection" in error_lower or "connect" in error_lower:
+        return FailureType.CONNECTION_ERROR
+    
+    return FailureType.UNKNOWN
+
+
+async def _scrape_main_page(
+    url: str, 
+    strategies: List[ScrapingStrategy],
+    site_profile: SiteProfile
+) -> Optional[ScrapedPage]:
+    """
+    Faz scrape da main page com fallback entre estratégias.
+    Conteúdo < 500 chars é considerado insuficiente e tenta estratégia ROBUST.
+    """
+    main_start = time.perf_counter()
+    MIN_CONTENT_LENGTH = 500  # Mínimo de caracteres para considerar sucesso
+    
+    # Garantir que ROBUST está nas estratégias (para retry de conteúdo insuficiente)
+    if ScrapingStrategy.ROBUST not in strategies:
+        strategies = list(strategies) + [ScrapingStrategy.ROBUST]
+    
+    for strategy in strategies:
+        config = strategy_selector.get_strategy_config(strategy)
+        logger.info(f"🔄 Tentando estratégia {strategy.value} para main page")
+        
+        try:
+            page = await _execute_strategy(url, strategy, config)
+            
+            if page and page.success:
+                # Verificar se conteúdo é suficiente
+                content_len = len(page.content) if page.content else 0
+                
+                if content_len < MIN_CONTENT_LENGTH:
+                    logger.warning(
+                        f"⚠️ Conteúdo insuficiente ({content_len} chars < {MIN_CONTENT_LENGTH}) "
+                        f"com {strategy.value}, tentando próxima estratégia..."
+                    )
+                    continue  # Tentar próxima estratégia
+                
+                page.response_time_ms = (time.perf_counter() - main_start) * 1000
+                logger.info(
+                    f"✅ Main page OK com {strategy.value}: "
+                    f"{content_len} chars, {len(page.links)} links"
+                )
+                return page
+            
+            # Verificar se é proteção que bloqueia
+            if page and page.content:
+                protection = protection_detector.detect(
+                    response_body=page.content,
+                    status_code=page.status_code
+                )
+                if protection_detector.is_blocking_protection(protection):
+                    rec = protection_detector.get_retry_recommendation(protection)
+                    logger.warning(
+                        f"⚠️ Proteção {protection.value} detectada. "
+                        f"Aguardando {rec['delay_seconds']}s..."
+                    )
+                    await asyncio.sleep(rec['delay_seconds'])
+                    
+        except Exception as e:
+            logger.warning(f"⚠️ Estratégia {strategy.value} falhou: {e}")
+            continue
+    
+    logger.error(f"❌ Todas estratégias falharam para {url}")
+    return None
+
+
+async def _execute_strategy(
+    url: str, 
+    strategy: ScrapingStrategy, 
+    config: dict
+) -> Optional[ScrapedPage]:
+    """Executa uma estratégia específica de scraping."""
+    headers = DEFAULT_HEADERS.copy()
+    
+    # Rotação de User-Agent se configurado
+    if config.get("rotate_ua"):
+        headers["User-Agent"] = random.choice(USER_AGENTS)
+    
+    # Proxy se configurado
+    proxy = None
+    if config.get("use_proxy"):
+        proxy = await _get_healthy_proxy()
+        if config.get("rotate_proxy"):
+            # Tentar múltiplos proxies
+            for _ in range(3):
+                try:
+                    page = await _do_scrape(url, proxy, headers, config["timeout"])
+                    if page.success:
+                        page.strategy_used = strategy
+                        return page
+                except:
+                    proxy = await _get_healthy_proxy()
+    
+    # Executar scrape
+    page = await _do_scrape(url, proxy, headers, config["timeout"])
+    page.strategy_used = strategy
+    return page
+
+
+async def _do_scrape(
+    url: str, 
+    proxy: Optional[str], 
+    headers: dict,
+    timeout: int
+) -> ScrapedPage:
+    """Executa o scrape real."""
+    try:
+        text, docs, links = await cffi_scrape_safe(url, proxy)
+        
+        # Verificar qualidade do conteúdo
+        if not text or len(text) < 100:
+            # Fallback para system curl
+            text, docs, links = await system_curl_scrape(url, proxy)
+        
+        is_404 = is_soft_404(text) if text else True
+        is_cf = is_cloudflare_challenge(text) if text else False
+        
+        return ScrapedPage(
+            url=url,
+            content=text if not is_404 and not is_cf else "",
+            links=list(links),
+            document_links=list(docs),
+            status_code=200 if text and not is_404 else 404,
+            error="Soft 404" if is_404 else ("Cloudflare" if is_cf else None)
+        )
+        
+    except Exception as e:
+        return ScrapedPage(
+            url=url,
+            content="",
+            error=str(e)
+        )
+
+
+async def _scrape_subpages_adaptive(
+    target_subpages: List[str],
+    main_strategy: ScrapingStrategy,
+    site_profile: SiteProfile,
+    slow_mode: bool = False,
+    subpage_cap: Optional[int] = None,
+    per_request_timeout: Optional[int] = None
+) -> List[ScrapedPage]:
+    """
+    Faz scrape das subpáginas com estratégia adaptativa.
+    """
+    subpages_start = time.perf_counter()
+    logger.info(f"[Scraper] Processing {len(target_subpages)} subpages")
+    
+    # Limitar quantidade de subpáginas se necessário
+    if subpage_cap:
+        target_subpages = target_subpages[:subpage_cap]
+    
+    chunk_size = scraper_config.chunk_size
+    url_chunks = [target_subpages[i:i + chunk_size] for i in range(0, len(target_subpages), chunk_size)]
+    
+    chunk_limit = (
+        scraper_config.slow_chunk_semaphore_limit if slow_mode
+        else scraper_config.chunk_semaphore_limit
+    )
+    chunk_sem = asyncio.Semaphore(chunk_limit)
+    
+    async def scrape_chunk_wrapper(chunk):
+        async with chunk_sem:
+            return await _scrape_chunk_adaptive(
+                chunk, main_strategy, slow_mode=slow_mode, per_request_timeout=per_request_timeout
+            )
+
+    tasks = [scrape_chunk_wrapper(chunk) for chunk in url_chunks]
+    results_of_chunks = await asyncio.gather(*tasks)
+    
+    results = []
+    for chunk_res in results_of_chunks:
+        results.extend(chunk_res)
+
+    success_count = sum(1 for p in results if p.success)
+    subpages_duration = time.perf_counter() - subpages_start
+    logger.info(
+        f"[PERF] subpages duration={subpages_duration:.3f}s "
+        f"requested={len(target_subpages)} ok={success_count}"
+    )
+    
+    return results
+
+
+async def _scrape_chunk_adaptive(
+    urls_chunk: List[str],
+    main_strategy: ScrapingStrategy,
+    slow_mode: bool = False,
+    per_request_timeout: Optional[int] = None
+) -> List[ScrapedPage]:
+    """
+    Faz scrape de um chunk de URLs com estratégia adaptativa.
+    OTIMIZADO v2: Cada subpágina usa um PROXY DIFERENTE para evitar rate limiting.
+    """
+    config = strategy_selector.get_strategy_config(main_strategy)
+    effective_timeout = per_request_timeout or config["timeout"]
+    
+    # Filtrar URLs com circuit breaker aberto
+    urls_to_process = []
+    circuit_open_results = []
+    
+    for sub_url in urls_chunk:
+        if is_circuit_open(sub_url):
+            circuit_open_results.append(ScrapedPage(url=sub_url, content="", error="Circuit open"))
+        else:
+            urls_to_process.append(normalize_url(sub_url))
+    
+    if not urls_to_process:
+        return circuit_open_results
+    
+    # Semáforo interno para limitar paralelismo (evita sobrecarga)
+    internal_limit = (
+        scraper_config.slow_chunk_internal_limit if slow_mode
+        else scraper_config.fast_chunk_internal_limit
+    )
+    chunk_internal_sem = asyncio.Semaphore(internal_limit)
+    
+    async def scrape_with_individual_proxy(url: str) -> ScrapedPage:
+        """Scrape uma URL com seu próprio proxy."""
+        async with chunk_internal_sem:
+            # Limite por domínio
+            host = urlparse(url).netloc
+            domain_sem = _get_domain_semaphore(host)
+            async with domain_sem:
+                individual_proxy = await _get_healthy_proxy()
+                
+                if HAS_CURL_CFFI and AsyncSession:
+                    try:
+                        async with AsyncSession(
+                            impersonate="chrome120",
+                            proxy=individual_proxy,
+                            timeout=effective_timeout,
+                            verify=False
+                        ) as session:
+                            return await _scrape_single_subpage(
+                                url, session, config, effective_timeout
+                            )
+                    except Exception:
+                        # Fallback para system_curl
+                        return await _scrape_single_subpage_fallback(
+                            url, individual_proxy, effective_timeout
+                        )
+                else:
+                    return await _scrape_single_subpage_fallback(
+                        url, individual_proxy, effective_timeout
+                    )
+    
+    # Processar todas URLs em paralelo, cada uma com seu proxy
+    tasks = [scrape_with_individual_proxy(url) for url in urls_to_process]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Processar resultados
+    chunk_results = []
+    for url, result in zip(urls_to_process, results):
+        if isinstance(result, Exception):
+            chunk_results.append(ScrapedPage(url=url, content="", error=str(result)))
+        else:
+            chunk_results.append(result)
+    
+    return circuit_open_results + chunk_results
+
+
+async def _scrape_single_subpage_fallback(
+    url: str,
+    proxy: Optional[str],
+    per_request_timeout: int
+) -> ScrapedPage:
+    """Faz scrape usando system_curl quando curl_cffi não está disponível."""
+    try:
+        text, docs, _ = await asyncio.wait_for(
+            system_curl_scrape(url, proxy),
+            timeout=per_request_timeout
+        )
+        
+        if not text or len(text) < 100 or is_soft_404(text):
+            record_failure(url)
+            return ScrapedPage(url=url, content="", error="Empty or soft 404")
+        
+        record_success(url)
+        return ScrapedPage(
+            url=url,
+            content=text,
+            document_links=list(docs),
+            status_code=200
+        )
+    except Exception as e:
+        record_failure(url)
+        return ScrapedPage(url=url, content="", error=str(e))
+
+
+async def _scrape_single_subpage(
+    url: str,
+    session: AsyncSession,
+    config: dict,
+    per_request_timeout: int
+) -> ScrapedPage:
+    """Faz scrape de uma única subpágina."""
+    try:
+        text, docs, _ = await asyncio.wait_for(
+            cffi_scrape(url, proxy=None, session=session),
+            timeout=per_request_timeout
+        )
+        
+        is_cf = is_cloudflare_challenge(text) if text else False
+        
+        if not text or len(text) < 100 or is_soft_404(text):
+            record_failure(url, is_protection=is_cf)
+            
+            # Fallback
+            fallback_proxy = await _get_healthy_proxy()
+            text, docs, _ = await asyncio.wait_for(
+                system_curl_scrape(url, fallback_proxy),
+                timeout=per_request_timeout
+            )
+            
+            if not text or len(text) < 100 or is_soft_404(text):
+                record_failure(url)
+                return ScrapedPage(url=url, content="", error="Empty or soft 404")
+        
+        record_success(url)
+        logger.debug(f"[Sub] ✅ {url} ({len(text)} chars)")
+        
+        return ScrapedPage(
+            url=url,
+            content=text,
+            document_links=list(docs),
+            status_code=200
+        )
+        
+    except Exception as e:
+        record_failure(url)
+        return ScrapedPage(url=url, content="", error=str(e))

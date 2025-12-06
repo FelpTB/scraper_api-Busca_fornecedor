@@ -8,12 +8,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 from app.schemas.profile import CompanyProfile
 from app.services.scraper import scrape_url
-from app.services.pdf import download_and_extract
 from app.services.llm import analyze_content
 from app.services.discovery import find_company_website
 from app.core.security import get_api_key
 from app.core.logging_utils import setup_logging
 from app.services.llm import start_health_monitor
+from app.services.learning import adaptive_config
 
 # Configurar Logging (JSON Structured)
 setup_logging()
@@ -128,50 +128,27 @@ async def process_analysis(url: str) -> CompanyProfile:
     """
     Orquestra o fluxo principal de análise.
     Registra métricas de tempo por etapa para facilitar profiling.
+    
+    v2.0: Módulo de documentos (PDF/DOC) removido para simplificar fluxo.
     """
     overall_start = time.perf_counter()
 
-    # 1. Scrape the main website AND subpages (Increased to 100 for max coverage)
-    # Nota: pdf_links agora inclui PDFs, Word (.doc, .docx) e PowerPoint (.ppt, .pptx)
+    # 1. Scrape the main website AND subpages
     step_start = time.perf_counter()
-    markdown, pdf_links, scraped_urls = await scrape_url(url, max_subpages=100)
+    markdown, _, scraped_urls = await scrape_url(url, max_subpages=100)
     scrape_duration = time.perf_counter() - step_start
     logger.info(
         f"[PERF] process_analysis step=scrape_url url={url} "
-        f"duration={scrape_duration:.3f}s pages={len(scraped_urls)} docs={len(pdf_links)}"
+        f"duration={scrape_duration:.3f}s pages={len(scraped_urls)}"
     )
     
     if not markdown:
         raise Exception("Failed to scrape content from the URL")
 
-    # 2. Process Documents (PDFs, Word, PowerPoint) - Max 5 in parallel
-    docs_start = time.perf_counter()
-    document_texts = []
-    target_documents = []
-    if pdf_links:
-        # Limit to top 5 unique documents (aumentado de 3 para incluir mais tipos)
-        target_documents = pdf_links[:5]
-        results = await asyncio.gather(*[download_and_extract(doc) for doc in target_documents])
-        document_texts = [res for res in results if res]
-    docs_duration = time.perf_counter() - docs_start
-    logger.info(
-        f"[PERF] process_analysis step=documents url={url} "
-        f"duration={docs_duration:.3f}s docs_requested={len(target_documents)} docs_ok={len(document_texts)}"
-    )
-
-    # 3. Combine content
-    combine_start = time.perf_counter()
+    # 2. Prepare content for LLM
     combined_text = f"--- WEB CRAWL START ({url}) ---\n{markdown}\n--- WEB CRAWL END ---\n\n"
-    if document_texts:
-        combined_text += "\n".join(document_texts)
-    combine_duration = time.perf_counter() - combine_start
-    logger.info(
-        f"[PERF] process_analysis step=combine_content url={url} "
-        f"duration={combine_duration:.3f}s combined_chars={len(combined_text)}"
-    )
 
-    # 4. LLM Analysis
-    # Note: Exceptions from analyze_content (after retries exhausted) will propagate up
+    # 3. LLM Analysis
     llm_start = time.perf_counter()
     profile = await analyze_content(combined_text)
     llm_duration = time.perf_counter() - llm_start
@@ -180,18 +157,43 @@ async def process_analysis(url: str) -> CompanyProfile:
         f"duration={llm_duration:.3f}s"
     )
     
-    # 5. Add Sources (Scraped URLs + Documents)
-    all_sources = scraped_urls + target_documents
-    profile.sources = list(set(all_sources)) # Remove duplicates if any
+    # 4. Add Sources
+    profile.sources = list(set(scraped_urls))
     
-    # 6. Return Result (No longer saving to file)
     total_duration = time.perf_counter() - overall_start
     logger.info(
         f"[PERF] process_analysis step=total url={url} "
         f"duration={total_duration:.3f}s"
     )
+    
+    # 5. Atualizar aprendizado adaptativo após cada análise
+    adaptive_config.optimize_after_batch(batch_size=1)
+    
     return profile
+
 
 @app.get("/")
 async def root():
     return {"status": "ok", "service": "B2B Flash Profiler"}
+
+
+@app.get("/learning/status")
+async def learning_status():
+    """
+    Retorna o status do sistema de aprendizado adaptativo.
+    Mostra configurações atuais e estatísticas de otimização.
+    """
+    return adaptive_config.get_status()
+
+
+@app.post("/learning/optimize")
+async def trigger_optimization():
+    """
+    Força uma otimização manual baseada nos padrões atuais.
+    Útil após processar um lote grande de empresas.
+    """
+    adaptive_config.optimize_after_batch(batch_size=0)
+    return {
+        "message": "Otimização executada",
+        "status": adaptive_config.get_status()
+    }

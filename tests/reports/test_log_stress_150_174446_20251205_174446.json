@@ -1,0 +1,2327 @@
+{
+  "test_id": "stress_150_174446",
+  "timestamp": "2025-12-05T20:44:46.862505",
+  "config": {
+    "data_file": "tests/data_empresas.json",
+    "max_concurrent": 150,
+    "timeout_per_empresa": 90.0,
+    "total_empresas": 150
+  },
+  "metrics": {
+    "total_empresas": 150,
+    "total_processadas": 150,
+    "total_sucesso": 30,
+    "total_falha": 120,
+    "taxa_sucesso": 20.0,
+    "tempo_medio_segundos": 49.69820982082747,
+    "tempo_minimo_segundos": 19.623631415888667,
+    "tempo_maximo_segundos": 87.54026687517762,
+    "completude_media": 61.777777777777786,
+    "discovery_sucesso": 38,
+    "scrape_sucesso": 30,
+    "llm_sucesso": 30,
+    "erros_por_tipo": {
+      "Discovery": 1,
+      "Scrape": 8,
+      "Outro": 111
+    },
+    "aprovado": false
+  },
+  "results": [
+    {
+      "empresa": {
+        "cnpj": "74478637",
+        "nome_fantasia": "CAIS DO PAPEL",
+        "site_original": ""
+      },
+      "success": false,
+      "duration_seconds": 14.651318124961108,
+      "error": "Discovery: Site não encontrado",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "18540723",
+        "nome_fantasia": "MONTCON",
+        "site_original": "business.google.com/website/montconmontagens"
+      },
+      "success": false,
+      "duration_seconds": 0.45296358317136765,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "https://business.google.com/website/montconmontagens",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "04154215",
+        "nome_fantasia": "CARROCERIAS ROMI",
+        "site_original": "fabrica.carroceriasromi.com.br/carroceria"
+      },
+      "success": true,
+      "duration_seconds": 21.063617958221585,
+      "error": "",
+      "discovery_url": "https://fabrica.carroceriasromi.com.br/carroceria",
+      "scrape_chars": 6327,
+      "scrape_pages": 1,
+      "profile_completeness": 73.33333333333333,
+      "profile_fields_filled": 11
+    },
+    {
+      "empresa": {
+        "cnpj": "03417769",
+        "nome_fantasia": "12M",
+        "site_original": "http://12m.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 80.5424542077817,
+      "error": "",
+      "discovery_url": "http://12m.com.br/",
+      "scrape_chars": 73566,
+      "scrape_pages": 41,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "52952857",
+        "nome_fantasia": "2A CONSTRUCOES E SERVICOS",
+        "site_original": "http://2aengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 21.61656012479216,
+      "error": "",
+      "discovery_url": "http://2aengenharia.com.br/",
+      "scrape_chars": 8129,
+      "scrape_pages": 6,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "44551811",
+        "nome_fantasia": "2A ENGENHARIA",
+        "site_original": "http://2aengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 20.46719945780933,
+      "error": "",
+      "discovery_url": "http://2aengenharia.com.br/",
+      "scrape_chars": 8153,
+      "scrape_pages": 6,
+      "profile_completeness": 66.66666666666666,
+      "profile_fields_filled": 10
+    },
+    {
+      "empresa": {
+        "cnpj": "39979717",
+        "nome_fantasia": "2A CONSTRUCOES",
+        "site_original": "http://2aengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 19.623631415888667,
+      "error": "",
+      "discovery_url": "http://2aengenharia.com.br/",
+      "scrape_chars": 8129,
+      "scrape_pages": 6,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "22627639",
+        "nome_fantasia": "2B TRANSPORTES E LOGISTICAS",
+        "site_original": "http://2beng.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 30.871910457964987,
+      "error": "",
+      "discovery_url": "http://2beng.com.br/",
+      "scrape_chars": 6870,
+      "scrape_pages": 5,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "42090610",
+        "nome_fantasia": "2W CONSTRUTORA",
+        "site_original": "http://2wempreendimentos.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 25.742217834107578,
+      "error": "",
+      "discovery_url": "http://2wempreendimentos.com.br/",
+      "scrape_chars": 3429,
+      "scrape_pages": 1,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "03318133",
+        "nome_fantasia": "2W PESAGEM E AUTOMACAO",
+        "site_original": "http://2wpesagem.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "10902504",
+        "nome_fantasia": "3 ACHIEVE",
+        "site_original": "http://3achieve.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 20.49038716685027,
+      "error": "",
+      "discovery_url": "http://3achieve.com.br/",
+      "scrape_chars": 2605,
+      "scrape_pages": 1,
+      "profile_completeness": 80.0,
+      "profile_fields_filled": 12
+    },
+    {
+      "empresa": {
+        "cnpj": "44946014",
+        "nome_fantasia": "3A ENGENHARIA",
+        "site_original": "http://3aengenhariasp.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 35.40810870798305,
+      "error": "",
+      "discovery_url": "http://3aengenhariasp.com.br/",
+      "scrape_chars": 2062,
+      "scrape_pages": 1,
+      "profile_completeness": 46.666666666666664,
+      "profile_fields_filled": 7
+    },
+    {
+      "empresa": {
+        "cnpj": "48833658",
+        "nome_fantasia": "3A ENGENHARIA",
+        "site_original": "http://3aengenhariasp.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 31.53559370758012,
+      "error": "",
+      "discovery_url": "http://3aengenhariasp.com.br/",
+      "scrape_chars": 4119,
+      "scrape_pages": 2,
+      "profile_completeness": 46.666666666666664,
+      "profile_fields_filled": 7
+    },
+    {
+      "empresa": {
+        "cnpj": "20320293",
+        "nome_fantasia": "3D SERVICE",
+        "site_original": "http://3dserviceconservacao.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 35.40954033425078,
+      "error": "",
+      "discovery_url": "http://3dserviceconservacao.com.br/",
+      "scrape_chars": 4109,
+      "scrape_pages": 6,
+      "profile_completeness": 66.66666666666666,
+      "profile_fields_filled": 10
+    },
+    {
+      "empresa": {
+        "cnpj": "03135527",
+        "nome_fantasia": "3F PECAS PARA SUSPENSAO",
+        "site_original": "http://3fautopecas.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14498973",
+        "nome_fantasia": "3MV CONSTRUTORA",
+        "site_original": "http://3mvconstrutora.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 26.72145233443007,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://3mvconstrutora.com.br/",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "09560567",
+        "nome_fantasia": "3 R CONSTRUCOES PAULINIA",
+        "site_original": "http://3rconstrucao.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 66.79536179220304,
+      "error": "",
+      "discovery_url": "http://3rconstrucao.com.br/",
+      "scrape_chars": 8569,
+      "scrape_pages": 8,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "03733899",
+        "nome_fantasia": "3R CONSTRUCOES",
+        "site_original": "http://3rconstrucao.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 66.85611779196188,
+      "error": "",
+      "discovery_url": "http://3rconstrucao.com.br/",
+      "scrape_chars": 8570,
+      "scrape_pages": 8,
+      "profile_completeness": 46.666666666666664,
+      "profile_fields_filled": 7
+    },
+    {
+      "empresa": {
+        "cnpj": "24079759",
+        "nome_fantasia": "3T ENGENHARIA",
+        "site_original": "http://3teng.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "04833643",
+        "nome_fantasia": "4L LOCACOES E SERVICOS GERAIS",
+        "site_original": "http://4lmecanizacao.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 41.07325320877135,
+      "error": "",
+      "discovery_url": "http://4lmecanizacao.com.br/",
+      "scrape_chars": 8780,
+      "scrape_pages": 8,
+      "profile_completeness": 53.333333333333336,
+      "profile_fields_filled": 8
+    },
+    {
+      "empresa": {
+        "cnpj": "19125554",
+        "nome_fantasia": "4M ENGENHARIA",
+        "site_original": "http://4mengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 53.02733854111284,
+      "error": "",
+      "discovery_url": "http://4mengenharia.com.br/",
+      "scrape_chars": 15279,
+      "scrape_pages": 8,
+      "profile_completeness": 53.333333333333336,
+      "profile_fields_filled": 8
+    },
+    {
+      "empresa": {
+        "cnpj": "07825635",
+        "nome_fantasia": "4M CONSTRUCOES E SERVICOS",
+        "site_original": "http://4mengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 53.03073245799169,
+      "error": "",
+      "discovery_url": "http://4mengenharia.com.br/",
+      "scrape_chars": 15279,
+      "scrape_pages": 8,
+      "profile_completeness": 53.333333333333336,
+      "profile_fields_filled": 8
+    },
+    {
+      "empresa": {
+        "cnpj": "44279679",
+        "nome_fantasia": "4M CONSTRUCOES",
+        "site_original": "http://4mengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 53.14283579122275,
+      "error": "",
+      "discovery_url": "http://4mengenharia.com.br/",
+      "scrape_chars": 15279,
+      "scrape_pages": 8,
+      "profile_completeness": 53.333333333333336,
+      "profile_fields_filled": 8
+    },
+    {
+      "empresa": {
+        "cnpj": "21922860",
+        "nome_fantasia": "4T SISTEMAS INTELIGENTES",
+        "site_original": "http://4tsistemas.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 36.343490459024906,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://4tsistemas.com.br/",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "52087862",
+        "nome_fantasia": "A1 COMUNICACAO VISUAL",
+        "site_original": "http://a1cv.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 43.99853687500581,
+      "error": "",
+      "discovery_url": "http://a1cv.com.br/",
+      "scrape_chars": 2391,
+      "scrape_pages": 2,
+      "profile_completeness": 73.33333333333333,
+      "profile_fields_filled": 11
+    },
+    {
+      "empresa": {
+        "cnpj": "34791902",
+        "nome_fantasia": "A2 ENGENHARIA",
+        "site_original": "http://a2construcoes.com/"
+      },
+      "success": true,
+      "duration_seconds": 38.14357762504369,
+      "error": "",
+      "discovery_url": "http://a2construcoes.com/",
+      "scrape_chars": 4427,
+      "scrape_pages": 1,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "05532401",
+        "nome_fantasia": "A2 CONSTRUTORA E INCORPORADORA",
+        "site_original": "http://a2construcoes.com/"
+      },
+      "success": true,
+      "duration_seconds": 42.37781016714871,
+      "error": "",
+      "discovery_url": "http://a2construcoes.com/",
+      "scrape_chars": 4423,
+      "scrape_pages": 1,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "10413018",
+        "nome_fantasia": "A DOIS CONTRUCOES LTDA",
+        "site_original": "http://a2construcoes.com/"
+      },
+      "success": true,
+      "duration_seconds": 53.033681500237435,
+      "error": "",
+      "discovery_url": "http://a2construcoes.com/",
+      "scrape_chars": 4427,
+      "scrape_pages": 1,
+      "profile_completeness": 60.0,
+      "profile_fields_filled": 9
+    },
+    {
+      "empresa": {
+        "cnpj": "40450052",
+        "nome_fantasia": "A3 ENGENHARIA",
+        "site_original": "http://a3engenharia.eng.br/"
+      },
+      "success": true,
+      "duration_seconds": 53.027988417074084,
+      "error": "",
+      "discovery_url": "http://a3engenharia.eng.br/",
+      "scrape_chars": 3629,
+      "scrape_pages": 2,
+      "profile_completeness": 66.66666666666666,
+      "profile_fields_filled": 10
+    },
+    {
+      "empresa": {
+        "cnpj": "34263561",
+        "nome_fantasia": "A3M CONSTRUTORA",
+        "site_original": "http://a3mconstrutora.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 57.225981458090246,
+      "error": "",
+      "discovery_url": "http://a3mconstrutora.com.br/",
+      "scrape_chars": 8039,
+      "scrape_pages": 10,
+      "profile_completeness": 46.666666666666664,
+      "profile_fields_filled": 7
+    },
+    {
+      "empresa": {
+        "cnpj": "09104245",
+        "nome_fantasia": "A4 - ENGENHARIA E SERVICOS",
+        "site_original": "http://a4engenharia.com/"
+      },
+      "success": true,
+      "duration_seconds": 60.42940212506801,
+      "error": "",
+      "discovery_url": "http://a4engenharia.com/",
+      "scrape_chars": 23939,
+      "scrape_pages": 5,
+      "profile_completeness": 73.33333333333333,
+      "profile_fields_filled": 11
+    },
+    {
+      "empresa": {
+        "cnpj": "44329870",
+        "nome_fantasia": "A77 ENGENHARIA LTDA",
+        "site_original": "http://a77engenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 60.61354570928961,
+      "error": "",
+      "discovery_url": "http://a77engenharia.com.br/",
+      "scrape_chars": 13373,
+      "scrape_pages": 4,
+      "profile_completeness": 66.66666666666666,
+      "profile_fields_filled": 10
+    },
+    {
+      "empresa": {
+        "cnpj": "34211524",
+        "nome_fantasia": "ABBADE ENGENHARIA",
+        "site_original": "http://abbadeengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 66.61053983308375,
+      "error": "",
+      "discovery_url": "http://abbadeengenharia.com.br/",
+      "scrape_chars": 31031,
+      "scrape_pages": 6,
+      "profile_completeness": 66.66666666666666,
+      "profile_fields_filled": 10
+    },
+    {
+      "empresa": {
+        "cnpj": "05912839",
+        "nome_fantasia": "ABC COMPONENTES",
+        "site_original": "http://abccomp.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 55.06824433384463,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://abccomp.com.br/",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "06171776",
+        "nome_fantasia": "ABCD MANGUEIRAS",
+        "site_original": "http://abcdmangueiras.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 55.71331129176542,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://abcdmangueiras.com.br/",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "07157915",
+        "nome_fantasia": "POSITIVO SERVERS & SOLUTIONS",
+        "site_original": "http://acc.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 58.31233729189262,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://acc.com.br/",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "40483227",
+        "nome_fantasia": "ACF CONSTRUCOES",
+        "site_original": "http://acfengenharia.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 76.17422454198822,
+      "error": "",
+      "discovery_url": "http://acfengenharia.com.br/",
+      "scrape_chars": 3680,
+      "scrape_pages": 3,
+      "profile_completeness": 53.333333333333336,
+      "profile_fields_filled": 8
+    },
+    {
+      "empresa": {
+        "cnpj": "10643324",
+        "nome_fantasia": "ACOMAP INDUSTRIA E COMERCIO DE PRODUTOS SIDERURGICOS",
+        "site_original": "http://acomap.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 79.79404566576704,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://acomap.com.br/",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "30866668",
+        "nome_fantasia": "OFICINA DO ZICO",
+        "site_original": "http://acomaxmetais.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 87.54026687517762,
+      "error": "",
+      "discovery_url": "http://acomaxmetais.com.br/",
+      "scrape_chars": 28971,
+      "scrape_pages": 9,
+      "profile_completeness": 80.0,
+      "profile_fields_filled": 12
+    },
+    {
+      "empresa": {
+        "cnpj": "26774412",
+        "nome_fantasia": "ISOACO INDUSTRIA E COMERCIO",
+        "site_original": "http://aconordeste.com.br/categoria/isoaco"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "07535296",
+        "nome_fantasia": "ACP PECAS PARA COMPRESSORES",
+        "site_original": "http://acppecas.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "31923170",
+        "nome_fantasia": "ACRILICOS PENEDO",
+        "site_original": "http://acrilicospenedo.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 87.53540883306414,
+      "error": "",
+      "discovery_url": "http://acrilicospenedo.com.br/",
+      "scrape_chars": 9252,
+      "scrape_pages": 8,
+      "profile_completeness": 80.0,
+      "profile_fields_filled": 12
+    },
+    {
+      "empresa": {
+        "cnpj": "20240228",
+        "nome_fantasia": "ACR INSTALACAO E MANUTENCAO",
+        "site_original": "http://acrinstalacoes.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "12216267",
+        "nome_fantasia": "ACR MANUTENCAO INSTALACAO TREINAMENTO TAB.",
+        "site_original": "http://acrinstalacoes.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "36693618",
+        "nome_fantasia": "ACROS CONSTRUTORA",
+        "site_original": "http://acrosconstrutora.com.br/"
+      },
+      "success": true,
+      "duration_seconds": 87.53846970805898,
+      "error": "",
+      "discovery_url": "http://acrosconstrutora.com.br/",
+      "scrape_chars": 5022,
+      "scrape_pages": 1,
+      "profile_completeness": 66.66666666666666,
+      "profile_fields_filled": 10
+    },
+    {
+      "empresa": {
+        "cnpj": "13421071",
+        "nome_fantasia": "A C SOLUCOES INTEGRADAS DE INFORMATICA",
+        "site_original": "http://acsolucoesintegradas.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "10840868",
+        "nome_fantasia": "ADAS ENGENHARIA",
+        "site_original": "http://adasengenharia.com.br"
+      },
+      "success": false,
+      "duration_seconds": 75.39389616716653,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "http://adasengenharia.com.br",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14865362",
+        "nome_fantasia": "ADA CALIBRACAO E INSPECAO",
+        "site_original": "http://adaservicos.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "12453680",
+        "nome_fantasia": "ADDVENT",
+        "site_original": "http://addvent.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14027013",
+        "nome_fantasia": "FZ MED",
+        "site_original": "http://aderefix.com"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "28345170",
+        "nome_fantasia": "ADF MONTAGENS",
+        "site_original": "http://adf.arq.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "12274335",
+        "nome_fantasia": "ADM AR CONDICIONADO INSTALACAO E MANUTENCAO LTDA.",
+        "site_original": "http://admarcondicionado.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14563488",
+        "nome_fantasia": "ADM. EQUIPAMENTOS",
+        "site_original": "http://admequipamentos.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "28808815",
+        "nome_fantasia": "ADM MONTAGEM DE SILOS E SECADORES",
+        "site_original": "http://admmanutencao.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "32203493",
+        "nome_fantasia": "ADRIANO PAISAGISMO",
+        "site_original": "http://adrianogronard.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "16802792",
+        "nome_fantasia": "ADSUPORTE SOLUCOES EM TI",
+        "site_original": "http://adsuporte.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "11181884",
+        "nome_fantasia": "ABS MANUTENCAO",
+        "site_original": "http://advdinamico.com.br/empresas/11181884000144"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "33288139",
+        "nome_fantasia": "A E S REPRESENTANTE COMERCIAL",
+        "site_original": "http://aes.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03407019",
+        "nome_fantasia": "AFGHA - CONSTRUTORA",
+        "site_original": "http://afgha.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03831715",
+        "nome_fantasia": "AFIPREC",
+        "site_original": "http://afiprec.blogspot.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "34658761",
+        "nome_fantasia": "AFL SERVICE",
+        "site_original": "http://aflservice.lat/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14901470",
+        "nome_fantasia": "ALEX ELETRIFICACAO",
+        "site_original": "http://aflservice.lat/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "42237808",
+        "nome_fantasia": "AGIR",
+        "site_original": "http://agirengenharia.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "13097450",
+        "nome_fantasia": "AGIR",
+        "site_original": "http://agirengenharia.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "20259480",
+        "nome_fantasia": "AGROBRAZ",
+        "site_original": "http://agrobrazengenharia.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "13490045",
+        "nome_fantasia": "AGROMATOS",
+        "site_original": "http://agromatos.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "51745564",
+        "nome_fantasia": "SANTA ADELINA AGROINDUSTRIAL LTDA",
+        "site_original": "http://agrosantaaurora.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "09400527",
+        "nome_fantasia": "AGROSS INSUMOS",
+        "site_original": "http://agross.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "20422953",
+        "nome_fantasia": "GRUPO AGS",
+        "site_original": "http://agsengenharia.net/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "33694537",
+        "nome_fantasia": "AGS ENGENHARIA E CONSTRUCOES",
+        "site_original": "http://agsengenharia.net/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "04785627",
+        "nome_fantasia": "AGS",
+        "site_original": "http://agsengenharia.net/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "23556920",
+        "nome_fantasia": "AGS MISTER CONSTRUCOES SERVICOS",
+        "site_original": "http://agsprotecao.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "28100697",
+        "nome_fantasia": "IPHONE HELP",
+        "site_original": "http://ahelp.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "29731913",
+        "nome_fantasia": "A J ENGENHARIA E INSPECOES",
+        "site_original": "http://ajengenhariaeinspecoes.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "15495600",
+        "nome_fantasia": "ALAMEDA CONSTRUTORA",
+        "site_original": "http://alamedaconstrutora.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "05507137",
+        "nome_fantasia": "ALARTECH",
+        "site_original": "http://alartech.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "18562357",
+        "nome_fantasia": "ALEGRIA",
+        "site_original": "http://alegriaefesta.com"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "38073020",
+        "nome_fantasia": "ALENG ENGENHARIA E CONSTRUCAO",
+        "site_original": "http://alengengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "28497912",
+        "nome_fantasia": "ALIANCA MANUTENCOES",
+        "site_original": "http://aliancamanutencao.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "28481350",
+        "nome_fantasia": "ALLBRA ENGENHARIA",
+        "site_original": "http://allbraengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "09539915",
+        "nome_fantasia": "ALIANZA MANUTENCAO & TECNOLOGIA",
+        "site_original": "http://allianzautomacao.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "33589674",
+        "nome_fantasia": "ALLPHA INDUSTRIA & ENGENHARIA",
+        "site_original": "http://allindustrial.eng.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "15496374",
+        "nome_fantasia": "ALL SERVICE",
+        "site_original": "http://allservicedistribuidora.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "12104734",
+        "nome_fantasia": "***",
+        "site_original": "http://allycast.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "43577002",
+        "nome_fantasia": "A D M SERVICOS E CONSTRUCOES",
+        "site_original": "http://almeidaconstrucoes.net.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "37807254",
+        "nome_fantasia": "ALMEIDA CONSTRUCOES LTDA",
+        "site_original": "http://almeidaconstrucoes.net.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "38946025",
+        "nome_fantasia": "ALMEIDA CONSTRUTORA",
+        "site_original": "http://almeidaconstrucoes.net.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "12595667",
+        "nome_fantasia": "A L S MARINS",
+        "site_original": "http://alsmarins.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "05040815",
+        "nome_fantasia": "ALTEC",
+        "site_original": "http://altecbalancas.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "41933948",
+        "nome_fantasia": "ALTERNATIVA ELETRONICA",
+        "site_original": "http://alternativaeletronica.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "07777447",
+        "nome_fantasia": "ALTERNATIVA CONSTRUCOES",
+        "site_original": "http://alternativamanutencao.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "05515224",
+        "nome_fantasia": "MEGANORDESTE",
+        "site_original": "http://alumiferdistribuidora.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "11896866",
+        "nome_fantasia": "AMAZON GEOSERVICES",
+        "site_original": "http://amazonconsultoria.net.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "27656468",
+        "nome_fantasia": "RCM DIAGNOSTICO",
+        "site_original": "http://amazonservice.net.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "11102234",
+        "nome_fantasia": "AMERICA LOCACAO",
+        "site_original": "http://americalocacao.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "53928156",
+        "nome_fantasia": "AMERICAN CENTER EMBALAGENS",
+        "site_original": "http://americancenter.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03013704",
+        "nome_fantasia": "AMERICAN FUROS E CORTES",
+        "site_original": "http://americaperfuracoes.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "21370554",
+        "nome_fantasia": "GAS AMERICA PERFURACOES",
+        "site_original": "http://americaperfuracoes.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03468614",
+        "nome_fantasia": "A MINA ARGAMASSA",
+        "site_original": "http://aminaargamassa.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "31523580",
+        "nome_fantasia": "AMPERE FOTOVOLTAICA",
+        "site_original": "http://amperefotovoltaica.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "16528177",
+        "nome_fantasia": "AMPLA - ARTEFATOS E MANUFATURAS DE PLASTICOS",
+        "site_original": "http://amplaplasticos.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "17772632",
+        "nome_fantasia": "ANALYSIS ENGENHARIA",
+        "site_original": "http://analysisengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "19201544",
+        "nome_fantasia": "ANAQUEN BRASIL",
+        "site_original": "http://anaquenbrasil.com.br/site/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "12358168",
+        "nome_fantasia": "ASW",
+        "site_original": "http://anasarita.com"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "35562426",
+        "nome_fantasia": "ECOSOLAR ENERGIA FOTOVOLTAICA",
+        "site_original": "http://andradeservice.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "30723413",
+        "nome_fantasia": "NEON CURITIBA COMUNICACAO VISUAL",
+        "site_original": "http://aneon.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "23754684",
+        "nome_fantasia": "ANGELMAR MARITIMA SEGURANCA DA NAVEGACAO",
+        "site_original": "http://angelmar.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "11930860",
+        "nome_fantasia": "ANNY",
+        "site_original": "http://annypersonalizados.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "96636238",
+        "nome_fantasia": "ANTENART",
+        "site_original": "http://antenart.net"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "24959724",
+        "nome_fantasia": "ANTON ENGENHARIA",
+        "site_original": "http://anton.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "33577745",
+        "nome_fantasia": "CONSTECH TECNOLOGIA",
+        "site_original": "http://apctecnologia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "19611552",
+        "nome_fantasia": "APPLIC TECHNOLOGY LTDA",
+        "site_original": "http://applic.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "39938090",
+        "nome_fantasia": "AQUEUZ ELETRICA HIDRAULICA E COMERCIO",
+        "site_original": "http://aqueluz.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "30493885",
+        "nome_fantasia": "ARCLINTEC ENERGIA SOLAR, ENGENHARIA E CLIMATIZACAO",
+        "site_original": "http://arclintec.negocio.site"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "20608820",
+        "nome_fantasia": "ARCON MULTISERVICOS",
+        "site_original": "http://arconengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "38074611",
+        "nome_fantasia": "ARC ACESSORIOS PLATICOS",
+        "site_original": "http://arcprodutos.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "00152050",
+        "nome_fantasia": "AR ENGENHARIA",
+        "site_original": "http://arengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "13397751",
+        "nome_fantasia": "A & R SOLUCOES AMBIENTAIS",
+        "site_original": "http://arengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "19380753",
+        "nome_fantasia": "A.R.E CONSTRUCOES",
+        "site_original": "http://arengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "13880050",
+        "nome_fantasia": "A R + ENGENHARIA",
+        "site_original": "http://arengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "01641363",
+        "nome_fantasia": "ARH HIDRAULICA",
+        "site_original": "http://arhhidraulica.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "10836143",
+        "nome_fantasia": "ARION ENGENHARIA",
+        "site_original": "http://arionengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "43461398",
+        "nome_fantasia": "ARJ",
+        "site_original": "http://arjindustria.com.br/home/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "11161173",
+        "nome_fantasia": "A R SERVICOS",
+        "site_original": "http://arservicosltda.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "30678144",
+        "nome_fantasia": "AR SERVICOS TECNOLOGIA",
+        "site_original": "http://arservicosltda.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "02581807",
+        "nome_fantasia": "ARTECH ENGENHARIA",
+        "site_original": "http://artechba.com.br/artech/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03053930",
+        "nome_fantasia": "ARTECNICA PNEUMATICA",
+        "site_original": "http://artecnicapneumatica.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "08093136",
+        "nome_fantasia": "COMERCIAL PNEUMATICA",
+        "site_original": "http://artecnicapneumatica.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "17948825",
+        "nome_fantasia": "ART ENGENHARIA",
+        "site_original": "http://artengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "64836463",
+        "nome_fantasia": "ARTIVE",
+        "site_original": "http://artive.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "09607643",
+        "nome_fantasia": "ART JIL JARDINAGEM",
+        "site_original": "http://artjil.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "02886770",
+        "nome_fantasia": "ARTMOVEIS",
+        "site_original": "http://artmoveis.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14796731",
+        "nome_fantasia": "EMBALAGENS ARUMA",
+        "site_original": "http://arumaembalagens.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "19419400",
+        "nome_fantasia": "A.S. ENGENHARIA",
+        "site_original": "http://asengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "39830308",
+        "nome_fantasia": "*******",
+        "site_original": "http://asengenharia.eng.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "15570826",
+        "nome_fantasia": "ASEPSA",
+        "site_original": "http://asepsa.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "61115283",
+        "nome_fantasia": "PLASTICOS ASSENCIO",
+        "site_original": "http://assencio.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "46241511",
+        "nome_fantasia": "ASST - SERVICOS INDUSTRIAIS",
+        "site_original": "http://asst.com.br/sobre-nos/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "22726232",
+        "nome_fantasia": "ASTECA BORRACHAS",
+        "site_original": "http://astecaborrachas.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "14344715",
+        "nome_fantasia": "AST MOVELARIA",
+        "site_original": "http://astmovelaria.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "15609021",
+        "nome_fantasia": "ASUS CONSTRUCOES",
+        "site_original": "http://asusempreendimentos.com"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "34502568",
+        "nome_fantasia": "PALMA ARQUITETURA",
+        "site_original": "http://ateliedearquitetura.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "59885301",
+        "nome_fantasia": "ATENA ENGENHARIA",
+        "site_original": "http://atenaengenharia.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "22194888",
+        "nome_fantasia": "ATENA ENGENHARIA - PROJETOS, CONSTRUCAO E REFORMA",
+        "site_original": "http://atenaengenharia.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "33116680",
+        "nome_fantasia": "DORATTA ENGENHARIA-ARQUITETURA-DESIGNE DE INTERIORES",
+        "site_original": "http://atenaengenharia.com/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "45981822",
+        "nome_fantasia": "ATENAS EQUIPAMENTOS",
+        "site_original": "http://atenaselevadores.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "41836402",
+        "nome_fantasia": "ATLANTA CONSTRUCOES",
+        "site_original": "http://atlantaubatuba.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "02873177",
+        "nome_fantasia": "ATLANTIDA PROJETOS CONTRA INCENDIO",
+        "site_original": "http://atlantidaprojetos.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "10584132",
+        "nome_fantasia": "ATM AUTOMACAO & SISTEMAS",
+        "site_original": "http://atmsistemaseletricos.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "37022377",
+        "nome_fantasia": "ATP DO BRASIL",
+        "site_original": "http://atpdobrasil.com.br"
+      },
+      "success": false,
+      "duration_seconds": 90.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    }
+  ],
+  "error_analysis": {
+    "total_errors": 120,
+    "unique_errors": 3,
+    "error_counts": {
+      "Discovery: Site não encontrado": 1,
+      "Scrape: Conteúdo insuficiente": 8,
+      "Timeout global": 111
+    },
+    "errors_by_stage": {
+      "discovery": 1,
+      "scrape": 8,
+      "llm": 0,
+      "timeout": 111
+    }
+  },
+  "timing_analysis": {
+    "success_avg": 49.69820982082747,
+    "success_min": 19.623631415888667,
+    "success_max": 87.54026687517762,
+    "success_median": 53.027988417074084,
+    "all_avg": 79.22264902584566,
+    "under_30s": 6,
+    "under_60s": 20,
+    "under_90s": 30,
+    "over_90s": 111
+  },
+  "stage_analysis": {
+    "total": 150,
+    "discovery": {
+      "success": 38,
+      "rate": 25.333333333333336
+    },
+    "scrape": {
+      "success": 30,
+      "rate": 20.0
+    },
+    "llm": {
+      "success": 30,
+      "rate": 20.0
+    },
+    "conversion_funnel": {
+      "discovery_to_scrape": 78.94736842105263,
+      "scrape_to_llm": 100.0
+    }
+  }
+}

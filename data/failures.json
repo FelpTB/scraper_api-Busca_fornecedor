@@ -1,0 +1,3876 @@
+[
+  {
+    "timestamp": "2025-12-05T20:03:13.343201",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 3.052957821637392
+  },
+  {
+    "timestamp": "2025-12-05T20:03:13.343599",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://fabrica.carroceriasromi.com.br/carroceria",
+    "domain": "fabrica.carroceriasromi.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://fabrica.carroceriasromi.com.br/carroceria respondeu",
+    "duration_ms": 2.8630406595766544
+  },
+  {
+    "timestamp": "2025-12-05T20:03:13.345226",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://12m.com.br/",
+    "domain": "12m.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://12m.com.br/ respondeu",
+    "duration_ms": 0.2493751235306263
+  },
+  {
+    "timestamp": "2025-12-05T20:03:13.345452",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://2aengenharia.com.br/",
+    "domain": "2aengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://2aengenharia.com.br/ respondeu",
+    "duration_ms": 0.42837485671043396
+  },
+  {
+    "timestamp": "2025-12-05T20:05:09.413056",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 511.80708315223455
+  },
+  {
+    "timestamp": "2025-12-05T20:08:22.618218",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 918.0731661617756
+  },
+  {
+    "timestamp": "2025-12-05T20:10:17.000223",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 352.93966671451926
+  },
+  {
+    "timestamp": "2025-12-05T20:14:41.407946",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 1210.281333886087
+  },
+  {
+    "timestamp": "2025-12-05T20:14:59.342501",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://3aengenhariasp.com.br/",
+    "domain": "3aengenhariasp.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://3aengenhariasp.com.br/ respondeu",
+    "duration_ms": 19144.87862540409
+  },
+  {
+    "timestamp": "2025-12-05T20:15:00.427975",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://3aengenhariasp.com.br/",
+    "domain": "3aengenhariasp.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://3aengenhariasp.com.br/ respondeu",
+    "duration_ms": 20230.328124947846
+  },
+  {
+    "timestamp": "2025-12-05T20:15:09.421108",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 29223.69529120624
+  },
+  {
+    "timestamp": "2025-12-05T20:15:19.460709",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://3fautopecas.com.br/",
+    "domain": "3fautopecas.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://3fautopecas.com.br/ respondeu",
+    "duration_ms": 39263.570125214756
+  },
+  {
+    "timestamp": "2025-12-05T20:17:20.569129",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 2310.197124723345
+  },
+  {
+    "timestamp": "2025-12-05T20:17:53.051818",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 34794.58487499505
+  },
+  {
+    "timestamp": "2025-12-05T20:17:59.833685",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 41574.81062505394
+  },
+  {
+    "timestamp": "2025-12-05T20:18:10.358210",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://a2construcoes.com/",
+    "domain": "a2construcoes.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://a2construcoes.com/ respondeu",
+    "duration_ms": 52101.03133274242
+  },
+  {
+    "timestamp": "2025-12-05T20:18:34.735563",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 2399.2422916926444
+  },
+  {
+    "timestamp": "2025-12-05T20:18:49.302635",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 16966.35999996215
+  },
+  {
+    "timestamp": "2025-12-05T20:18:54.032638",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 21696.27062510699
+  },
+  {
+    "timestamp": "2025-12-05T20:20:22.907286",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 417.95483278110623
+  },
+  {
+    "timestamp": "2025-12-05T20:20:39.038198",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 16547.57862491533
+  },
+  {
+    "timestamp": "2025-12-05T20:20:47.580077",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 25089.482416864485
+  },
+  {
+    "timestamp": "2025-12-05T20:20:57.620332",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abccomp.com.br",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 35129.352000076324
+  },
+  {
+    "timestamp": "2025-12-05T20:20:58.780877",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abcdmangueiras.com.br",
+    "domain": "abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 36289.93570804596
+  },
+  {
+    "timestamp": "2025-12-05T20:21:09.591622",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 47100.89379083365
+  },
+  {
+    "timestamp": "2025-12-05T20:21:13.369839",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 50879.23045782372
+  },
+  {
+    "timestamp": "2025-12-05T20:21:21.412826",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 58922.24595788866
+  },
+  {
+    "timestamp": "2025-12-05T20:21:59.018677",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 437.8331247717142
+  },
+  {
+    "timestamp": "2025-12-05T20:22:16.965401",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 18384.297624696046
+  },
+  {
+    "timestamp": "2025-12-05T20:22:23.603191",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 25022.33799966052
+  },
+  {
+    "timestamp": "2025-12-05T20:22:29.442864",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 30861.870292108506
+  },
+  {
+    "timestamp": "2025-12-05T20:22:31.269463",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 32688.58587509021
+  },
+  {
+    "timestamp": "2025-12-05T20:22:41.650029",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 43069.338084198534
+  },
+  {
+    "timestamp": "2025-12-05T20:22:43.810894",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 45230.26704182848
+  },
+  {
+    "timestamp": "2025-12-05T20:22:48.125128",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 49544.37187500298
+  },
+  {
+    "timestamp": "2025-12-05T20:23:30.448681",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrosantaaurora.com.br",
+    "domain": "agrosantaaurora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 60878.43158375472
+  },
+  {
+    "timestamp": "2025-12-05T20:23:30.663241",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agrobrazengenharia.com",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 62902.379625011235
+  },
+  {
+    "timestamp": "2025-12-05T20:23:35.568034",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agross.com.br",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 65426.67887499556
+  },
+  {
+    "timestamp": "2025-12-05T20:23:43.720561",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://admarcondicionado.com.br",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 100663.19466708228
+  },
+  {
+    "timestamp": "2025-12-05T20:23:50.222233",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://aliancamanutencao.com.br",
+    "domain": "aliancamanutencao.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 73390.69350017235
+  },
+  {
+    "timestamp": "2025-12-05T20:23:53.244221",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 65119.73970802501
+  },
+  {
+    "timestamp": "2025-12-05T20:23:54.311889",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 59965.81262489781
+  },
+  {
+    "timestamp": "2025-12-05T20:23:54.581579",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 59225.03974987194
+  },
+  {
+    "timestamp": "2025-12-05T20:23:55.005441",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.allservicedistribuidora.com.br",
+    "domain": "www.allservicedistribuidora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 69809.28629171103
+  },
+  {
+    "timestamp": "2025-12-05T20:24:00.295758",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://altecbalancas.com.br",
+    "domain": "altecbalancas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59082.317291758955
+  },
+  {
+    "timestamp": "2025-12-05T20:24:05.323786",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 42875.25787483901
+  },
+  {
+    "timestamp": "2025-12-05T20:24:05.596189",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 40489.97116694227
+  },
+  {
+    "timestamp": "2025-12-05T20:24:06.271704",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://amperefotovoltaica.com.br/",
+    "domain": "amperefotovoltaica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://amperefotovoltaica.com.br/ respondeu",
+    "duration_ms": 38701.830042060465
+  },
+  {
+    "timestamp": "2025-12-05T20:24:07.145492",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://amazonservice.net.br",
+    "domain": "amazonservice.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 47615.88566703722
+  },
+  {
+    "timestamp": "2025-12-05T20:24:10.293679",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://amazonconsultoria.net.br",
+    "domain": "amazonconsultoria.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 50764.245208818465
+  },
+  {
+    "timestamp": "2025-12-05T20:25:04.925225",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 936.7832918651402
+  },
+  {
+    "timestamp": "2025-12-05T20:25:31.020849",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.3mvconstrutora.com.br",
+    "domain": "www.3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 27029.97654117644
+  },
+  {
+    "timestamp": "2025-12-05T20:25:37.165014",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 33177.64166602865
+  },
+  {
+    "timestamp": "2025-12-05T20:25:45.241137",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 41253.74324992299
+  },
+  {
+    "timestamp": "2025-12-05T20:25:57.291291",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 53304.02529099956
+  },
+  {
+    "timestamp": "2025-12-05T20:26:03.699889",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 59712.67175022513
+  },
+  {
+    "timestamp": "2025-12-05T20:26:19.076300",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 75089.13683379069
+  },
+  {
+    "timestamp": "2025-12-05T20:26:26.903763",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 82917.29870764539
+  },
+  {
+    "timestamp": "2025-12-05T20:26:43.608050",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://aliancamanutencao.com.br",
+    "domain": "aliancamanutencao.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 85779.34708306566
+  },
+  {
+    "timestamp": "2025-12-05T20:26:50.357827",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 80048.89179114252
+  },
+  {
+    "timestamp": "2025-12-05T20:26:50.526164",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 79484.98583305627
+  },
+  {
+    "timestamp": "2025-12-05T20:26:50.895777",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 79712.39649970084
+  },
+  {
+    "timestamp": "2025-12-05T20:26:57.120331",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://altecbalancas.com.br",
+    "domain": "altecbalancas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 79954.55054193735
+  },
+  {
+    "timestamp": "2025-12-05T20:26:59.378487",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 73630.09029207751
+  },
+  {
+    "timestamp": "2025-12-05T20:26:59.594381",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 72748.0194172822
+  },
+  {
+    "timestamp": "2025-12-05T20:26:59.680179",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.amazonservice.net.br",
+    "domain": "www.amazonservice.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 74752.85550020635
+  },
+  {
+    "timestamp": "2025-12-05T20:27:00.034011",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://amperefotovoltaica.com.br/",
+    "domain": "amperefotovoltaica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://amperefotovoltaica.com.br/ respondeu",
+    "duration_ms": 72269.0276671201
+  },
+  {
+    "timestamp": "2025-12-05T20:27:02.979343",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://analysisengenharia.com.br",
+    "domain": "analysisengenharia.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 72782.79308322817
+  },
+  {
+    "timestamp": "2025-12-05T20:27:07.652461",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://annypersonalizados.com.br",
+    "domain": "annypersonalizados.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://annypersonalizados.com.br respondeu",
+    "duration_ms": 63952.083125244826
+  },
+  {
+    "timestamp": "2025-12-05T20:27:09.716539",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://antenart.net",
+    "domain": "antenart.net",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 60377.99945799634
+  },
+  {
+    "timestamp": "2025-12-05T20:27:14.111791",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://amazonconsultoria.net.br",
+    "domain": "amazonconsultoria.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 89286.01774992421
+  },
+  {
+    "timestamp": "2025-12-05T20:27:20.288892",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://arclintec.negocio.site",
+    "domain": "arclintec.negocio.site",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://arclintec.negocio.site respondeu",
+    "duration_ms": 61112.56320821121
+  },
+  {
+    "timestamp": "2025-12-05T20:27:30.008352",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.arcprodutos.com.br",
+    "domain": "www.arcprodutos.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 66541.19829181582
+  },
+  {
+    "timestamp": "2025-12-05T20:27:36.256430",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://arservicosltda.com.br/",
+    "domain": "arservicosltda.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://arservicosltda.com.br/ respondeu",
+    "duration_ms": 63031.32133418694
+  },
+  {
+    "timestamp": "2025-12-05T20:27:36.279113",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://arservicosltda.com.br/",
+    "domain": "arservicosltda.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://arservicosltda.com.br/ respondeu",
+    "duration_ms": 63053.97708294913
+  },
+  {
+    "timestamp": "2025-12-05T20:27:38.172093",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://artecnicapneumatica.com.br/",
+    "domain": "artecnicapneumatica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://artecnicapneumatica.com.br/ respondeu",
+    "duration_ms": 64946.931540966034
+  },
+  {
+    "timestamp": "2025-12-05T20:27:38.207946",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://artecnicapneumatica.com.br/",
+    "domain": "artecnicapneumatica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://artecnicapneumatica.com.br/ respondeu",
+    "duration_ms": 64982.801833190024
+  },
+  {
+    "timestamp": "2025-12-05T20:27:51.570807",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://artjil.com.br",
+    "domain": "artjil.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 78345.94449959695
+  },
+  {
+    "timestamp": "2025-12-05T20:27:53.989228",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://artive.com.br",
+    "domain": "artive.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 80764.43120790645
+  },
+  {
+    "timestamp": "2025-12-05T20:28:20.357580",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 3668.3014589361846
+  },
+  {
+    "timestamp": "2025-12-05T20:28:39.213564",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.3mvconstrutora.com.br",
+    "domain": "www.3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 22524.197000078857
+  },
+  {
+    "timestamp": "2025-12-05T20:28:45.830852",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 29141.554832924157
+  },
+  {
+    "timestamp": "2025-12-05T20:29:01.073154",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 44383.99187475443
+  },
+  {
+    "timestamp": "2025-12-05T20:29:08.998126",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 52309.11995843053
+  },
+  {
+    "timestamp": "2025-12-05T20:29:18.443988",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 42243.13229229301
+  },
+  {
+    "timestamp": "2025-12-05T20:29:29.817135",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 73128.64216603339
+  },
+  {
+    "timestamp": "2025-12-05T20:29:39.796568",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 83108.36391709745
+  },
+  {
+    "timestamp": "2025-12-05T20:29:41.363919",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.admarcondicionado.com.br",
+    "domain": "www.admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 55529.163875151426
+  },
+  {
+    "timestamp": "2025-12-05T20:29:51.398621",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrosantaaurora.com.br",
+    "domain": "agrosantaaurora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 42396.63525018841
+  },
+  {
+    "timestamp": "2025-12-05T20:29:53.003000",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agross.com.br",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 43555.48270791769
+  },
+  {
+    "timestamp": "2025-12-05T20:29:56.926232",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrobrazengenharia.com",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 48719.99591682106
+  },
+  {
+    "timestamp": "2025-12-05T20:30:12.667465",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.aliancamanutencao.com.br",
+    "domain": "www.aliancamanutencao.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 41781.11220803112
+  },
+  {
+    "timestamp": "2025-12-05T20:30:14.842590",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.allservicedistribuidora.com.br",
+    "domain": "www.allservicedistribuidora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 35041.73545911908
+  },
+  {
+    "timestamp": "2025-12-05T20:30:16.276143",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 34904.967250302434
+  },
+  {
+    "timestamp": "2025-12-05T20:30:16.533644",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 35150.77849989757
+  },
+  {
+    "timestamp": "2025-12-05T20:30:16.661665",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 34834.26425000653
+  },
+  {
+    "timestamp": "2025-12-05T20:30:22.669959",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.altecbalancas.com.br",
+    "domain": "www.altecbalancas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 37032.03170793131
+  },
+  {
+    "timestamp": "2025-12-05T20:30:31.398753",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 36195.14750037342
+  },
+  {
+    "timestamp": "2025-12-05T20:30:31.615026",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 33999.00354165584
+  },
+  {
+    "timestamp": "2025-12-05T20:30:32.185209",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://amperefotovoltaica.com.br/",
+    "domain": "amperefotovoltaica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://amperefotovoltaica.com.br/ respondeu",
+    "duration_ms": 34560.47454057261
+  },
+  {
+    "timestamp": "2025-12-05T20:30:32.512146",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.amazonservice.net.br",
+    "domain": "www.amazonservice.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 41105.79899977893
+  },
+  {
+    "timestamp": "2025-12-05T20:30:34.579809",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.analysisengenharia.com.br",
+    "domain": "www.analysisengenharia.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 36954.99466685578
+  },
+  {
+    "timestamp": "2025-12-05T20:30:37.368268",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.amazonconsultoria.net.br",
+    "domain": "www.amazonconsultoria.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 50102.71212505177
+  },
+  {
+    "timestamp": "2025-12-05T20:30:37.444069",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://annypersonalizados.com.br",
+    "domain": "annypersonalizados.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://annypersonalizados.com.br respondeu",
+    "duration_ms": 35601.29754198715
+  },
+  {
+    "timestamp": "2025-12-05T20:30:38.783079",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.antenart.net",
+    "domain": "www.antenart.net",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 35763.538209255785
+  },
+  {
+    "timestamp": "2025-12-05T20:30:40.761641",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://arclintec.negocio.site",
+    "domain": "arclintec.negocio.site",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://arclintec.negocio.site respondeu",
+    "duration_ms": 28085.47337492928
+  },
+  {
+    "timestamp": "2025-12-05T20:30:46.076226",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://arcprodutos.com.br",
+    "domain": "arcprodutos.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 29796.287457924336
+  },
+  {
+    "timestamp": "2025-12-05T20:31:01.674575",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://arservicosltda.com.br/",
+    "domain": "arservicosltda.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://arservicosltda.com.br/ respondeu",
+    "duration_ms": 30274.528082925826
+  },
+  {
+    "timestamp": "2025-12-05T20:31:04.322696",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://arservicosltda.com.br/",
+    "domain": "arservicosltda.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://arservicosltda.com.br/ respondeu",
+    "duration_ms": 32704.23666620627
+  },
+  {
+    "timestamp": "2025-12-05T20:31:06.407063",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://artecnicapneumatica.com.br/",
+    "domain": "artecnicapneumatica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://artecnicapneumatica.com.br/ respondeu",
+    "duration_ms": 33890.42433304712
+  },
+  {
+    "timestamp": "2025-12-05T20:31:06.447673",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://artecnicapneumatica.com.br/",
+    "domain": "artecnicapneumatica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://artecnicapneumatica.com.br/ respondeu",
+    "duration_ms": 33629.45558410138
+  },
+  {
+    "timestamp": "2025-12-05T20:31:18.941342",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.artjil.com.br",
+    "domain": "www.artjil.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 43396.30095800385
+  },
+  {
+    "timestamp": "2025-12-05T20:31:19.593123",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://artive.com.br",
+    "domain": "artive.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 44839.634583797306
+  },
+  {
+    "timestamp": "2025-12-05T20:31:34.727478",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://asusempreendimentos.com",
+    "domain": "asusempreendimentos.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://asusempreendimentos.com respondeu",
+    "duration_ms": 49940.713291056454
+  },
+  {
+    "timestamp": "2025-12-05T20:31:36.562392",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://ateliedearquitetura.com/",
+    "domain": "ateliedearquitetura.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://ateliedearquitetura.com/ respondeu",
+    "duration_ms": 50634.013707749546
+  },
+  {
+    "timestamp": "2025-12-05T20:31:53.239484",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://atlantaubatuba.com.br",
+    "domain": "atlantaubatuba.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 58730.13879125938
+  },
+  {
+    "timestamp": "2025-12-05T20:31:57.485695",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://atpdobrasil.com.br",
+    "domain": "atpdobrasil.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://atpdobrasil.com.br respondeu",
+    "duration_ms": 57662.93187532574
+  },
+  {
+    "timestamp": "2025-12-05T20:32:13.895139",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.astecaborrachas.com.br",
+    "domain": "www.astecaborrachas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 90688.46191698685
+  },
+  {
+    "timestamp": "2025-12-05T20:35:52.544915",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 978.4486666321754
+  },
+  {
+    "timestamp": "2025-12-05T20:36:12.452277",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 20884.675499983132
+  },
+  {
+    "timestamp": "2025-12-05T20:36:21.982781",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://3fautopecas.com.br/",
+    "domain": "3fautopecas.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://3fautopecas.com.br/ respondeu",
+    "duration_ms": 30415.572916157544
+  },
+  {
+    "timestamp": "2025-12-05T20:36:32.166266",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://a77engenharia.com.br/",
+    "domain": "a77engenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://a77engenharia.com.br/ respondeu",
+    "duration_ms": 32916.26554168761
+  },
+  {
+    "timestamp": "2025-12-05T20:36:38.183264",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 30624.7512078844
+  },
+  {
+    "timestamp": "2025-12-05T20:36:38.564013",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abccomp.com.br",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 32004.210916813463
+  },
+  {
+    "timestamp": "2025-12-05T20:36:43.617563",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 36025.61504160985
+  },
+  {
+    "timestamp": "2025-12-05T20:36:46.208147",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 54640.91583294794
+  },
+  {
+    "timestamp": "2025-12-05T20:36:56.460421",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 29882.459457963705
+  },
+  {
+    "timestamp": "2025-12-05T20:37:43.275833",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 90812.0146249421
+  },
+  {
+    "timestamp": "2025-12-05T20:37:55.732872",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 352.50520799309015
+  },
+  {
+    "timestamp": "2025-12-05T20:38:12.375595",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 16995.167333167046
+  },
+  {
+    "timestamp": "2025-12-05T20:38:20.312222",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 24931.861583143473
+  },
+  {
+    "timestamp": "2025-12-05T20:38:24.300689",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.a3mconstrutora.com.br",
+    "domain": "www.a3mconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 28920.30816571787
+  },
+  {
+    "timestamp": "2025-12-05T20:38:26.518323",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abcdmangueiras.com.br",
+    "domain": "abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 17935.395624954253
+  },
+  {
+    "timestamp": "2025-12-05T20:38:28.263123",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abccomp.com.br",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 20805.29575003311
+  },
+  {
+    "timestamp": "2025-12-05T20:38:38.879213",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 29206.493416801095
+  },
+  {
+    "timestamp": "2025-12-05T20:38:43.113791",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 30729.24170922488
+  },
+  {
+    "timestamp": "2025-12-05T20:38:48.607687",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 21020.84054099396
+  },
+  {
+    "timestamp": "2025-12-05T20:39:01.207233",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adaservicos.com.br/",
+    "domain": "adaservicos.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adaservicos.com.br/ respondeu",
+    "duration_ms": 33459.99441621825
+  },
+  {
+    "timestamp": "2025-12-05T20:39:23.703689",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://admarcondicionado.com.br",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 51358.906999696046
+  },
+  {
+    "timestamp": "2025-12-05T20:39:24.290845",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.agrosantaaurora.com.br",
+    "domain": "www.agrosantaaurora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 28014.244167134166
+  },
+  {
+    "timestamp": "2025-12-05T20:39:25.393570",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrobrazengenharia.com",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 32103.529249783605
+  },
+  {
+    "timestamp": "2025-12-05T20:39:28.116761",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agross.com.br",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 30002.62041715905
+  },
+  {
+    "timestamp": "2025-12-05T20:39:43.066491",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://aliancamanutencao.com.br",
+    "domain": "aliancamanutencao.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 19759.378666058183
+  },
+  {
+    "timestamp": "2025-12-05T20:39:47.574130",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.allservicedistribuidora.com.br",
+    "domain": "www.allservicedistribuidora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 22172.99091629684
+  },
+  {
+    "timestamp": "2025-12-05T20:39:48.851201",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 20725.944166071713
+  },
+  {
+    "timestamp": "2025-12-05T20:39:49.142967",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 19810.539749916643
+  },
+  {
+    "timestamp": "2025-12-05T20:39:49.415688",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 21395.7377076149
+  },
+  {
+    "timestamp": "2025-12-05T20:39:54.016103",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://altecbalancas.com.br",
+    "domain": "altecbalancas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 21752.608249895275
+  },
+  {
+    "timestamp": "2025-12-05T20:39:57.657043",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 19872.051207814366
+  },
+  {
+    "timestamp": "2025-12-05T20:39:57.941892",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 19921.15995893255
+  },
+  {
+    "timestamp": "2025-12-05T20:39:58.471151",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://amperefotovoltaica.com.br/",
+    "domain": "amperefotovoltaica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://amperefotovoltaica.com.br/ respondeu",
+    "duration_ms": 16228.348416741937
+  },
+  {
+    "timestamp": "2025-12-05T20:39:58.577484",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.amazonservice.net.br",
+    "domain": "www.amazonservice.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 24261.035833042115
+  },
+  {
+    "timestamp": "2025-12-05T20:40:03.211499",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://amazonconsultoria.net.br",
+    "domain": "amazonconsultoria.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 29740.446833427995
+  },
+  {
+    "timestamp": "2025-12-05T20:41:46.353187",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 485.9876250848174
+  },
+  {
+    "timestamp": "2025-12-05T20:41:52.555692",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://2aengenharia.com.br",
+    "domain": "2aengenharia.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 6688.4280000813305
+  },
+  {
+    "timestamp": "2025-12-05T20:42:06.088368",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 20220.760334283113
+  },
+  {
+    "timestamp": "2025-12-05T20:42:22.307336",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://a2construcoes.com/",
+    "domain": "a2construcoes.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://a2construcoes.com/ respondeu",
+    "duration_ms": 24961.1862921156
+  },
+  {
+    "timestamp": "2025-12-05T20:42:32.654172",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://a2construcoes.com/",
+    "domain": "a2construcoes.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://a2construcoes.com/ respondeu",
+    "duration_ms": 33671.55750002712
+  },
+  {
+    "timestamp": "2025-12-05T20:43:08.108817",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 73673.19629201666
+  },
+  {
+    "timestamp": "2025-12-05T20:43:15.930334",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abcdmangueiras.com.br",
+    "domain": "abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 56966.82145865634
+  },
+  {
+    "timestamp": "2025-12-05T20:43:18.507789",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59926.079583819956
+  },
+  {
+    "timestamp": "2025-12-05T20:43:24.897595",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 64041.36083321646
+  },
+  {
+    "timestamp": "2025-12-05T20:43:40.287150",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 24619.387249927968
+  },
+  {
+    "timestamp": "2025-12-05T20:44:24.421406",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://admarcondicionado.com.br",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59514.28120909259
+  },
+  {
+    "timestamp": "2025-12-05T20:44:25.846295",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrobrazengenharia.com",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 13332.365791779011
+  },
+  {
+    "timestamp": "2025-12-05T20:44:35.508102",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.agrosantaaurora.com.br",
+    "domain": "www.agrosantaaurora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 22994.271166156977
+  },
+  {
+    "timestamp": "2025-12-05T20:44:35.756633",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 129158.80345925689
+  },
+  {
+    "timestamp": "2025-12-05T20:44:38.931270",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agross.com.br",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 19709.086124785244
+  },
+  {
+    "timestamp": "2025-12-05T20:45:18.732095",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.aliancamanutencao.com.br",
+    "domain": "www.aliancamanutencao.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 43200.326666235924
+  },
+  {
+    "timestamp": "2025-12-05T20:45:26.975966",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 40454.4166252017
+  },
+  {
+    "timestamp": "2025-12-05T20:45:28.406793",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://allservicedistribuidora.com.br",
+    "domain": "allservicedistribuidora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 42010.19158400595
+  },
+  {
+    "timestamp": "2025-12-05T20:45:28.786242",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 42217.32949977741
+  },
+  {
+    "timestamp": "2025-12-05T20:45:31.581112",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 42001.67291704565
+  },
+  {
+    "timestamp": "2025-12-05T20:45:43.669248",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://altecbalancas.com.br",
+    "domain": "altecbalancas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 42228.95050002262
+  },
+  {
+    "timestamp": "2025-12-05T20:45:44.080921",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 15372.08095798269
+  },
+  {
+    "timestamp": "2025-12-05T20:45:44.896450",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://amperefotovoltaica.com.br/",
+    "domain": "amperefotovoltaica.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://amperefotovoltaica.com.br/ respondeu",
+    "duration_ms": 13239.45579212159
+  },
+  {
+    "timestamp": "2025-12-05T20:45:44.938774",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://amazonservice.net.br",
+    "domain": "amazonservice.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 17245.757000055164
+  },
+  {
+    "timestamp": "2025-12-05T20:45:45.197579",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br respondeu",
+    "duration_ms": 16480.992707889527
+  },
+  {
+    "timestamp": "2025-12-05T20:45:45.622069",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://amazonconsultoria.net.br",
+    "domain": "amazonconsultoria.net.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 26840.219208039343
+  },
+  {
+    "timestamp": "2025-12-05T20:46:31.164503",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 514.940083026886
+  },
+  {
+    "timestamp": "2025-12-05T20:46:54.560267",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 23906.079292297363
+  },
+  {
+    "timestamp": "2025-12-05T20:47:10.721181",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 40065.24333404377
+  },
+  {
+    "timestamp": "2025-12-05T20:47:11.687501",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 41031.76158387214
+  },
+  {
+    "timestamp": "2025-12-05T20:47:22.120996",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 51465.4185003601
+  },
+  {
+    "timestamp": "2025-12-05T20:47:26.231360",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 55576.88641687855
+  },
+  {
+    "timestamp": "2025-12-05T20:47:27.246822",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 56591.2745827809
+  },
+  {
+    "timestamp": "2025-12-05T20:47:29.512245",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 1010.9134577214718
+  },
+  {
+    "timestamp": "2025-12-05T20:47:43.627307",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 15125.470041763037
+  },
+  {
+    "timestamp": "2025-12-05T20:47:55.418569",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 26916.581249795854
+  },
+  {
+    "timestamp": "2025-12-05T20:47:56.042843",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 27540.978459175676
+  },
+  {
+    "timestamp": "2025-12-05T20:48:02.918419",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 34416.65283264592
+  },
+  {
+    "timestamp": "2025-12-05T20:48:14.757377",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 46256.261999718845
+  },
+  {
+    "timestamp": "2025-12-05T20:48:15.222337",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 46718.943916261196
+  },
+  {
+    "timestamp": "2025-12-05T20:48:59.634932",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 91134.26925009117
+  },
+  {
+    "timestamp": "2025-12-05T20:49:00.037508",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 334.8297500051558
+  },
+  {
+    "timestamp": "2025-12-05T20:49:23.091182",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 23387.826582882553
+  },
+  {
+    "timestamp": "2025-12-05T20:49:30.139882",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 30436.51816667989
+  },
+  {
+    "timestamp": "2025-12-05T20:49:38.166243",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abcdmangueiras.com.br",
+    "domain": "www.abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 38462.7905418165
+  },
+  {
+    "timestamp": "2025-12-05T20:49:39.197439",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abccomp.com.br",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 39494.032124988735
+  },
+  {
+    "timestamp": "2025-12-05T20:49:47.751738",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 48048.46270894632
+  },
+  {
+    "timestamp": "2025-12-05T20:49:55.992048",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 56288.68229081854
+  },
+  {
+    "timestamp": "2025-12-05T20:50:17.928247",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 78225.70120822638
+  },
+  {
+    "timestamp": "2025-12-05T20:51:04.111250",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 4378.166708163917
+  },
+  {
+    "timestamp": "2025-12-05T20:51:24.723031",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 24990.785625297576
+  },
+  {
+    "timestamp": "2025-12-05T20:51:32.625218",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 32892.93700037524
+  },
+  {
+    "timestamp": "2025-12-05T20:51:43.824089",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 44091.80970909074
+  },
+  {
+    "timestamp": "2025-12-05T20:51:50.899012",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 51166.789083275944
+  },
+  {
+    "timestamp": "2025-12-05T20:51:55.790331",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 56058.18520812318
+  },
+  {
+    "timestamp": "2025-12-05T20:51:59.063274",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 59330.80954197794
+  },
+  {
+    "timestamp": "2025-12-05T20:52:00.052374",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abcdmangueiras.com.br",
+    "domain": "abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 60320.404457859695
+  },
+  {
+    "timestamp": "2025-12-05T20:52:01.119011",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 1023.3932500705123
+  },
+  {
+    "timestamp": "2025-12-05T20:52:15.944888",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 15848.992333281785
+  },
+  {
+    "timestamp": "2025-12-05T20:52:21.195738",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 21099.861500319093
+  },
+  {
+    "timestamp": "2025-12-05T20:52:30.125374",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.abccomp.com.br",
+    "domain": "www.abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 30029.436083044857
+  },
+  {
+    "timestamp": "2025-12-05T20:52:38.637288",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 38541.449500247836
+  },
+  {
+    "timestamp": "2025-12-05T20:52:41.903013",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 41807.17708310112
+  },
+  {
+    "timestamp": "2025-12-05T20:52:43.819603",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 43723.63625001162
+  },
+  {
+    "timestamp": "2025-12-05T20:53:14.639742",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrosantaaurora.com.br",
+    "domain": "agrosantaaurora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 74544.06995885074
+  },
+  {
+    "timestamp": "2025-12-05T20:53:20.662692",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agross.com.br",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 80567.20304209739
+  },
+  {
+    "timestamp": "2025-12-05T20:53:22.155722",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrobrazengenharia.com",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 82060.3582910262
+  },
+  {
+    "timestamp": "2025-12-05T20:53:30.677016",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abcdmangueiras.com.br",
+    "domain": "abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 90582.58704096079
+  },
+  {
+    "timestamp": "2025-12-05T20:53:32.886335",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.admarcondicionado.com.br",
+    "domain": "www.admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 92791.39733314514
+  },
+  {
+    "timestamp": "2025-12-05T20:53:33.429792",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://business.google.com/website/montconmontagens",
+    "domain": "business.google.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://business.google.com/website/montconmontagens respondeu",
+    "duration_ms": 449.48629196733236
+  },
+  {
+    "timestamp": "2025-12-05T20:53:50.421994",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.3mvconstrutora.com.br",
+    "domain": "www.3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 17441.34833291173
+  },
+  {
+    "timestamp": "2025-12-05T20:53:55.942063",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.4tsistemas.com.br",
+    "domain": "www.4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 22961.099207866937
+  },
+  {
+    "timestamp": "2025-12-05T20:54:06.815458",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://a2construcoes.com/",
+    "domain": "a2construcoes.com",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://a2construcoes.com/ respondeu",
+    "duration_ms": 33834.474666044116
+  },
+  {
+    "timestamp": "2025-12-05T20:54:16.540347",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abcdmangueiras.com.br",
+    "domain": "abcdmangueiras.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 43559.07487496734
+  },
+  {
+    "timestamp": "2025-12-05T20:54:16.862204",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abccomp.com.br",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 43880.94020774588
+  },
+  {
+    "timestamp": "2025-12-05T20:54:22.656709",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://acc.com.br/",
+    "domain": "acc.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://acc.com.br/ respondeu",
+    "duration_ms": 49675.784499850124
+  },
+  {
+    "timestamp": "2025-12-05T20:54:28.168747",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 55187.902708072215
+  },
+  {
+    "timestamp": "2025-12-05T20:54:32.060045",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 59079.016000032425
+  },
+  {
+    "timestamp": "2025-12-05T20:55:04.760031",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://admarcondicionado.com.br",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 91779.5844161883
+  },
+  {
+    "timestamp": "2025-12-05T20:55:05.058311",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agrosantaaurora.com.br",
+    "domain": "agrosantaaurora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 92077.41795806214
+  },
+  {
+    "timestamp": "2025-12-05T20:55:05.810208",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agrobrazengenharia.com",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 92829.39583295956
+  },
+  {
+    "timestamp": "2025-12-05T20:55:07.631210",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://agross.com.br",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 94650.35174973309
+  },
+  {
+    "timestamp": "2025-12-05T20:55:25.212744",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://aliancamanutencao.com.br",
+    "domain": "aliancamanutencao.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 112232.0551672019
+  },
+  {
+    "timestamp": "2025-12-05T20:55:26.856108",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.allservicedistribuidora.com.br",
+    "domain": "www.allservicedistribuidora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 113875.38895895705
+  },
+  {
+    "timestamp": "2025-12-05T20:55:27.414812",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 114434.01474971324
+  },
+  {
+    "timestamp": "2025-12-05T20:55:28.002221",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 115021.3349997066
+  },
+  {
+    "timestamp": "2025-12-05T20:55:28.701284",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 115720.48183344305
+  },
+  {
+    "timestamp": "2025-12-05T20:55:32.782753",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://altecbalancas.com.br",
+    "domain": "altecbalancas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 119802.03320784494
+  },
+  {
+    "timestamp": "2025-12-05T21:13:10.199153",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br/quem-somos",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br/quem-somos respondeu",
+    "duration_ms": 632.8343753702939
+  },
+  {
+    "timestamp": "2025-12-05T21:13:24.362083",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br/",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 16343.132332898676
+  },
+  {
+    "timestamp": "2025-12-05T21:13:28.450054",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br/",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 20918.31316612661
+  },
+  {
+    "timestamp": "2025-12-05T21:13:30.565421",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br/",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 21025.746459141374
+  },
+  {
+    "timestamp": "2025-12-05T21:13:41.989546",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.instagram.com/carroceriasromi/reels/",
+    "domain": "www.instagram.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 31265.267833601683
+  },
+  {
+    "timestamp": "2025-12-05T21:22:41.812422",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br/empresa/",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br/empresa/ respondeu",
+    "duration_ms": 4330.461999867111
+  },
+  {
+    "timestamp": "2025-12-05T21:22:49.381723",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.a3mconstrutora.com.br/obras-lancamentos",
+    "domain": "www.a3mconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 11910.052583087236
+  },
+  {
+    "timestamp": "2025-12-05T21:22:58.782065",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://casadosdados.com.br/solucao/cnpj/alianca-manutencoes-industriais-e-nauticas-ltda-28497912000130",
+    "domain": "casadosdados.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://casadosdados.com.br/solucao/cnpj/alianca-manutencoes-industriais-e-nauticas-ltda-28497912000130 respondeu",
+    "duration_ms": 15840.280666947365
+  },
+  {
+    "timestamp": "2025-12-05T21:23:02.544982",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://ajengenhariaeinspecoes.com.br/",
+    "domain": "ajengenhariaeinspecoes.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 25081.862166989595
+  },
+  {
+    "timestamp": "2025-12-05T21:23:04.509850",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://almeidaeng.br/",
+    "domain": "almeidaeng.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://almeidaeng.br/ respondeu",
+    "duration_ms": 21613.789250142872
+  },
+  {
+    "timestamp": "2025-12-05T21:23:08.194238",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br/quem-somos",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br/quem-somos respondeu",
+    "duration_ms": 25184.917208272964
+  },
+  {
+    "timestamp": "2025-12-05T21:23:09.127285",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 26534.52937491238
+  },
+  {
+    "timestamp": "2025-12-05T21:23:10.339516",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://www.amazon.com.br/",
+    "domain": "www.amazon.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://www.amazon.com.br/ respondeu",
+    "duration_ms": 27441.34004181251
+  },
+  {
+    "timestamp": "2025-12-05T21:23:16.675852",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://addvent.com.br/",
+    "domain": "addvent.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 33914.962499868125
+  },
+  {
+    "timestamp": "2025-12-05T21:23:17.191909",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br/",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 39726.22354188934
+  },
+  {
+    "timestamp": "2025-12-05T21:23:22.425940",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://abccomp.com.br/",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 44910.928084049374
+  },
+  {
+    "timestamp": "2025-12-05T21:23:23.157755",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://americancenter.com.br/",
+    "domain": "americancenter.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 40029.23725033179
+  },
+  {
+    "timestamp": "2025-12-05T21:23:42.760236",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agross.com.br/",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59897.64170860872
+  },
+  {
+    "timestamp": "2025-12-05T21:23:45.394387",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.alartech.com.br/",
+    "domain": "www.alartech.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 62984.41749997437
+  },
+  {
+    "timestamp": "2025-12-05T21:23:47.410147",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agrobrazengenharia.com/",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 63964.73391726613
+  },
+  {
+    "timestamp": "2025-12-05T21:23:52.124076",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 68261.7080421187
+  },
+  {
+    "timestamp": "2025-12-05T21:23:57.527912",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br/",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 80056.74245860428
+  },
+  {
+    "timestamp": "2025-12-05T21:23:57.603714",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://admarcondicionado.com.br/",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 78440.85329212248
+  },
+  {
+    "timestamp": "2025-12-05T21:25:22.835412",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br/galeria-de-fotos-e-videos/",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br/galeria-de-fotos-e-videos/ respondeu",
+    "duration_ms": 5383.230291772634
+  },
+  {
+    "timestamp": "2025-12-05T21:25:30.938040",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://www.a3mconstrutora.com.br/obras-lancamentos",
+    "domain": "www.a3mconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 13394.065875094384
+  },
+  {
+    "timestamp": "2025-12-05T21:25:36.203117",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://ajengenhariaeinspecoes.com.br/",
+    "domain": "ajengenhariaeinspecoes.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 15429.549333173782
+  },
+  {
+    "timestamp": "2025-12-05T21:25:52.433831",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 26619.941625278443
+  },
+  {
+    "timestamp": "2025-12-05T21:26:00.283212",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br/quem-somos",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br/quem-somos respondeu",
+    "duration_ms": 32581.03904221207
+  },
+  {
+    "timestamp": "2025-12-05T21:26:01.466726",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://carroceriasbuoro.com.br/",
+    "domain": "carroceriasbuoro.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de https://carroceriasbuoro.com.br/ respondeu",
+    "duration_ms": 33035.31179204583
+  },
+  {
+    "timestamp": "2025-12-05T21:26:03.261399",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://addvent.com.br/",
+    "domain": "addvent.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 37714.53458396718
+  },
+  {
+    "timestamp": "2025-12-05T21:26:05.377815",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br/",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 47347.61445829645
+  },
+  {
+    "timestamp": "2025-12-05T21:26:11.697793",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://abccomp.com.br/",
+    "domain": "abccomp.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 53599.51054211706
+  },
+  {
+    "timestamp": "2025-12-05T21:26:16.673817",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://admarcondicionado.com.br/",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 58611.60345794633
+  },
+  {
+    "timestamp": "2025-12-05T21:26:21.065338",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br/",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 55814.29412495345
+  },
+  {
+    "timestamp": "2025-12-05T21:26:27.364680",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agrobrazengenharia.com/",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 61518.01174972206
+  },
+  {
+    "timestamp": "2025-12-05T21:26:30.836127",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.alartech.com.br/",
+    "domain": "www.alartech.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59388.32400040701
+  },
+  {
+    "timestamp": "2025-12-05T21:26:31.412388",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://americancenter.com.br/",
+    "domain": "americancenter.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59996.18824990466
+  },
+  {
+    "timestamp": "2025-12-05T21:26:32.015381",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br/",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 74083.02629180253
+  },
+  {
+    "timestamp": "2025-12-05T21:26:34.571960",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agross.com.br/",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 66222.26245794445
+  },
+  {
+    "timestamp": "2025-12-05T21:26:46.884995",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.abccar.com.br/mangueiras/",
+    "domain": "www.abccar.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 77763.39329220355
+  },
+  {
+    "timestamp": "2025-12-05T21:36:36.536584",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://adasengenharia.com.br",
+    "domain": "adasengenharia.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://adasengenharia.com.br respondeu",
+    "duration_ms": 1191.4696670137346
+  },
+  {
+    "timestamp": "2025-12-05T21:36:38.066645",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br/galeria-de-fotos-e-videos/",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br/galeria-de-fotos-e-videos/ respondeu",
+    "duration_ms": 2674.673041794449
+  },
+  {
+    "timestamp": "2025-12-05T21:36:38.111105",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://americaperfuracoes.com.br/empresa/",
+    "domain": "americaperfuracoes.com.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://americaperfuracoes.com.br/empresa/ respondeu",
+    "duration_ms": 3837.921458296478
+  },
+  {
+    "timestamp": "2025-12-05T21:36:42.424554",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "http://almeidaconstrucoes.net.br/",
+    "domain": "almeidaconstrucoes.net.br",
+    "context": {},
+    "strategy_used": "",
+    "retry_count": 0,
+    "error_message": "Nenhuma variação de http://almeidaconstrucoes.net.br/ respondeu",
+    "duration_ms": 6929.288334213197
+  },
+  {
+    "timestamp": "2025-12-05T21:37:01.210609",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://americancenter.com.br/",
+    "domain": "americancenter.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 25790.419000200927
+  },
+  {
+    "timestamp": "2025-12-05T21:37:01.226546",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://ajengenhariaeinspecoes.com.br/",
+    "domain": "ajengenhariaeinspecoes.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 25828.990625217557
+  },
+  {
+    "timestamp": "2025-12-05T21:37:08.058103",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://4tsistemas.com.br/",
+    "domain": "4tsistemas.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 32883.13008332625
+  },
+  {
+    "timestamp": "2025-12-05T21:37:11.129591",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agrobrazengenharia.com/",
+    "domain": "agrobrazengenharia.com",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 35685.181917157024
+  },
+  {
+    "timestamp": "2025-12-05T21:37:11.926042",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://3mvconstrutora.com.br/",
+    "domain": "3mvconstrutora.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 36434.89137478173
+  },
+  {
+    "timestamp": "2025-12-05T21:37:15.780806",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://www.alartech.com.br/",
+    "domain": "www.alartech.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 40308.136167004704
+  },
+  {
+    "timestamp": "2025-12-05T21:37:17.472150",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://agross.com.br/",
+    "domain": "agross.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 42021.87266713008
+  },
+  {
+    "timestamp": "2025-12-05T21:37:34.535780",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "https://admarcondicionado.com.br/",
+    "domain": "admarcondicionado.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 59011.72204175964
+  },
+  {
+    "timestamp": "2025-12-05T21:37:35.551761",
+    "module": "scraper",
+    "error_type": "unknown",
+    "url": "http://acomap.com.br/",
+    "domain": "acomap.com.br",
+    "context": {
+      "site_type": "unknown"
+    },
+    "strategy_used": "standard",
+    "retry_count": 0,
+    "error_message": "No content",
+    "duration_ms": 61223.843708168715
+  }
+]

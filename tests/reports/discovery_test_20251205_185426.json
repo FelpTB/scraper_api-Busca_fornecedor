@@ -1,0 +1,1818 @@
+{
+  "timestamp": "20251205_185426",
+  "config": {
+    "max_concurrent": 200,
+    "timeout": 60.0,
+    "total_empresas": 200
+  },
+  "metrics": {
+    "total": 200,
+    "sucesso": 145,
+    "timeout": 0,
+    "taxa_sucesso": 72.5,
+    "tempo_total_teste_s": 16.971557334065437,
+    "tempo_medio_sucesso_ms": 8725.482064951211
+  },
+  "results": [
+    {
+      "empresa": "CAIS DO PAPEL",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8767.588458955288
+    },
+    {
+      "empresa": "MONTCON",
+      "razao_social": "",
+      "municipio": "2531",
+      "success": true,
+      "url": "https://montcon.com.br/",
+      "error": "",
+      "tempo_ms": 8183.784167282283
+    },
+    {
+      "empresa": "CARROCERIAS ROMI",
+      "razao_social": "",
+      "municipio": "5847",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8614.752334076911
+    },
+    {
+      "empresa": "12M",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 7158.186083193868
+    },
+    {
+      "empresa": "2A CONSTRUCOES E SERVICOS",
+      "razao_social": "",
+      "municipio": "9647",
+      "success": true,
+      "url": "https://2aci.com.br/",
+      "error": "",
+      "tempo_ms": 8493.264249991626
+    },
+    {
+      "empresa": "2A ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7181",
+      "success": true,
+      "url": "https://engenharia2a.com.br/portfolio",
+      "error": "",
+      "tempo_ms": 9149.639416951686
+    },
+    {
+      "empresa": "2A CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "http://2aengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 9782.583000138402
+    },
+    {
+      "empresa": "2B TRANSPORTES E LOGISTICAS",
+      "razao_social": "",
+      "municipio": "1645",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 4183.894667308778
+    },
+    {
+      "empresa": "2W CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "9733",
+      "success": true,
+      "url": "https://w2construtora.com.br/",
+      "error": "",
+      "tempo_ms": 9195.140750147402
+    },
+    {
+      "empresa": "2W PESAGEM E AUTOMACAO",
+      "razao_social": "",
+      "municipio": "7407",
+      "success": true,
+      "url": "https://2wpesagem.com.br/",
+      "error": "",
+      "tempo_ms": 7145.518875215203
+    },
+    {
+      "empresa": "3 ACHIEVE",
+      "razao_social": "",
+      "municipio": "3413",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8894.893624819815
+    },
+    {
+      "empresa": "3A ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6477",
+      "success": true,
+      "url": "https://www.3aengenharia.com/",
+      "error": "",
+      "tempo_ms": 8564.495374914259
+    },
+    {
+      "empresa": "3A ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://www.3aengenharia.com/",
+      "error": "",
+      "tempo_ms": 8463.556666858494
+    },
+    {
+      "empresa": "3D SERVICE",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "http://3dserviceconservacao.com.br/",
+      "error": "",
+      "tempo_ms": 8083.011290989816
+    },
+    {
+      "empresa": "3F PECAS PARA SUSPENSAO",
+      "razao_social": "",
+      "municipio": "6477",
+      "success": true,
+      "url": "http://3fautopecas.com.br/",
+      "error": "",
+      "tempo_ms": 7158.102250192314
+    },
+    {
+      "empresa": "3MV CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "6587",
+      "success": true,
+      "url": "http://3mvconstrutora.com.br/",
+      "error": "",
+      "tempo_ms": 9016.004666686058
+    },
+    {
+      "empresa": "3 R CONSTRUCOES PAULINIA",
+      "razao_social": "",
+      "municipio": "6831",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 7158.218999858946
+    },
+    {
+      "empresa": "3R CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "9227",
+      "success": true,
+      "url": "http://3rconstrucao.com.br/",
+      "error": "",
+      "tempo_ms": 8581.083207856864
+    },
+    {
+      "empresa": "3T ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6969",
+      "success": true,
+      "url": "http://3teng.com/",
+      "error": "",
+      "tempo_ms": 8651.937333401293
+    },
+    {
+      "empresa": "4L LOCACOES E SERVICOS GERAIS",
+      "razao_social": "",
+      "municipio": "7135",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9090.961833950132
+    },
+    {
+      "empresa": "4M ENGENHARIA",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9296.729290857911
+    },
+    {
+      "empresa": "4M CONSTRUCOES E SERVICOS",
+      "razao_social": "",
+      "municipio": "6213",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8273.895542137325
+    },
+    {
+      "empresa": "4M CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "9701",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8918.907166924328
+    },
+    {
+      "empresa": "4T SISTEMAS INTELIGENTES",
+      "razao_social": "",
+      "municipio": "5293",
+      "success": true,
+      "url": "http://4tsistemas.com.br/",
+      "error": "",
+      "tempo_ms": 8493.094333447516
+    },
+    {
+      "empresa": "A1 COMUNICACAO VISUAL",
+      "razao_social": "",
+      "municipio": "7691",
+      "success": true,
+      "url": "http://a1cv.com.br/",
+      "error": "",
+      "tempo_ms": 7158.012582920492
+    },
+    {
+      "empresa": "A2 ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7099",
+      "success": true,
+      "url": "https://a2eng.com.br/",
+      "error": "",
+      "tempo_ms": 16287.907042074949
+    },
+    {
+      "empresa": "A2 CONSTRUTORA E INCORPORADORA",
+      "razao_social": "",
+      "municipio": "3685",
+      "success": true,
+      "url": "http://www.a2construcoes.com/",
+      "error": "",
+      "tempo_ms": 8685.148250311613
+    },
+    {
+      "empresa": "A DOIS CONTRUCOES LTDA",
+      "razao_social": "",
+      "municipio": "1761",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8999.15699986741
+    },
+    {
+      "empresa": "A3 ENGENHARIA",
+      "razao_social": "",
+      "municipio": "5699",
+      "success": true,
+      "url": "http://a3engenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 9489.470667205751
+    },
+    {
+      "empresa": "A3M CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "3501",
+      "success": true,
+      "url": "https://www.a3mconstrutora.com.br",
+      "error": "",
+      "tempo_ms": 11153.471166267991
+    },
+    {
+      "empresa": "A4 - ENGENHARIA E SERVICOS",
+      "razao_social": "",
+      "municipio": "7145",
+      "success": true,
+      "url": "http://a4engenharia.com/",
+      "error": "",
+      "tempo_ms": 9255.312541034073
+    },
+    {
+      "empresa": "A77 ENGENHARIA LTDA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://a77engenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8064.364499878138
+    },
+    {
+      "empresa": "ABBADE ENGENHARIA",
+      "razao_social": "",
+      "municipio": "3413",
+      "success": true,
+      "url": "https://abbadeengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 7158.012584317476
+    },
+    {
+      "empresa": "ABC COMPONENTES",
+      "razao_social": "",
+      "municipio": "7057",
+      "success": true,
+      "url": "https://abccomp.com.br/",
+      "error": "",
+      "tempo_ms": 9504.937208257616
+    },
+    {
+      "empresa": "ABCD MANGUEIRAS",
+      "razao_social": "",
+      "municipio": "6377",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8536.596124991775
+    },
+    {
+      "empresa": "POSITIVO SERVERS & SOLUTIONS",
+      "razao_social": "",
+      "municipio": "3573",
+      "success": true,
+      "url": "https://www.positivoservers.com.br/",
+      "error": "",
+      "tempo_ms": 9258.266292046756
+    },
+    {
+      "empresa": "ACF CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8673.248583916575
+    },
+    {
+      "empresa": "ACOMAP INDUSTRIA E COMERCIO DE PRODUTOS SIDERURGICOS",
+      "razao_social": "",
+      "municipio": "6597",
+      "success": true,
+      "url": "http://acomap.com.br/",
+      "error": "",
+      "tempo_ms": 7158.044292125851
+    },
+    {
+      "empresa": "OFICINA DO ZICO",
+      "razao_social": "",
+      "municipio": "8239",
+      "success": true,
+      "url": "https://mecanica-zico.ueniweb.com/",
+      "error": "",
+      "tempo_ms": 8232.034457847476
+    },
+    {
+      "empresa": "ISOACO INDUSTRIA E COMERCIO",
+      "razao_social": "",
+      "municipio": "2785",
+      "success": true,
+      "url": "https://isoaco.com.br/",
+      "error": "",
+      "tempo_ms": 8536.3267082721
+    },
+    {
+      "empresa": "ACP PECAS PARA COMPRESSORES",
+      "razao_social": "",
+      "municipio": "7075",
+      "success": true,
+      "url": "http://acppecas.com.br/",
+      "error": "",
+      "tempo_ms": 8651.748208794743
+    },
+    {
+      "empresa": "ACRILICOS PENEDO",
+      "razao_social": "",
+      "municipio": "5901",
+      "success": true,
+      "url": "http://acrilicospenedo.com.br/produtos-diversos.html",
+      "error": "",
+      "tempo_ms": 8933.979250025004
+    },
+    {
+      "empresa": "ACR INSTALACAO E MANUTENCAO",
+      "razao_social": "",
+      "municipio": "6861",
+      "success": true,
+      "url": "https://www.acrarcondicionado.com.br/",
+      "error": "",
+      "tempo_ms": 8306.434332858771
+    },
+    {
+      "empresa": "ACR MANUTENCAO INSTALACAO TREINAMENTO TAB.",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://acrinstalacoes.com.br/",
+      "error": "",
+      "tempo_ms": 7157.853958196938
+    },
+    {
+      "empresa": "ACROS CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "0803",
+      "success": true,
+      "url": "http://acrosconstrutora.com.br/",
+      "error": "",
+      "tempo_ms": 8538.899082690477
+    },
+    {
+      "empresa": "A C SOLUCOES INTEGRADAS DE INFORMATICA",
+      "razao_social": "",
+      "municipio": "3849",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 4363.106790930033
+    },
+    {
+      "empresa": "ADAS ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://adasengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 9147.046540863812
+    },
+    {
+      "empresa": "ADA CALIBRACAO E INSPECAO",
+      "razao_social": "",
+      "municipio": "6789",
+      "success": true,
+      "url": "https://adaservicos.com.br/",
+      "error": "",
+      "tempo_ms": 7157.951625064015
+    },
+    {
+      "empresa": "ADDVENT",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://addvent.com.br/",
+      "error": "",
+      "tempo_ms": 7157.888208050281
+    },
+    {
+      "empresa": "FZ MED",
+      "razao_social": "",
+      "municipio": "7077",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8064.165708143264
+    },
+    {
+      "empresa": "ADF MONTAGENS",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8306.442958302796
+    },
+    {
+      "empresa": "ADM AR CONDICIONADO INSTALACAO E MANUTENCAO LTDA.",
+      "razao_social": "",
+      "municipio": "6429",
+      "success": true,
+      "url": "https://admarcondicionado.com.br/",
+      "error": "",
+      "tempo_ms": 8402.923458255827
+    },
+    {
+      "empresa": "ADM. EQUIPAMENTOS",
+      "razao_social": "",
+      "municipio": "6469",
+      "success": true,
+      "url": "http://admequipamentos.com.br/",
+      "error": "",
+      "tempo_ms": 8871.578250080347
+    },
+    {
+      "empresa": "ADM MONTAGEM DE SILOS E SECADORES",
+      "razao_social": "",
+      "municipio": "5459",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9331.346749793738
+    },
+    {
+      "empresa": "ADRIANO PAISAGISMO",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8510.938750114292
+    },
+    {
+      "empresa": "ADSUPORTE SOLUCOES EM TI",
+      "razao_social": "",
+      "municipio": "7057",
+      "success": true,
+      "url": "http://adsuporte.com.br/",
+      "error": "",
+      "tempo_ms": 9328.118874691427
+    },
+    {
+      "empresa": "ABS MANUTENCAO",
+      "razao_social": "",
+      "municipio": "6789",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8306.400415953249
+    },
+    {
+      "empresa": "A E S REPRESENTANTE COMERCIAL",
+      "razao_social": "",
+      "municipio": "6475",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8946.903542149812
+    },
+    {
+      "empresa": "AFGHA - CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "5847",
+      "success": true,
+      "url": "http://afgha.com.br/",
+      "error": "",
+      "tempo_ms": 7154.95887491852
+    },
+    {
+      "empresa": "AFIPREC",
+      "razao_social": "",
+      "municipio": "6377",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9342.25537488237
+    },
+    {
+      "empresa": "AFL SERVICE",
+      "razao_social": "",
+      "municipio": "7915",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 7972.599207889289
+    },
+    {
+      "empresa": "ALEX ELETRIFICACAO",
+      "razao_social": "",
+      "municipio": "9241",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8746.146417222917
+    },
+    {
+      "empresa": "AGIR",
+      "razao_social": "",
+      "municipio": "5883",
+      "success": true,
+      "url": "https://agir.ind.br/agir-saude/dentista/suportes/",
+      "error": "",
+      "tempo_ms": 8722.35633386299
+    },
+    {
+      "empresa": "AGIR",
+      "razao_social": "",
+      "municipio": "0772",
+      "success": true,
+      "url": "https://www.agirsaude.org.br/",
+      "error": "",
+      "tempo_ms": 8371.593332849443
+    },
+    {
+      "empresa": "AGROBRAZ",
+      "razao_social": "",
+      "municipio": "6969",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 7157.958500087261
+    },
+    {
+      "empresa": "AGROMATOS",
+      "razao_social": "",
+      "municipio": "6401",
+      "success": true,
+      "url": "https://agromatos.com.br/",
+      "error": "",
+      "tempo_ms": 8746.040708385408
+    },
+    {
+      "empresa": "SANTA ADELINA AGROINDUSTRIAL LTDA",
+      "razao_social": "",
+      "municipio": "0845",
+      "success": true,
+      "url": "https://site.usinasantaadelia.com.br/",
+      "error": "",
+      "tempo_ms": 8440.43983425945
+    },
+    {
+      "empresa": "AGROSS INSUMOS",
+      "razao_social": "",
+      "municipio": "5343",
+      "success": true,
+      "url": "https://agross.com.br/",
+      "error": "",
+      "tempo_ms": 12577.40725018084
+    },
+    {
+      "empresa": "GRUPO AGS",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://www.grupoags.com.br/",
+      "error": "",
+      "tempo_ms": 8463.095291983336
+    },
+    {
+      "empresa": "AGS ENGENHARIA E CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://agsconstrucao.com.br/",
+      "error": "",
+      "tempo_ms": 8673.109041992575
+    },
+    {
+      "empresa": "AGS",
+      "razao_social": "",
+      "municipio": "5865",
+      "success": true,
+      "url": "https://www.agsengenharia.com.br",
+      "error": "",
+      "tempo_ms": 8371.583125088364
+    },
+    {
+      "empresa": "AGS MISTER CONSTRUCOES SERVICOS",
+      "razao_social": "",
+      "municipio": "6477",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8545.683625154197
+    },
+    {
+      "empresa": "IPHONE HELP",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://iphonehelpstore.com.br/",
+      "error": "",
+      "tempo_ms": 8614.535958040506
+    },
+    {
+      "empresa": "A J ENGENHARIA E INSPECOES",
+      "razao_social": "",
+      "municipio": "7135",
+      "success": true,
+      "url": "http://ajengenhariaeinspecoes.com.br/",
+      "error": "",
+      "tempo_ms": 8635.792958084494
+    },
+    {
+      "empresa": "ALAMEDA CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "5699",
+      "success": true,
+      "url": "https://construtoraalameda.com.br/",
+      "error": "",
+      "tempo_ms": 8371.42891716212
+    },
+    {
+      "empresa": "ALARTECH",
+      "razao_social": "",
+      "municipio": "7099",
+      "success": true,
+      "url": "https://www.alartech.com.br/",
+      "error": "",
+      "tempo_ms": 8471.818833146244
+    },
+    {
+      "empresa": "ALEGRIA",
+      "razao_social": "",
+      "municipio": "0255",
+      "success": true,
+      "url": "https://www.linhadalegria.com.br/",
+      "error": "",
+      "tempo_ms": 7145.06533369422
+    },
+    {
+      "empresa": "ALENG ENGENHARIA E CONSTRUCAO",
+      "razao_social": "",
+      "municipio": "6639",
+      "success": true,
+      "url": "http://alengengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8346.721415873617
+    },
+    {
+      "empresa": "ALIANCA MANUTENCOES",
+      "razao_social": "",
+      "municipio": "5807",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9332.478625234216
+    },
+    {
+      "empresa": "ALLBRA ENGENHARIA",
+      "razao_social": "",
+      "municipio": "9227",
+      "success": true,
+      "url": "https://allbraengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 10773.7155421637
+    },
+    {
+      "empresa": "ALIANZA MANUTENCAO & TECNOLOGIA",
+      "razao_social": "",
+      "municipio": "7075",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9169.630250427872
+    },
+    {
+      "empresa": "ALLPHA INDUSTRIA & ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6969",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8785.840333905071
+    },
+    {
+      "empresa": "ALL SERVICE",
+      "razao_social": "",
+      "municipio": "6131",
+      "success": true,
+      "url": "https://www.allsv.com.br/",
+      "error": "",
+      "tempo_ms": 9353.114624973387
+    },
+    {
+      "empresa": "***",
+      "razao_social": "",
+      "municipio": "6713",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8082.554708700627
+    },
+    {
+      "empresa": "A D M SERVICOS E CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "0441",
+      "success": true,
+      "url": "https://admengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8635.733665898442
+    },
+    {
+      "empresa": "ALMEIDA CONSTRUCOES LTDA",
+      "razao_social": "",
+      "municipio": "9073",
+      "success": true,
+      "url": "http://almeidaconstrucoes.net.br/",
+      "error": "",
+      "tempo_ms": 8796.805249992758
+    },
+    {
+      "empresa": "ALMEIDA CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "3515",
+      "success": true,
+      "url": "http://almeidaconstrucoes.net.br/",
+      "error": "",
+      "tempo_ms": 8564.111708197743
+    },
+    {
+      "empresa": "A L S MARINS",
+      "razao_social": "",
+      "municipio": "6913",
+      "success": true,
+      "url": "https://alsmarins.com/",
+      "error": "",
+      "tempo_ms": 9031.841082964092
+    },
+    {
+      "empresa": "ALTEC",
+      "razao_social": "",
+      "municipio": "6155",
+      "success": true,
+      "url": "https://altecindustrial.com.br/",
+      "error": "",
+      "tempo_ms": 8401.703082956374
+    },
+    {
+      "empresa": "ALTERNATIVA ELETRONICA",
+      "razao_social": "",
+      "municipio": "6921",
+      "success": true,
+      "url": "http://alternativaeletronica.com.br/",
+      "error": "",
+      "tempo_ms": 9114.952125120908
+    },
+    {
+      "empresa": "ALTERNATIVA CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "9701",
+      "success": true,
+      "url": "http://www.alternativace.com.br/",
+      "error": "",
+      "tempo_ms": 8785.75404221192
+    },
+    {
+      "empresa": "MEGANORDESTE",
+      "razao_social": "",
+      "municipio": "2457",
+      "success": true,
+      "url": "https://meganordeste.com.br/",
+      "error": "",
+      "tempo_ms": 8371.435583103448
+    },
+    {
+      "empresa": "AMAZON GEOSERVICES",
+      "razao_social": "",
+      "municipio": "4123",
+      "success": true,
+      "url": "https://aws.amazon.com/pt/location/",
+      "error": "",
+      "tempo_ms": 8580.773124936968
+    },
+    {
+      "empresa": "RCM DIAGNOSTICO",
+      "razao_social": "",
+      "municipio": "0427",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8183.165540918708
+    },
+    {
+      "empresa": "AMERICA LOCACAO",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://americaloc.com.br/",
+      "error": "",
+      "tempo_ms": 9342.086666729301
+    },
+    {
+      "empresa": "AMERICAN CENTER EMBALAGENS",
+      "razao_social": "",
+      "municipio": "6131",
+      "success": true,
+      "url": "http://americancenter.com.br/",
+      "error": "",
+      "tempo_ms": 9051.888375077397
+    },
+    {
+      "empresa": "AMERICAN FUROS E CORTES",
+      "razao_social": "",
+      "municipio": "6291",
+      "success": true,
+      "url": "http://americaperfuracoes.com.br/empresa/",
+      "error": "",
+      "tempo_ms": 9051.839208696038
+    },
+    {
+      "empresa": "GAS AMERICA PERFURACOES",
+      "razao_social": "",
+      "municipio": "5833",
+      "success": true,
+      "url": "http://americaperfuracoes.com.br/empresa/",
+      "error": "",
+      "tempo_ms": 8651.472834404558
+    },
+    {
+      "empresa": "A MINA ARGAMASSA",
+      "razao_social": "",
+      "municipio": "7513",
+      "success": true,
+      "url": "http://aminaargamassa.com.br/",
+      "error": "",
+      "tempo_ms": 8440.216625109315
+    },
+    {
+      "empresa": "AMPERE FOTOVOLTAICA",
+      "razao_social": "",
+      "municipio": "9373",
+      "success": true,
+      "url": "https://www.ampereenergias.com.br/",
+      "error": "",
+      "tempo_ms": 9374.380541965365
+    },
+    {
+      "empresa": "AMPLA - ARTEFATOS E MANUFATURAS DE PLASTICOS",
+      "razao_social": "",
+      "municipio": "7885",
+      "success": true,
+      "url": "http://amplaplasticos.com.br/",
+      "error": "",
+      "tempo_ms": 8432.659791782498
+    },
+    {
+      "empresa": "ANALYSIS ENGENHARIA",
+      "razao_social": "",
+      "municipio": "4123",
+      "success": true,
+      "url": "http://analysisengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8112.036209087819
+    },
+    {
+      "empresa": "ANAQUEN BRASIL",
+      "razao_social": "",
+      "municipio": "6579",
+      "success": true,
+      "url": "http://anaquenbrasil.com.br/site/",
+      "error": "",
+      "tempo_ms": 8463.18208379671
+    },
+    {
+      "empresa": "ASW",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "https://www.aswracing.com.br/?srsltid=AfmBOoqXyqYDrjBVYEEQXflXgFb-KAnT2eNZ_kSPap4qPLLFIZr8lUn7",
+      "error": "",
+      "tempo_ms": 9015.496958047152
+    },
+    {
+      "empresa": "ECOSOLAR ENERGIA FOTOVOLTAICA",
+      "razao_social": "",
+      "municipio": "4107",
+      "success": true,
+      "url": "https://ecosolarenergiasolar.com.br/",
+      "error": "",
+      "tempo_ms": 8440.170167014003
+    },
+    {
+      "empresa": "NEON CURITIBA COMUNICACAO VISUAL",
+      "razao_social": "",
+      "municipio": "7513",
+      "success": true,
+      "url": "http://aneon.com.br/",
+      "error": "",
+      "tempo_ms": 8936.972124967724
+    },
+    {
+      "empresa": "ANGELMAR MARITIMA SEGURANCA DA NAVEGACAO",
+      "razao_social": "",
+      "municipio": "3849",
+      "success": true,
+      "url": "http://angelmar.com.br/",
+      "error": "",
+      "tempo_ms": 8539.693500380963
+    },
+    {
+      "empresa": "ANNY",
+      "razao_social": "",
+      "municipio": "8637",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9135.667500086129
+    },
+    {
+      "empresa": "ANTENART",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://www.antenart.net",
+      "error": "",
+      "tempo_ms": 8539.706457871944
+    },
+    {
+      "empresa": "ANTON ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7057",
+      "success": true,
+      "url": "http://anton.eng.br/",
+      "error": "",
+      "tempo_ms": 7157.731166575104
+    },
+    {
+      "empresa": "CONSTECH TECNOLOGIA",
+      "razao_social": "",
+      "municipio": "0921",
+      "success": true,
+      "url": "https://constechcs.com.br/",
+      "error": "",
+      "tempo_ms": 9626.636749599129
+    },
+    {
+      "empresa": "APPLIC TECHNOLOGY LTDA",
+      "razao_social": "",
+      "municipio": "6713",
+      "success": true,
+      "url": "http://applic.com.br/",
+      "error": "",
+      "tempo_ms": 9431.517166085541
+    },
+    {
+      "empresa": "AQUEUZ ELETRICA HIDRAULICA E COMERCIO",
+      "razao_social": "",
+      "municipio": "6967",
+      "success": true,
+      "url": "http://aqueluz.com.br/",
+      "error": "",
+      "tempo_ms": 8154.484125319868
+    },
+    {
+      "empresa": "ARCLINTEC ENERGIA SOLAR, ENGENHARIA E CLIMATIZACAO",
+      "razao_social": "",
+      "municipio": "2785",
+      "success": true,
+      "url": "http://arclintec.negocio.site",
+      "error": "",
+      "tempo_ms": 8511.10816700384
+    },
+    {
+      "empresa": "ARCON MULTISERVICOS",
+      "razao_social": "",
+      "municipio": "2951",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8231.631208211184
+    },
+    {
+      "empresa": "ARC ACESSORIOS PLATICOS",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://arcprodutos.com.br/empresa.html",
+      "error": "",
+      "tempo_ms": 9015.403542201966
+    },
+    {
+      "empresa": "AR ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6131",
+      "success": true,
+      "url": "http://arengenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 9169.524000026286
+    },
+    {
+      "empresa": "A & R SOLUCOES AMBIENTAIS",
+      "razao_social": "",
+      "municipio": "0808",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9139.920082874596
+    },
+    {
+      "empresa": "A.R.E CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://areconstrutora.com.br/",
+      "error": "",
+      "tempo_ms": 8614.145083818585
+    },
+    {
+      "empresa": "A R + ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://arengenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 9114.718833938241
+    },
+    {
+      "empresa": "ARH HIDRAULICA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://arhhidraulica.com.br/",
+      "error": "",
+      "tempo_ms": 8651.337541174144
+    },
+    {
+      "empresa": "ARION ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6875",
+      "success": true,
+      "url": "http://arionengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8164.080665912479
+    },
+    {
+      "empresa": "ARJ",
+      "razao_social": "",
+      "municipio": "6477",
+      "success": true,
+      "url": "https://arjcompany.com/",
+      "error": "",
+      "tempo_ms": 7144.879166968167
+    },
+    {
+      "empresa": "A R SERVICOS",
+      "razao_social": "",
+      "municipio": "2785",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8853.165999986231
+    },
+    {
+      "empresa": "AR SERVICOS TECNOLOGIA",
+      "razao_social": "",
+      "municipio": "5611",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8439.640583004802
+    },
+    {
+      "empresa": "ARTECH ENGENHARIA",
+      "razao_social": "",
+      "municipio": "3849",
+      "success": true,
+      "url": "https://artechengenharia.com/",
+      "error": "",
+      "tempo_ms": 8492.608083412051
+    },
+    {
+      "empresa": "ARTECNICA PNEUMATICA",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": true,
+      "url": "http://artecnicapneumatica.com.br/",
+      "error": "",
+      "tempo_ms": 7987.169125117362
+    },
+    {
+      "empresa": "COMERCIAL PNEUMATICA",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8535.91537475586
+    },
+    {
+      "empresa": "ART ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "http://artengenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 8672.739875037223
+    },
+    {
+      "empresa": "ARTIVE",
+      "razao_social": "",
+      "municipio": "6377",
+      "success": true,
+      "url": "http://artive.com.br/",
+      "error": "",
+      "tempo_ms": 9194.42991586402
+    },
+    {
+      "empresa": "ART JIL JARDINAGEM",
+      "razao_social": "",
+      "municipio": "7157",
+      "success": true,
+      "url": "http://artjil.com.br/",
+      "error": "",
+      "tempo_ms": 8273.249167017639
+    },
+    {
+      "empresa": "ARTMOVEIS",
+      "razao_social": "",
+      "municipio": "6717",
+      "success": true,
+      "url": "https://www.lojasartmoveis.com.br/?srsltid=AfmBOor-pj_RyjrDScnhfvUfmpZG3H6EYsJ1BYfr_socKQr552xcq754",
+      "error": "",
+      "tempo_ms": 8492.482792120427
+    },
+    {
+      "empresa": "EMBALAGENS ARUMA",
+      "razao_social": "",
+      "municipio": "9373",
+      "success": true,
+      "url": "https://www.arumaembalagens.com.br/",
+      "error": "",
+      "tempo_ms": 8431.280167307705
+    },
+    {
+      "empresa": "A.S. ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://asengenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 8432.48404096812
+    },
+    {
+      "empresa": "*******",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8346.444375347346
+    },
+    {
+      "empresa": "ASEPSA",
+      "razao_social": "",
+      "municipio": "6291",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8440.079375170171
+    },
+    {
+      "empresa": "PLASTICOS ASSENCIO",
+      "razao_social": "",
+      "municipio": "6493",
+      "success": true,
+      "url": "http://assencio.com.br/",
+      "error": "",
+      "tempo_ms": 8097.552000079304
+    },
+    {
+      "empresa": "ASST - SERVICOS INDUSTRIAIS",
+      "razao_social": "",
+      "municipio": "6133",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8402.593167033046
+    },
+    {
+      "empresa": "ASTECA BORRACHAS",
+      "razao_social": "",
+      "municipio": "6671",
+      "success": true,
+      "url": "http://astecaborrachas.com.br/",
+      "error": "",
+      "tempo_ms": 8894.24508297816
+    },
+    {
+      "empresa": "AST MOVELARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://astmovelaria.com.br/",
+      "error": "",
+      "tempo_ms": 9448.272125329822
+    },
+    {
+      "empresa": "ASUS CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "5925",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8998.48329089582
+    },
+    {
+      "empresa": "PALMA ARQUITETURA",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "https://palma.arq.br/",
+      "error": "",
+      "tempo_ms": 8259.38449986279
+    },
+    {
+      "empresa": "ATENA ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "https://www.atenaeng.com/",
+      "error": "",
+      "tempo_ms": 8212.460374925286
+    },
+    {
+      "empresa": "ATENA ENGENHARIA - PROJETOS, CONSTRUCAO E REFORMA",
+      "razao_social": "",
+      "municipio": "6921",
+      "success": true,
+      "url": "https://grupoatena.com.br/",
+      "error": "",
+      "tempo_ms": 7157.5511251576245
+    },
+    {
+      "empresa": "DORATTA ENGENHARIA-ARQUITETURA-DESIGNE DE INTERIORES",
+      "razao_social": "",
+      "municipio": "6949",
+      "success": true,
+      "url": "https://www.doratahome.com.br/quem-somos",
+      "error": "",
+      "tempo_ms": 9352.779041975737
+    },
+    {
+      "empresa": "ATENAS EQUIPAMENTOS",
+      "razao_social": "",
+      "municipio": "6209",
+      "success": true,
+      "url": "https://athenascintos.com.br/",
+      "error": "",
+      "tempo_ms": 9895.545583218336
+    },
+    {
+      "empresa": "ATLANTA CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://atlantaubatuba.com.br/",
+      "error": "",
+      "tempo_ms": 8672.671915963292
+    },
+    {
+      "empresa": "ATLANTIDA PROJETOS CONTRA INCENDIO",
+      "razao_social": "",
+      "municipio": "4123",
+      "success": true,
+      "url": "http://atlantidaprojetos.com.br/",
+      "error": "",
+      "tempo_ms": 8672.591916751117
+    },
+    {
+      "empresa": "ATM AUTOMACAO & SISTEMAS",
+      "razao_social": "",
+      "municipio": "2531",
+      "success": true,
+      "url": "http://atmsistemaseletricos.com.br/",
+      "error": "",
+      "tempo_ms": 9604.67545920983
+    },
+    {
+      "empresa": "ATP DO BRASIL",
+      "razao_social": "",
+      "municipio": "6737",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 12284.201332833618
+    },
+    {
+      "empresa": "ATRIUM EVENTOS E SERVICOS",
+      "razao_social": "",
+      "municipio": "3515",
+      "success": true,
+      "url": "http://atriumeventos.com.br/",
+      "error": "",
+      "tempo_ms": 8892.669999971986
+    },
+    {
+      "empresa": "ATITUDE TRANSPORTES E EMPREENDIMENTOS",
+      "razao_social": "",
+      "municipio": "4133",
+      "success": true,
+      "url": "http://attitudetransportes.com.br/",
+      "error": "",
+      "tempo_ms": 8441.802958026528
+    },
+    {
+      "empresa": "AUSCON",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://ausconautomacao.com.br/",
+      "error": "",
+      "tempo_ms": 9139.818083960563
+    },
+    {
+      "empresa": "AUTOMACEL INDUSTRIAL",
+      "razao_social": "",
+      "municipio": "7535",
+      "success": true,
+      "url": "http://automacel.com.br/",
+      "error": "",
+      "tempo_ms": 8966.476500034332
+    },
+    {
+      "empresa": "FRONZA AUTO PECAS",
+      "razao_social": "",
+      "municipio": "8195",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8432.382958941162
+    },
+    {
+      "empresa": "AUTO SALES CENTRO AUTOMOTIVO",
+      "razao_social": "",
+      "municipio": "5699",
+      "success": true,
+      "url": "http://www.autosales.com.br/",
+      "error": "",
+      "tempo_ms": 9139.788834378123
+    },
+    {
+      "empresa": "AUTOSOFT",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://www.autosoft.com.br/2010/central-cliente.html",
+      "error": "",
+      "tempo_ms": 9275.864582974464
+    },
+    {
+      "empresa": "AUZIER SOLUCOES TENSIONADAS",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 4440.997958183289
+    },
+    {
+      "empresa": "AVALIMOB",
+      "razao_social": "",
+      "municipio": "6363",
+      "success": true,
+      "url": "http://avalimob.com.br/",
+      "error": "",
+      "tempo_ms": 8471.41870809719
+    },
+    {
+      "empresa": "AVRO",
+      "razao_social": "",
+      "municipio": "6929",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8544.976667035371
+    },
+    {
+      "empresa": "BACK TECNOLOGIA",
+      "razao_social": "",
+      "municipio": "8327",
+      "success": true,
+      "url": "http://backtecnologia.com.br/",
+      "error": "",
+      "tempo_ms": 8635.3026246652
+    },
+    {
+      "empresa": "CALTECH",
+      "razao_social": "",
+      "municipio": "1112",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8796.481459401548
+    },
+    {
+      "empresa": "BARBOSA FERRAGISTA",
+      "razao_social": "",
+      "municipio": "9373",
+      "success": true,
+      "url": "http://barbosaferragista.com.br/",
+      "error": "",
+      "tempo_ms": 9216.442083008587
+    },
+    {
+      "empresa": "BARRETO MANUTENCOES",
+      "razao_social": "",
+      "municipio": "6291",
+      "success": true,
+      "url": "http://barretomaquinas.com.br/m%C3%A1quinas.php",
+      "error": "",
+      "tempo_ms": 8721.702000126243
+    },
+    {
+      "empresa": "BAX ENGENHARIA LTDA",
+      "razao_social": "",
+      "municipio": "6713",
+      "success": true,
+      "url": "http://baxengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8460.746166296303
+    },
+    {
+      "empresa": "BE4PLAN ENGENHARIA E ARQUITETURA",
+      "razao_social": "",
+      "municipio": "6569",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9010.851166211069
+    },
+    {
+      "empresa": "BEC INSTALADORA ELETRICA E CIVIL",
+      "razao_social": "",
+      "municipio": "7667",
+      "success": true,
+      "url": "http://www.becengenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 8432.292124722153
+    },
+    {
+      "empresa": "BEC INDUSTRIAL",
+      "razao_social": "",
+      "municipio": "7777",
+      "success": true,
+      "url": "https://www.becindustrial.com.br/",
+      "error": "",
+      "tempo_ms": 8936.651041731238
+    },
+    {
+      "empresa": "BELA ARTE ESTRUTURA METALICA",
+      "razao_social": "",
+      "municipio": "6639",
+      "success": true,
+      "url": "https://belaarte.ind.br/",
+      "error": "",
+      "tempo_ms": 8918.095583096147
+    },
+    {
+      "empresa": "BELLA LOJA",
+      "razao_social": "",
+      "municipio": "6569",
+      "success": true,
+      "url": "https://www.lojasbellamodas.com/",
+      "error": "",
+      "tempo_ms": 8918.110125232488
+    },
+    {
+      "empresa": "BJ SISTEMAS",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "https://beljon.com.br/",
+      "error": "",
+      "tempo_ms": 9164.366249926388
+    },
+    {
+      "empresa": "BEMONTEC EMPREITEIRA",
+      "razao_social": "",
+      "municipio": "5801",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8212.23112475127
+    },
+    {
+      "empresa": "BERNARDES SOLUCOES BIM",
+      "razao_social": "",
+      "municipio": "7071",
+      "success": true,
+      "url": "https://bernardessolucao.com.br/",
+      "error": "",
+      "tempo_ms": 9957.777541130781
+    },
+    {
+      "empresa": "BERT",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9663.24795782566
+    },
+    {
+      "empresa": "BESTECHI ENGENHARIA CONSTRUCAO E MARCENARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://bestechi.com.br/",
+      "error": "",
+      "tempo_ms": 8492.256375029683
+    },
+    {
+      "empresa": "BETEL COMERCIO DE MADEIRAS",
+      "razao_social": "",
+      "municipio": "6611",
+      "success": true,
+      "url": "http://betelpallets.com.br/",
+      "error": "",
+      "tempo_ms": 9448.146833106875
+    },
+    {
+      "empresa": "BETUN ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7099",
+      "success": true,
+      "url": "http://betun.com.br/home/",
+      "error": "",
+      "tempo_ms": 7157.354250084609
+    },
+    {
+      "empresa": "BEWORK",
+      "razao_social": "",
+      "municipio": "7029",
+      "success": true,
+      "url": "http://www.bework.com.br/",
+      "error": "",
+      "tempo_ms": 8097.320249769837
+    },
+    {
+      "empresa": "BF TECIDOS E PAPEIS",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://bftecidos.com.br/",
+      "error": "",
+      "tempo_ms": 9169.245624914765
+    },
+    {
+      "empresa": "BIOECCO",
+      "razao_social": "",
+      "municipio": "8179",
+      "success": true,
+      "url": "http://bioecco.com.br/",
+      "error": "",
+      "tempo_ms": 8349.234207998961
+    },
+    {
+      "empresa": "BIO'S PROJETOS DE ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6953",
+      "success": true,
+      "url": "http://biosambiental1.tempsite.ws/index.html",
+      "error": "",
+      "tempo_ms": 9341.662417165935
+    },
+    {
+      "empresa": "BITSERVER TECNOLOGIA",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8462.784249801189
+    },
+    {
+      "empresa": "BITTAR ALIMENTOS",
+      "razao_social": "",
+      "municipio": "6979",
+      "success": true,
+      "url": "http://bittaralimentos.com.br/",
+      "error": "",
+      "tempo_ms": 9236.262958031148
+    },
+    {
+      "empresa": "BKPCLOUD SERVICES",
+      "razao_social": "",
+      "municipio": "6213",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 4631.8404590711
+    },
+    {
+      "empresa": "BLADE",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 9148.670957889408
+    },
+    {
+      "empresa": "BLENTA",
+      "razao_social": "",
+      "municipio": "6511",
+      "success": true,
+      "url": "http://blentamedical.com.br/",
+      "error": "",
+      "tempo_ms": 7157.025374937803
+    },
+    {
+      "empresa": "BRL - LOCACOES E SERVICOS",
+      "razao_social": "",
+      "municipio": "6635",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8346.162750385702
+    },
+    {
+      "empresa": "AQUI",
+      "razao_social": "",
+      "municipio": "5813",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8599.488125182688
+    },
+    {
+      "empresa": "BM PLASTICOS",
+      "razao_social": "",
+      "municipio": "7691",
+      "success": true,
+      "url": "http://bmplasticos.com.br/",
+      "error": "",
+      "tempo_ms": 10467.423291876912
+    },
+    {
+      "empresa": "BM TECNOLOGIA",
+      "razao_social": "",
+      "municipio": "9057",
+      "success": true,
+      "url": "http://bmtecnologia.com.br/",
+      "error": "",
+      "tempo_ms": 8510.546625126153
+    },
+    {
+      "empresa": "BOA COZINHA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://boacozinha.com.br/",
+      "error": "",
+      "tempo_ms": 9314.289249945432
+    },
+    {
+      "empresa": "BOA NOVA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://www.boanova.net/",
+      "error": "",
+      "tempo_ms": 8370.915290899575
+    },
+    {
+      "empresa": "BOMBACAMP - COMERCIO & LOCACOES",
+      "razao_social": "",
+      "municipio": "6291",
+      "success": true,
+      "url": "http://bombacamp.com.br/",
+      "error": "",
+      "tempo_ms": 9067.992958240211
+    },
+    {
+      "empresa": "BONEN ALIMENTOS",
+      "razao_social": "",
+      "municipio": "7535",
+      "success": true,
+      "url": "http://bonenalimentos.com.br/",
+      "error": "",
+      "tempo_ms": 7972.30004100129
+    },
+    {
+      "empresa": "MISSAO ENGENHARIA",
+      "razao_social": "",
+      "municipio": "4123",
+      "success": true,
+      "url": "https://www.missaoengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 8816.96162512526
+    },
+    {
+      "empresa": "BPT ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7157",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8719.094041269273
+    },
+    {
+      "empresa": "BRA CONSULT",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://braconsult.com.br/",
+      "error": "",
+      "tempo_ms": 8766.209125053138
+    },
+    {
+      "empresa": "BRAGA ENGENHARIA & CONSULTORIA",
+      "razao_social": "",
+      "municipio": "5833",
+      "success": true,
+      "url": "https://www.bragaengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 9191.606666892767
+    },
+    {
+      "empresa": "BRAGA ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://www.bragaengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 9114.448291249573
+    },
+    {
+      "empresa": "BRASA 2005",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 8492.213624995202
+    }
+  ]
+}

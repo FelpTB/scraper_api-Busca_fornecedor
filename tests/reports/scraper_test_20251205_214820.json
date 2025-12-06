@@ -1,0 +1,6743 @@
+{
+  "timestamp": "20251205_214820",
+  "config": {
+    "max_concurrent": 15,
+    "timeout": 120.0,
+    "max_subpages": 20,
+    "total_urls": 30,
+    "discovery_report": "tests/reports/discovery_test_20251205_205055.json"
+  },
+  "metrics": {
+    "total": 30,
+    "success": 26,
+    "failed": 4,
+    "timeout": 0,
+    "taxa_sucesso": 86.66666666666667,
+    "tempo_total_teste_s": 165.65228504128754,
+    "tempos_medios_ms": {
+      "total": 21106.326040077525,
+      "probe": 746.6599149450374,
+      "analise": 674.7712451749696,
+      "main_page": 883.9709967410622,
+      "selecao_links": 529.8600738975578,
+      "subpages": 18255.84719222612
+    },
+    "distribuicao_tipo_site": {
+      "static": 26,
+      "spa": 1,
+      "hybrid": 3,
+      "unknown": 0
+    },
+    "distribuicao_protecao": {
+      "none": 23,
+      "cloudflare": 0,
+      "waf": 0,
+      "captcha": 7,
+      "rate_limit": 0,
+      "bot_detection": 0
+    },
+    "distribuicao_estrategia": {
+      "fast": 21,
+      "standard": 2,
+      "robust": 1,
+      "aggressive": 2
+    },
+    "metricas_conteudo": {
+      "avg_content_length": 108148.46153846153,
+      "avg_pages_per_site": 11.5,
+      "avg_links_per_site": 55.73076923076923
+    }
+  },
+  "results": [
+    {
+      "url": "https://www.casadopapel.com.br/",
+      "empresa": "CAIS DO PAPEL",
+      "success": true,
+      "content_length": 1025090,
+      "pages_scraped": 21,
+      "documents_found": 0,
+      "links_found": 1012,
+      "total_time_ms": 51672.315042000264,
+      "site_type": "static",
+      "protection_type": "captcha",
+      "strategy_used": "aggressive",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.023209024220705032,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.017958227545022964,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.0004591420292854309,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "aggressive",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 917.8881668485701,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 917.8864168934524,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.casadopapel.com.br/",
+                "probe_time_ms": 917.191999964416
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 1265.952041838318,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 1265.9492082893848,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "captcha",
+                "response_time_ms": 1070.4616657458246,
+                "content_length": 646536,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.013791956007480621,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.012207776308059692,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "aggressive",
+                  "robust",
+                  "fast",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 1651.3745421543717,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia aggressive",
+              "duration_ms": 1651.371750049293,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 54330,
+                "links_found": 1012,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 2531.7240417934954,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 6.698000244796276,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 1012,
+                "filtered_count": 1012
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 2525.0216252170503,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 45086.246790830046,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 24149.379790760577,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 20936.847541946918,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 20,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.921332933008671,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 1025090,
+                "total_pages": 21,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.551208112388849,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://montcon.com.br/",
+      "empresa": "MONTCON",
+      "success": true,
+      "content_length": 136042,
+      "pages_scraped": 14,
+      "documents_found": 0,
+      "links_found": 13,
+      "total_time_ms": 40565.17508300021,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.011249911040067673,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.008875038474798203,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.0005420297384262085,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 2334.3746247701347,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 2334.3721251003444,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://montcon.com.br/",
+                "probe_time_ms": 2332.054667174816
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 2203.3221246674657,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 2203.319459222257,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 2184.6215003170073,
+                "content_length": 146491,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.013499986380338669,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.011708121746778488,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 2238.7439999729395,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 2238.740500062704,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 7452,
+                "links_found": 13,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.07004197686910629,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.06762472912669182,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 13,
+                "filtered_count": 13
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 13
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 33783.00500009209,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 13,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 25811.617666855454,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 7971.376041416079,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 3,
+                "successes": 3,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 13,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 5.611792206764221,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 136042,
+                "total_pages": 14,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 5.498957820236683,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://www.romi.com/",
+      "empresa": "CARROCERIAS ROMI",
+      "success": true,
+      "content_length": 147764,
+      "pages_scraped": 21,
+      "documents_found": 4,
+      "links_found": 142,
+      "total_time_ms": 6016.48616604507,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.007791910320520401,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.005832873284816742,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00016624107956886292,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 65.67654199898243,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 65.67466724663973,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.romi.com/",
+                "probe_time_ms": 63.89804184436798
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 722.9823339730501,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 722.9804997332394,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 701.023040805012,
+                "content_length": 104046,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.015500001609325409,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.013875309377908707,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 71.94270798936486,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 71.94000016897917,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 6608,
+                "links_found": 142,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 1350.473209284246,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.9663337841629982,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 142,
+                "filtered_count": 142
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 1349.5037499815226,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 3801.7662093043327,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 2109.6780840307474,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 1692.077875137329,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 20,
+                "total_failed": 0,
+                "total_docs": 4
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.6084172315895557,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 147764,
+                "total_pages": 21,
+                "total_documents": 4
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.561166115105152,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://12m.com.br/",
+      "empresa": "12M",
+      "success": true,
+      "content_length": 14487,
+      "pages_scraped": 11,
+      "documents_found": 4,
+      "links_found": 40,
+      "total_time_ms": 165436.21683400124,
+      "site_type": "static",
+      "protection_type": "captcha",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.006875023245811462,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.004332978278398514,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00016670674085617065,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 722.2588746808469,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 722.2567079588771,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://12m.com.br/",
+                "probe_time_ms": 720.4712498933077
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 729.1662921197712,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 729.162666015327,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "captcha",
+                "response_time_ms": 713.8316249474883,
+                "content_length": 48853,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.020332634449005127,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.017624814063310623,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "aggressive",
+                  "robust",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 759.6678747795522,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 759.6660410054028,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 1098,
+                "links_found": 40,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 1598.1130423024297,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.2126246690750122,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 40,
+                "filtered_count": 40
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 1597.89670817554,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 161614.1145839356,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 11376.978166867048,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 150236.93116707727,
+              "success": false,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 0,
+                "failures": 10
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 10,
+                "total_failed": 10,
+                "total_docs": 4
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 12.810457963496447,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 14487,
+                "total_pages": 11,
+                "total_documents": 4
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 12.6182921230793,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://2aengenharia.com.br/",
+      "empresa": "2A CONSTRUCOES E SERVICOS",
+      "success": true,
+      "content_length": 7676,
+      "pages_scraped": 6,
+      "documents_found": 0,
+      "links_found": 5,
+      "total_time_ms": 1758.683041203767,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.005749985575675964,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.004041939973831177,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 50.98612466827035,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 50.98345782607794,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://2aengenharia.com.br/",
+                "probe_time_ms": 49.110792111605406
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 32.68866613507271,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 32.68604213371873,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 22.582792211323977,
+                "content_length": 11880,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.0160830095410347,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.014166813343763351,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 30.66666703671217,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 30.663541052490473,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 1745,
+                "links_found": 5,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.03620842471718788,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.03329198807477951,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 5,
+                "filtered_count": 5
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 5
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 1639.5408329553902,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 5,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 1639.5337502472103,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 5,
+                "successes": 5,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 5,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.72754193469882,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 7676,
+                "total_pages": 6,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.72079124301672,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://www.2bengenharia.com/",
+      "empresa": "2B TRANSPORTES E LOGISTICAS",
+      "success": true,
+      "content_length": 22770,
+      "pages_scraped": 21,
+      "documents_found": 1,
+      "links_found": 25,
+      "total_time_ms": 5592.396999709308,
+      "site_type": "static",
+      "protection_type": "captcha",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.00562518835067749,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.00400003045797348,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00016577541828155518,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 83.83899973705411,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 83.83758319541812,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.2bengenharia.com/",
+                "probe_time_ms": 72.13150011375546
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 99.39874988049269,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 99.3974581360817,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "captcha",
+                "response_time_ms": 82.28770829737186,
+                "content_length": 261439,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.015208031982183456,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.01354096457362175,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "aggressive",
+                  "robust",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 88.19558285176754,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 88.19279121235013,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 2807,
+                "links_found": 25,
+                "docs_found": 1,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 1640.947709325701,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.14016684144735336,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 25,
+                "filtered_count": 25
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 1640.8036248758435,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 3676.947208121419,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 1897.6470408961177,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 1779.2889578267932,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 20,
+                "total_failed": 0,
+                "total_docs": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.034458961337805,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 22770,
+                "total_pages": 21,
+                "total_documents": 1
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.014874644577503,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://w2construtora.com.br/",
+      "empresa": "2W CONSTRUTORA",
+      "success": true,
+      "content_length": 37696,
+      "pages_scraped": 17,
+      "documents_found": 0,
+      "links_found": 16,
+      "total_time_ms": 23901.55245922506,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.0052908435463905334,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.003875233232975006,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 886.7020839825273,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 886.7005002684891,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://w2construtora.com.br/",
+                "probe_time_ms": 884.635291993618
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 699.1243329830468,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 699.1212498396635,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 683.7142081931233,
+                "content_length": 50183,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.01329183578491211,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.010999850928783417,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 633.2641253247857,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 633.2620000466704,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 2940,
+                "links_found": 16,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.0832919031381607,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.08120806887745857,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 16,
+                "filtered_count": 16
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 16
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 21677.872832864523,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 16,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 13972.857958171517,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 7704.988582991064,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 6,
+                "successes": 6,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 16,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.470792133361101,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 37696,
+                "total_pages": 17,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.4212499633431435,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://2wpesagem.com.br/",
+      "empresa": "2W PESAGEM E AUTOMACAO",
+      "success": true,
+      "content_length": 48035,
+      "pages_scraped": 19,
+      "documents_found": 0,
+      "links_found": 18,
+      "total_time_ms": 27809.053875040263,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.008375383913516998,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.006416812539100647,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.0002905726432800293,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 951.514458283782,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 951.5122496522963,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://2wpesagem.com.br/",
+                "probe_time_ms": 949.3432082235813
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 884.6193752251565,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 884.617124684155,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 861.8312501348555,
+                "content_length": 133145,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.009791925549507141,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.008082948625087738,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 975.8236669003963,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 975.8207080885768,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 4344,
+                "links_found": 18,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.12600002810359,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.12366706505417824,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 18,
+                "filtered_count": 18
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 18
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 24992.402374744415,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 18,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 16437.639999669045,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 8554.743667133152,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 8,
+                "successes": 8,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 18,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.536415915936232,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 48035,
+                "total_pages": 19,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.4662500731647015,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://3achieve.com.br/",
+      "empresa": "3 ACHIEVE",
+      "success": true,
+      "content_length": 2541,
+      "pages_scraped": 1,
+      "documents_found": 0,
+      "links_found": 0,
+      "total_time_ms": 1211.2756250426173,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.005749985575675964,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.004292000085115433,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012526288628578186,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 1054.8900831490755,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 1054.8872919753194,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://3achieve.com.br/",
+                "probe_time_ms": 1052.649499848485
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 78.15212476998568,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 78.14837526530027,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 68.67204094305634,
+                "content_length": 17856,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.019583385437726974,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.01733284443616867,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 73.3625409193337,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 73.35945777595043,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 2541,
+                "links_found": 0,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.001708976924419403,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Sem links para processar",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 0.0010831281542778015,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Sem subpáginas para processar",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {}
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.8268330283463,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 2541,
+                "total_pages": 1,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.822166170924902,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://www.3aengenharia.com/",
+      "empresa": "3A ENGENHARIA",
+      "success": true,
+      "content_length": 47243,
+      "pages_scraped": 18,
+      "documents_found": 5,
+      "links_found": 24,
+      "total_time_ms": 19231.406333856285,
+      "site_type": "hybrid",
+      "protection_type": "none",
+      "strategy_used": "standard",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.005125068128108978,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.00362517312169075,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 183.12150007113814,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 183.11674986034632,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.3aengenharia.com/",
+                "probe_time_ms": 163.9634999446571
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 521.5247920714319,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 521.5225000865757,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "hybrid",
+                "protection_type": "none",
+                "response_time_ms": 500.2673747949302,
+                "content_length": 389917,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.01200009137392044,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.010459218174219131,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "standard",
+                  "robust",
+                  "aggressive",
+                  "fast"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 2137.6164578832686,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia standard",
+              "duration_ms": 2137.613957747817,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 803,
+                "links_found": 24,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 1192.9808328859508,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.11512544006109238,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 24,
+                "filtered_count": 24
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 1192.860540933907,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 17
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 15193.018916994333,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 17,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 1863.0486247129738,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 13329.96170828119,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 7,
+                "successes": 7,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 17,
+                "total_failed": 0,
+                "total_docs": 5
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.1126667745411396,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 47243,
+                "total_pages": 18,
+                "total_documents": 5
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.0808751471340656,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://3dserviceconservacao.com.br/",
+      "empresa": "3D SERVICE",
+      "success": true,
+      "content_length": 3597,
+      "pages_scraped": 6,
+      "documents_found": 0,
+      "links_found": 6,
+      "total_time_ms": 4672.390541993082,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.005083158612251282,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.003917142748832703,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 684.2354577966034,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 684.2279173433781,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://3dserviceconservacao.com.br/",
+                "probe_time_ms": 674.5195840485394
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 341.88474994152784,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 341.88133385032415,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 317.18849996104836,
+                "content_length": 9866,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.024875160306692123,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.021208077669143677,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 297.13650001212955,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 297.1330410800874,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 798,
+                "links_found": 6,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.04912493750452995,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.045958906412124634,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 6,
+                "filtered_count": 6
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 6
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 3345.8591252565384,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 6,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 3345.8534157834947,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 6,
+                "successes": 5,
+                "failures": 1
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 5,
+                "total_failed": 1,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.179958090186119,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 3597,
+                "total_pages": 6,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.1734169460833073,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://3fautopecas.com.br/",
+      "empresa": "3F PECAS PARA SUSPENSAO",
+      "success": true,
+      "content_length": 14425,
+      "pages_scraped": 13,
+      "documents_found": 0,
+      "links_found": 12,
+      "total_time_ms": 48503.22529207915,
+      "site_type": "static",
+      "protection_type": "captcha",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.0044996850192546844,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.0033336691558361053,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 8.335337042808533e-05,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 4507.354499772191,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 4507.3488326743245,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://3fautopecas.com.br/",
+                "probe_time_ms": 4504.906499758363
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 3365.767791867256,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 3365.765166003257,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "captcha",
+                "response_time_ms": 3358.860374893993,
+                "content_length": 45818,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.01037493348121643,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.008624978363513947,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "aggressive",
+                  "robust",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 5215.11795790866,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 5215.1160831563175,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 1030,
+                "links_found": 12,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.09087473154067993,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.08899997919797897,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 12,
+                "filtered_count": 12
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 12
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 35407.34220808372,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 12,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 29562.99470923841,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 5844.331458210945,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 2,
+                "successes": 2,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 12,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 7.518957834690809,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 14425,
+                "total_pages": 13,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 7.486749906092882,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://3mvconstrutora.com.br/",
+      "empresa": "3MV CONSTRUTORA",
+      "success": false,
+      "content_length": 0,
+      "pages_scraped": 0,
+      "documents_found": 0,
+      "links_found": 0,
+      "total_time_ms": 4035.738666076213,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "",
+      "error": "Main page scrape failed",
+      "error_step": "Scrape Main Page",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.004542060196399689,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.00325031578540802,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 8.381903171539307e-05,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 1161.2599580548704,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 1161.2570001743734,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://3mvconstrutora.com.br/",
+                "probe_time_ms": 1158.7209580466151
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 124.04745817184448,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 124.04516711831093,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 121.75174988806248,
+                "content_length": 6822,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.011791940778493881,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.0100000761449337,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 2750.4039579071105,
+          "success": false,
+          "error": "Todas estratégias falharam",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 1100.1740000210702,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 413
+              }
+            },
+            {
+              "name": "Estratégia standard",
+              "duration_ms": 611.8675000034273,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 413
+              }
+            },
+            {
+              "name": "Estratégia robust",
+              "duration_ms": 811.7162501439452,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 413
+              }
+            },
+            {
+              "name": "Estratégia aggressive",
+              "duration_ms": 226.63879208266735,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 413
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://www.3rconstrutora.com.br/",
+      "empresa": "3 R CONSTRUCOES PAULINIA",
+      "success": true,
+      "content_length": 5482,
+      "pages_scraped": 11,
+      "documents_found": 0,
+      "links_found": 10,
+      "total_time_ms": 31578.816125169396,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.004458241164684296,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.0032922253012657166,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 8.288770914077759e-05,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 1164.8875828832388,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 1164.884707890451,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.3rconstrutora.com.br/",
+                "probe_time_ms": 1161.8813751265407
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 1062.1163751929998,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 1062.11445806548,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 1052.9533340595663,
+                "content_length": 34145,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.01129182055592537,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.009666197001934052,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 1131.3507501035929,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 1131.348959170282,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 3932,
+                "links_found": 10,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.054208096116781235,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.05204230546951294,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 10,
+                "filtered_count": 10
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 10
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 28153.013749979436,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 10,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 28152.98291714862,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 10,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 67.3557911068201,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 5482,
+                "total_pages": 11,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 67.2897920012474,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://3teng.com/",
+      "empresa": "3T ENGENHARIA",
+      "success": true,
+      "content_length": 41546,
+      "pages_scraped": 20,
+      "documents_found": 10,
+      "links_found": 25,
+      "total_time_ms": 31208.11445824802,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.06654206663370132,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.0654999166727066,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 4.190951585769653e-05,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 710.0948332808912,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 710.0923326797783,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://3teng.com/",
+                "probe_time_ms": 681.324124801904
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 820.499749854207,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 820.4968329519033,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 795.0195828452706,
+                "content_length": 127929,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.015832949429750443,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.013667158782482147,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 1010.5037912726402,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 1010.5002922937274,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 3265,
+                "links_found": 25,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 1378.1519592739642,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.17612474039196968,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 25,
+                "filtered_count": 25
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 1377.971624955535,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 27281.61049960181,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 16700.37666708231,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 10581.211708020419,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 9,
+                "failures": 1
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 19,
+                "total_failed": 1,
+                "total_docs": 10
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 7.15229194611311,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 41546,
+                "total_pages": 20,
+                "total_documents": 10
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 7.089249789714813,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://4lmecanizacao.com.br/",
+      "empresa": "4L LOCACOES E SERVICOS GERAIS",
+      "success": true,
+      "content_length": 8162,
+      "pages_scraped": 8,
+      "documents_found": 0,
+      "links_found": 7,
+      "total_time_ms": 3437.3727501370013,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.01358427107334137,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.011333264410495758,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.0001671724021434784,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 15.203624963760376,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 15.201750211417675,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://4lmecanizacao.com.br/",
+                "probe_time_ms": 14.672332908958197
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 14.684208203107119,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 14.681708067655563,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 12.59299973025918,
+                "content_length": 4054,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.014999881386756897,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.01291697844862938,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 18.417874816805124,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 18.414500169456005,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 681,
+                "links_found": 7,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.05004182457923889,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.04699965938925743,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 7,
+                "filtered_count": 7
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 7
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 3385.7911666855216,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 7,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 3385.784292127937,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 7,
+                "successes": 7,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 7,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.1670001335442066,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 8162,
+                "total_pages": 8,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.1539169140160084,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://4mengenharia.com.br/",
+      "empresa": "4M ENGENHARIA",
+      "success": true,
+      "content_length": 14620,
+      "pages_scraped": 8,
+      "documents_found": 0,
+      "links_found": 7,
+      "total_time_ms": 926.2684169225395,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.010458286851644516,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.008249655365943909,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00020908191800117493,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 15.578874852508307,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 15.57733304798603,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://4mengenharia.com.br/",
+                "probe_time_ms": 15.226457733660936
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 30.08104069158435,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 30.07887490093708,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 23.429291788488626,
+                "content_length": 18445,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.013333279639482498,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.011458061635494232,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 43.28754171729088,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 43.285292107611895,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 2076,
+                "links_found": 7,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.04416704177856445,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.04204176366329193,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 7,
+                "filtered_count": 7
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 7
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 834.1415831819177,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 7,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 834.1351668350399,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 7,
+                "successes": 7,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 7,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.089624922722578,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 14620,
+                "total_pages": 8,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.0786250717937946,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://4tsistemas.com.br/",
+      "empresa": "4T SISTEMAS INTELIGENTES",
+      "success": false,
+      "content_length": 0,
+      "pages_scraped": 0,
+      "documents_found": 0,
+      "links_found": 0,
+      "total_time_ms": 2596.1661245673895,
+      "site_type": "spa",
+      "protection_type": "none",
+      "strategy_used": "",
+      "error": "Main page scrape failed",
+      "error_step": "Scrape Main Page",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.008458737283945084,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.0067497603595256805,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012526288628578186,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 132.65070784837008,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 132.64895789325237,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://4tsistemas.com.br/",
+                "probe_time_ms": 125.901292078197
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 74.96545789763331,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 74.9632092192769,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "spa",
+                "protection_type": "none",
+                "response_time_ms": 73.99470778182149,
+                "content_length": 1378,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.010792165994644165,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.009125098586082458,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "robust",
+                  "aggressive",
+                  "standard",
+                  "fast"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 2388.5123752988875,
+          "success": false,
+          "error": "Todas estratégias falharam",
+          "substeps": [
+            {
+              "name": "Estratégia robust",
+              "duration_ms": 250.15362491831183,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 42
+              }
+            },
+            {
+              "name": "Estratégia aggressive",
+              "duration_ms": 215.44854110106826,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 42
+              }
+            },
+            {
+              "name": "Estratégia standard",
+              "duration_ms": 677.1503752097487,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 42
+              }
+            },
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 1245.7416667602956,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 42
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://a1cv.com.br/",
+      "empresa": "A1 COMUNICACAO VISUAL",
+      "success": true,
+      "content_length": 2267,
+      "pages_scraped": 2,
+      "documents_found": 0,
+      "links_found": 1,
+      "total_time_ms": 2640.279000159353,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.008624978363513947,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.006707850843667984,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 334.99441714957356,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 334.98816611245275,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://a1cv.com.br/",
+                "probe_time_ms": 334.46995820850134
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 787.6445418223739,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 787.6349580474198,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 772.7112080901861,
+                "content_length": 87105,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.020124949514865875,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.01837499439716339,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 739.7546251304448,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 739.7526246495545,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 1702,
+                "links_found": 1,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.009958166629076004,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.007958151400089264,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 1,
+                "filtered_count": 1
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 773.7804166972637,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 1,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 773.7750001251698,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 1,
+                "successes": 1,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 1,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.03783330693841,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 2267,
+                "total_pages": 2,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.03362512588501,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://a2engenharia.eng.br/",
+      "empresa": "A2 ENGENHARIA",
+      "success": true,
+      "content_length": 26246,
+      "pages_scraped": 8,
+      "documents_found": 0,
+      "links_found": 7,
+      "total_time_ms": 13845.156207680702,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.009125098586082458,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.0064997002482414246,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.000250060111284256,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 503.8147079758346,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 503.8124588318169,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://a2engenharia.eng.br/",
+                "probe_time_ms": 503.37304174900055
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 682.2498328983784,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 682.2476661764085,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 664.3327921628952,
+                "content_length": 156945,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.01191580668091774,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.010458752512931824,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 784.0109169483185,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 784.0078747831285,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 3296,
+                "links_found": 7,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.039250124245882034,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.037082936614751816,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 7,
+                "filtered_count": 7
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 7
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 11871.885125059634,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 7,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 11871.876291930676,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 7,
+                "successes": 7,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 7,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.1090830452740192,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 26246,
+                "total_pages": 8,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.075582906603813,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://www.a2construcoes.com/",
+      "empresa": "A2 CONSTRUTORA E INCORPORADORA",
+      "success": true,
+      "content_length": 4361,
+      "pages_scraped": 1,
+      "documents_found": 0,
+      "links_found": 0,
+      "total_time_ms": 364.24487503245473,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.007832888513803482,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.006332993507385254,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 8.42846930027008e-05,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 216.14970779046416,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 216.1473329178989,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://www.a2construcoes.com/",
+                "probe_time_ms": 190.73912501335144
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 33.42937491834164,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 33.42725010588765,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 24.133000057190657,
+                "content_length": 33532,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.012333039194345474,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.010665971785783768,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 110.94179190695286,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 110.93533271923661,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 4361,
+                "links_found": 0,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.001166015863418579,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Sem links para processar",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 0.0015408731997013092,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Sem subpáginas para processar",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {}
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.680750261992216,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 4361,
+                "total_pages": 1,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.67704126983881,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://www.a3eng.com.br/",
+      "empresa": "A3 ENGENHARIA",
+      "success": true,
+      "content_length": 35509,
+      "pages_scraped": 11,
+      "documents_found": 1,
+      "links_found": 10,
+      "total_time_ms": 2325.085165910423,
+      "site_type": "hybrid",
+      "protection_type": "none",
+      "strategy_used": "standard",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.009708106517791748,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.0077500008046627045,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012526288628578186,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 122.23187508061528,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 122.23049998283386,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.a3eng.com.br/",
+                "probe_time_ms": 121.67466711252928
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 192.0540826395154,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 192.05175014212728,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "hybrid",
+                "protection_type": "none",
+                "response_time_ms": 154.29658303037286,
+                "content_length": 748359,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.011041294783353806,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.009458977729082108,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "standard",
+                  "robust",
+                  "aggressive",
+                  "fast"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 311.8789163418114,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia standard",
+              "duration_ms": 311.876084189862,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 1853,
+                "links_found": 10,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.052374787628650665,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.05029095336794853,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 10,
+                "filtered_count": 10
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 10
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 1695.6236250698566,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 10,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 1695.617166813463,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 10,
+                "total_failed": 0,
+                "total_docs": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.1917919404804707,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 35509,
+                "total_pages": 11,
+                "total_documents": 1
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.1683752313256264,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://www.a3mconstrutora.com.br/obras-lancamentos",
+      "empresa": "A3M CONSTRUTORA",
+      "success": false,
+      "content_length": 0,
+      "pages_scraped": 0,
+      "documents_found": 0,
+      "links_found": 0,
+      "total_time_ms": 1206.0140832327306,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "",
+      "error": "Main page scrape failed",
+      "error_step": "Scrape Main Page",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.008790753781795502,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.006792135536670685,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012526288628578186,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 28.273750096559525,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 28.27195869758725,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://www.a3mconstrutora.com.br/obras-lancamentos",
+                "probe_time_ms": 28.004958294332027
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 130.83766726776958,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 130.83549961447716,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 127.29979120194912,
+                "content_length": 11081,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.010207761079072952,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.008790753781795502,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 1046.8617919832468,
+          "success": false,
+          "error": "Todas estratégias falharam",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 55.856207851320505,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 368
+              }
+            },
+            {
+              "name": "Estratégia standard",
+              "duration_ms": 167.4031252041459,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 368
+              }
+            },
+            {
+              "name": "Estratégia robust",
+              "duration_ms": 412.39829175174236,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 368
+              }
+            },
+            {
+              "name": "Estratégia aggressive",
+              "duration_ms": 411.1946248449385,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 368
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://a4engenharia.com/",
+      "empresa": "A4 - ENGENHARIA E SERVICOS",
+      "success": true,
+      "content_length": 23599,
+      "pages_scraped": 5,
+      "documents_found": 0,
+      "links_found": 5,
+      "total_time_ms": 2352.0436668768525,
+      "site_type": "static",
+      "protection_type": "captcha",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.010707881301641464,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.008416827768087387,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00016624107956886292,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 575.3503330051899,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 575.3471669740975,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://a4engenharia.com/",
+                "probe_time_ms": 574.8704997822642
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 242.69158393144608,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 242.68962489441037,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "captcha",
+                "response_time_ms": 231.10741702839732,
+                "content_length": 62253,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.013916753232479095,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.01237494871020317,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "aggressive",
+                  "robust",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 307.5191667303443,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 307.5111252255738,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 8727,
+                "links_found": 5,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.03637513145804405,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.03408268094062805,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 5,
+                "filtered_count": 5
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 5
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 1223.3576248399913,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 5,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 1223.3488340862095,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 5,
+                "successes": 4,
+                "failures": 1
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 4,
+                "total_failed": 1,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.03724966943264,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 23599,
+                "total_pages": 5,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.0188746750354767,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://a77engenharia.com.br/",
+      "empresa": "A77 ENGENHARIA LTDA",
+      "success": true,
+      "content_length": 13088,
+      "pages_scraped": 4,
+      "documents_found": 0,
+      "links_found": 3,
+      "total_time_ms": 11586.784790735692,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "robust",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.010500196367502213,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.008459202945232391,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.0001671724021434784,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "robust",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 672.524041030556,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 672.5220419466496,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://a77engenharia.com.br/",
+                "probe_time_ms": 621.48612504825
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 1147.0918338745832,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 1147.0894999802113,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 1079.7767089679837,
+                "content_length": 237502,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.01645786687731743,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.014792196452617645,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "robust",
+                  "fast",
+                  "standard",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 1213.056415785104,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia robust",
+              "duration_ms": 1213.052624836564,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 4131,
+                "links_found": 3,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.02674991264939308,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.02462463453412056,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 3,
+                "filtered_count": 3
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 3
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 8549.134166911244,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 3,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 8549.128165934235,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 3,
+                "successes": 3,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 3,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.899334162473679,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 13088,
+                "total_pages": 4,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.889625124633312,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://abbadeengenharia.com.br/",
+      "empresa": "ABBADE ENGENHARIA",
+      "success": true,
+      "content_length": 26236,
+      "pages_scraped": 6,
+      "documents_found": 0,
+      "links_found": 5,
+      "total_time_ms": 12027.322208043188,
+      "site_type": "static",
+      "protection_type": "captcha",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.011290889233350754,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.008958857506513596,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.0001671724021434784,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 496.01408326998353,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 496.01195799186826,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://abbadeengenharia.com.br/",
+                "probe_time_ms": 495.32316718250513
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 852.5085840374231,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 852.5038748048246,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "captcha",
+                "response_time_ms": 785.0991669110954,
+                "content_length": 194198,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.006207730621099472,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.004875008016824722,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "aggressive",
+                  "robust",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 693.6956252902746,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 693.6859171837568,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 8287,
+                "links_found": 5,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.03041699528694153,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.028207898139953613,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 5,
+                "filtered_count": 5
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 5
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 9982.201874721795,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 5,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 9982.195292133838,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 5,
+                "successes": 5,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 5,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 2.8290417976677418,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 26236,
+                "total_pages": 6,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 2.8189998120069504,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://abccomp.com.br/",
+      "empresa": "ABC COMPONENTES",
+      "success": false,
+      "content_length": 0,
+      "pages_scraped": 0,
+      "documents_found": 0,
+      "links_found": 0,
+      "total_time_ms": 11364.006042014807,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "",
+      "error": "Main page scrape failed",
+      "error_step": "Scrape Main Page",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.009833835065364838,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.007874798029661179,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 600.7004580460489,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 600.6942084059119,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://abccomp.com.br/",
+                "probe_time_ms": 588.6168330907822
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 643.3978751301765,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 643.3957503177226,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 611.3221668638289,
+                "content_length": 2110,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.008165836334228516,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.006750226020812988,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 10119.862124789506,
+          "success": false,
+          "error": "Todas estratégias falharam",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 1083.7053749710321,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 14
+              }
+            },
+            {
+              "name": "Estratégia standard",
+              "duration_ms": 4050.6339999847114,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 14
+              }
+            },
+            {
+              "name": "Estratégia robust",
+              "duration_ms": 3606.528540607542,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 14
+              }
+            },
+            {
+              "name": "Estratégia aggressive",
+              "duration_ms": 1378.9485422894359,
+              "success": false,
+              "error": "Conteúdo insuficiente",
+              "details": {
+                "content_length": 14
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://abccar.com.br/mangueiras/",
+      "empresa": "ABCD MANGUEIRAS",
+      "success": true,
+      "content_length": 10058,
+      "pages_scraped": 5,
+      "documents_found": 0,
+      "links_found": 4,
+      "total_time_ms": 15042.929042130709,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.007792375981807709,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.006292015314102173,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012526288628578186,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "fast",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 474.7956246137619,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 474.7942918911576,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://abccar.com.br/mangueiras/",
+                "probe_time_ms": 467.9685002192855
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 256.6288746893406,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 256.62600016221404,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 171.41416715458035,
+                "content_length": 299827,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.015290919691324234,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.013541895896196365,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 230.23075005039573,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 230.22395791485906,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 3327,
+                "links_found": 4,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.035249628126621246,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.032500363886356354,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 4,
+                "filtered_count": 4
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 4
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 14077.21837516874,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 4,
+                "num_chunks": 1,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/1",
+              "duration_ms": 14077.206708025187,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 4,
+                "successes": 4,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 4,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.9679999463260174,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 10058,
+                "total_pages": 5,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 3.961041569709778,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "https://www.positivoservers.com.br/",
+      "empresa": "POSITIVO SERVERS & SOLUTIONS",
+      "success": true,
+      "content_length": 1085043,
+      "pages_scraped": 21,
+      "documents_found": 4,
+      "links_found": 32,
+      "total_time_ms": 15431.654667016119,
+      "site_type": "hybrid",
+      "protection_type": "captcha",
+      "strategy_used": "aggressive",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.008165836334228516,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.00658305361866951,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 0.00012479722499847412,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "aggressive",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 44.077124912291765,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 44.075250159949064,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "https://www.positivoservers.com.br/",
+                "probe_time_ms": 43.699124827980995
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 194.27699968218803,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 194.27358312532306,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "hybrid",
+                "protection_type": "captcha",
+                "response_time_ms": 105.51649983972311,
+                "content_length": 643825,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.015124678611755371,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.013040844351053238,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "aggressive",
+                  "robust",
+                  "fast",
+                  "standard"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 822.1675422973931,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia aggressive",
+              "duration_ms": 822.1653327345848,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 50846,
+                "links_found": 32,
+                "docs_found": 3,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 4083.0205837264657,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.22533396258950233,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 32,
+                "filtered_count": 32
+              }
+            },
+            {
+              "name": "Seleção com LLM",
+              "duration_ms": 4082.7874997630715,
+              "success": true,
+              "error": "",
+              "details": {
+                "selected_count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 10284.568999893963,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 6732.933333143592,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 3551.6186668537557,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 20,
+                "total_failed": 0,
+                "total_docs": 4
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 3.4933332353830338,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 1085043,
+                "total_pages": 21,
+                "total_documents": 4
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 2.9583340510725975,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "url": "http://acomap.com.br/",
+      "empresa": "ACOMAP INDUSTRIA E COMERCIO DE PRODUTOS SIDERURGICOS",
+      "success": true,
+      "content_length": 8277,
+      "pages_scraped": 21,
+      "documents_found": 0,
+      "links_found": 20,
+      "total_time_ms": 9628.228374756873,
+      "site_type": "static",
+      "protection_type": "none",
+      "strategy_used": "fast",
+      "error": "",
+      "error_step": "",
+      "steps": [
+        {
+          "name": "Conhecimento Prévio",
+          "step_number": 1,
+          "duration_ms": 0.010792165994644165,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consultar site_knowledge",
+              "duration_ms": 0.008874572813510895,
+              "success": true,
+              "error": "",
+              "details": {
+                "has_prior_knowledge": true
+              }
+            },
+            {
+              "name": "Aprendizado global",
+              "duration_ms": 8.335337042808533e-05,
+              "success": true,
+              "error": "",
+              "details": {
+                "known_strategy": "standard",
+                "known_protection": "none"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Probe URL",
+          "step_number": 2,
+          "duration_ms": 1624.599542003125,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Probe variações",
+              "duration_ms": 1624.5962083339691,
+              "success": true,
+              "error": "",
+              "details": {
+                "best_url": "http://acomap.com.br/",
+                "probe_time_ms": 1495.4200838692486
+              }
+            }
+          ]
+        },
+        {
+          "name": "Análise do Site",
+          "step_number": 3,
+          "duration_ms": 283.51191664114594,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Análise completa",
+              "duration_ms": 283.5096251219511,
+              "success": true,
+              "error": "",
+              "details": {
+                "site_type": "static",
+                "protection_type": "none",
+                "response_time_ms": 258.67804139852524,
+                "content_length": 14341,
+                "has_robots_txt": false,
+                "robots_allows": true,
+                "requires_js": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Estratégias",
+          "step_number": 4,
+          "duration_ms": 0.012999866157770157,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Selecionar estratégias",
+              "duration_ms": 0.011417083442211151,
+              "success": true,
+              "error": "",
+              "details": {
+                "strategies": [
+                  "fast",
+                  "standard",
+                  "robust",
+                  "aggressive"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Main Page",
+          "step_number": 5,
+          "duration_ms": 1393.517583142966,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Estratégia fast",
+              "duration_ms": 1393.5135840438306,
+              "success": true,
+              "error": "",
+              "details": {
+                "content_length": 655,
+                "links_found": 20,
+                "docs_found": 0,
+                "attempt": 1
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleção de Links",
+          "step_number": 6,
+          "duration_ms": 0.1133340410888195,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Filtrar links não-HTML",
+              "duration_ms": 0.11033378541469574,
+              "success": true,
+              "error": "",
+              "details": {
+                "original_count": 20,
+                "filtered_count": 20
+              }
+            },
+            {
+              "name": "Short-circuit (poucos links)",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "count": 20
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scrape Subpáginas",
+          "step_number": 7,
+          "duration_ms": 6321.581082884222,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Dividir em chunks",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_urls": 20,
+                "num_chunks": 2,
+                "chunk_size": 10
+              }
+            },
+            {
+              "name": "Chunk 1/2",
+              "duration_ms": 4997.921166010201,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Chunk 2/2",
+              "duration_ms": 1323.6277922987938,
+              "success": true,
+              "error": "",
+              "details": {
+                "urls_in_chunk": 10,
+                "successes": 10,
+                "failures": 0
+              }
+            },
+            {
+              "name": "Consolidar resultados",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_successful": 20,
+                "total_failed": 0,
+                "total_docs": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consolidação",
+          "step_number": 8,
+          "duration_ms": 4.845999646931887,
+          "success": true,
+          "error": "",
+          "substeps": [
+            {
+              "name": "Consolidar conteúdo",
+              "duration_ms": 0.1,
+              "success": true,
+              "error": "",
+              "details": {
+                "total_content_length": 8277,
+                "total_pages": 21,
+                "total_documents": 0
+              }
+            },
+            {
+              "name": "Registrar aprendizado",
+              "duration_ms": 4.808291792869568,
+              "success": true,
+              "error": "",
+              "details": {
+                "recorded": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

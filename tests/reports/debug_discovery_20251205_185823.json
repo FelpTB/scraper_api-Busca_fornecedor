@@ -1,0 +1,50 @@
+[
+  {
+    "empresa": "12M",
+    "site_esperado": "http://12m.com.br/",
+    "encontrado_serper": true,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "FZ MED",
+    "site_esperado": "http://aderefix.com",
+    "encontrado_serper": false,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "CALTECH",
+    "site_esperado": "http://bahiamineiracao.com.br/",
+    "encontrado_serper": false,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "4M ENGENHARIA",
+    "site_esperado": "http://4mengenharia.com.br/",
+    "encontrado_serper": true,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "CARROCERIAS ROMI",
+    "site_esperado": "fabrica.carroceriasromi.com.br/carrocerias/",
+    "encontrado_serper": false,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "2B TRANSPORTES E LOGISTICAS",
+    "site_esperado": "http://2beng.com.br/",
+    "encontrado_serper": false,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "ALIANZA MANUTENCAO & TECNOLOGIA",
+    "site_esperado": "http://allianzautomacao.com.br/",
+    "encontrado_serper": true,
+    "total_resultados": 10
+  },
+  {
+    "empresa": "RCM DIAGNOSTICO",
+    "site_esperado": "http://amazonservice.net.br/",
+    "encontrado_serper": false,
+    "total_resultados": 10
+  }
+]

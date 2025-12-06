@@ -1,0 +1,181 @@
+{
+  "timestamp": "2025-12-05T20:10:29.919396",
+  "config": {
+    "data_file": "tests/data_empresas.json",
+    "max_concurrent": 3,
+    "timeout_per_empresa": 120.0
+  },
+  "metrics": {
+    "total_empresas": 10,
+    "total_processadas": 10,
+    "total_sucesso": 0,
+    "total_falha": 10,
+    "taxa_sucesso": 0.0,
+    "tempo_medio_segundos": 0.0,
+    "tempo_minimo_segundos": 0,
+    "tempo_maximo_segundos": 0.0,
+    "completude_media": 0.0,
+    "discovery_sucesso": 8,
+    "scrape_sucesso": 7,
+    "llm_sucesso": 0,
+    "erros_por_tipo": {
+      "Discovery": 1,
+      "Scrape": 1,
+      "Erro": 7,
+      "Outro": 1
+    },
+    "aprovado": false
+  },
+  "results": [
+    {
+      "empresa": {
+        "cnpj": "74478637",
+        "nome_fantasia": "CAIS DO PAPEL",
+        "site_original": ""
+      },
+      "success": false,
+      "duration_seconds": 5.409026084002107,
+      "error": "Discovery: Site não encontrado",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "18540723",
+        "nome_fantasia": "MONTCON",
+        "site_original": "business.google.com/website/montconmontagens"
+      },
+      "success": false,
+      "duration_seconds": 0.9196053752675653,
+      "error": "Scrape: Conteúdo insuficiente",
+      "discovery_url": "https://business.google.com/website/montconmontagens",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "04154215",
+        "nome_fantasia": "CARROCERIAS ROMI",
+        "site_original": "fabrica.carroceriasromi.com.br/carroceria"
+      },
+      "success": false,
+      "duration_seconds": 25.306780291721225,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "https://fabrica.carroceriasromi.com.br/carroceria",
+      "scrape_chars": 6326,
+      "scrape_pages": 1,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03417769",
+        "nome_fantasia": "12M",
+        "site_original": "http://12m.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 120.0,
+      "error": "Timeout global",
+      "discovery_url": "",
+      "scrape_chars": 0,
+      "scrape_pages": 0,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "52952857",
+        "nome_fantasia": "2A CONSTRUCOES E SERVICOS",
+        "site_original": "http://2aengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 12.263990917243063,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "http://2aengenharia.com.br/",
+      "scrape_chars": 8129,
+      "scrape_pages": 6,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "44551811",
+        "nome_fantasia": "2A ENGENHARIA",
+        "site_original": "http://2aengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 13.416185374837369,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "http://2aengenharia.com.br/",
+      "scrape_chars": 8129,
+      "scrape_pages": 6,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "39979717",
+        "nome_fantasia": "2A CONSTRUCOES",
+        "site_original": "http://2aengenharia.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 10.160122958011925,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "http://2aengenharia.com.br/",
+      "scrape_chars": 8129,
+      "scrape_pages": 6,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "22627639",
+        "nome_fantasia": "2B TRANSPORTES E LOGISTICAS",
+        "site_original": "http://2beng.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 23.727304541971534,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "http://2beng.com.br/",
+      "scrape_chars": 6870,
+      "scrape_pages": 5,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "42090610",
+        "nome_fantasia": "2W CONSTRUTORA",
+        "site_original": "http://2wempreendimentos.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 17.859225457999855,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "http://2wempreendimentos.com.br/",
+      "scrape_chars": 3430,
+      "scrape_pages": 1,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    },
+    {
+      "empresa": {
+        "cnpj": "03318133",
+        "nome_fantasia": "2W PESAGEM E AUTOMACAO",
+        "site_original": "http://2wpesagem.com.br/"
+      },
+      "success": false,
+      "duration_seconds": 74.88905537500978,
+      "error": "Erro: No module named 'json_repair'",
+      "discovery_url": "http://2wpesagem.com.br/",
+      "scrape_chars": 49504,
+      "scrape_pages": 19,
+      "profile_completeness": 0.0,
+      "profile_fields_filled": 0
+    }
+  ]
+}

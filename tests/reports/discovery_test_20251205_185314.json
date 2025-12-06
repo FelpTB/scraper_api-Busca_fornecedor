@@ -1,0 +1,468 @@
+{
+  "timestamp": "20251205_185314",
+  "config": {
+    "max_concurrent": 50,
+    "timeout": 60.0,
+    "total_empresas": 50
+  },
+  "metrics": {
+    "total": 50,
+    "sucesso": 40,
+    "timeout": 0,
+    "taxa_sucesso": 80.0,
+    "tempo_total_teste_s": 10.234167583286762,
+    "tempo_medio_sucesso_ms": 6708.480619871989
+  },
+  "results": [
+    {
+      "empresa": "CAIS DO PAPEL",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6025.222249794751
+    },
+    {
+      "empresa": "MONTCON",
+      "razao_social": "",
+      "municipio": "2531",
+      "success": true,
+      "url": "https://montcon.com.br/",
+      "error": "",
+      "tempo_ms": 6063.874708954245
+    },
+    {
+      "empresa": "CARROCERIAS ROMI",
+      "razao_social": "",
+      "municipio": "5847",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6261.824334040284
+    },
+    {
+      "empresa": "12M",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 7211.853458080441
+    },
+    {
+      "empresa": "2A CONSTRUCOES E SERVICOS",
+      "razao_social": "",
+      "municipio": "9647",
+      "success": true,
+      "url": "https://engenharia2a.com.br/2a-engenharia",
+      "error": "",
+      "tempo_ms": 7012.750125024468
+    },
+    {
+      "empresa": "2A ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7181",
+      "success": true,
+      "url": "http://2aengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 7109.305249992758
+    },
+    {
+      "empresa": "2A CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "http://2aengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 6444.135040976107
+    },
+    {
+      "empresa": "2B TRANSPORTES E LOGISTICAS",
+      "razao_social": "",
+      "municipio": "1645",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6540.67258303985
+    },
+    {
+      "empresa": "2W CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "9733",
+      "success": true,
+      "url": "https://w2construtora.com.br/",
+      "error": "",
+      "tempo_ms": 6559.439749922603
+    },
+    {
+      "empresa": "2W PESAGEM E AUTOMACAO",
+      "razao_social": "",
+      "municipio": "7407",
+      "success": true,
+      "url": "https://2wpesagem.com.br/",
+      "error": "",
+      "tempo_ms": 7261.002833023667
+    },
+    {
+      "empresa": "3 ACHIEVE",
+      "razao_social": "",
+      "municipio": "3413",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6048.589500132948
+    },
+    {
+      "empresa": "3A ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6477",
+      "success": true,
+      "url": "https://www.3aengenharia.com/",
+      "error": "",
+      "tempo_ms": 6433.045542333275
+    },
+    {
+      "empresa": "3A ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "https://www.3aengenharia.com/",
+      "error": "",
+      "tempo_ms": 6125.560709275305
+    },
+    {
+      "empresa": "3D SERVICE",
+      "razao_social": "",
+      "municipio": "6001",
+      "success": true,
+      "url": "http://3dserviceconservacao.com.br/",
+      "error": "",
+      "tempo_ms": 6442.965917289257
+    },
+    {
+      "empresa": "3F PECAS PARA SUSPENSAO",
+      "razao_social": "",
+      "municipio": "6477",
+      "success": true,
+      "url": "http://3fautopecas.com.br/",
+      "error": "",
+      "tempo_ms": 7110.821332782507
+    },
+    {
+      "empresa": "3MV CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "6587",
+      "success": true,
+      "url": "http://3mvconstrutora.com.br/",
+      "error": "",
+      "tempo_ms": 6179.176291916519
+    },
+    {
+      "empresa": "3 R CONSTRUCOES PAULINIA",
+      "razao_social": "",
+      "municipio": "6831",
+      "success": true,
+      "url": "https://3rconstrucaoeacabamentos.com.br/?srsltid=AfmBOoq2PwXXm00UeGaiEDNu5bPeysCvtFkL_63a7DYEeczLT84C8rS8",
+      "error": "",
+      "tempo_ms": 7110.745791811496
+    },
+    {
+      "empresa": "3R CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "9227",
+      "success": true,
+      "url": "http://3rconstrucao.com.br/",
+      "error": "",
+      "tempo_ms": 6768.966124858707
+    },
+    {
+      "empresa": "3T ENGENHARIA",
+      "razao_social": "",
+      "municipio": "6969",
+      "success": true,
+      "url": "http://3teng.com/",
+      "error": "",
+      "tempo_ms": 6559.384708758444
+    },
+    {
+      "empresa": "4L LOCACOES E SERVICOS GERAIS",
+      "razao_social": "",
+      "municipio": "7135",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 5984.641958028078
+    },
+    {
+      "empresa": "4M ENGENHARIA",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": true,
+      "url": "http://4mengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 6585.07425012067
+    },
+    {
+      "empresa": "4M CONSTRUCOES E SERVICOS",
+      "razao_social": "",
+      "municipio": "6213",
+      "success": true,
+      "url": "http://4mengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 6955.301042180508
+    },
+    {
+      "empresa": "4M CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "9701",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6483.556583989412
+    },
+    {
+      "empresa": "4T SISTEMAS INTELIGENTES",
+      "razao_social": "",
+      "municipio": "5293",
+      "success": true,
+      "url": "http://4tsistemas.com.br/",
+      "error": "",
+      "tempo_ms": 6300.234999973327
+    },
+    {
+      "empresa": "A1 COMUNICACAO VISUAL",
+      "razao_social": "",
+      "municipio": "7691",
+      "success": true,
+      "url": "http://a1cv.com.br/",
+      "error": "",
+      "tempo_ms": 6245.49441691488
+    },
+    {
+      "empresa": "A2 ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7099",
+      "success": true,
+      "url": "https://a2eng.com.br/",
+      "error": "",
+      "tempo_ms": 6300.327457953244
+    },
+    {
+      "empresa": "A2 CONSTRUTORA E INCORPORADORA",
+      "razao_social": "",
+      "municipio": "3685",
+      "success": true,
+      "url": "http://www.a2construcoes.com/",
+      "error": "",
+      "tempo_ms": 6955.330417025834
+    },
+    {
+      "empresa": "A DOIS CONTRUCOES LTDA",
+      "razao_social": "",
+      "municipio": "1761",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6261.681749951094
+    },
+    {
+      "empresa": "A3 ENGENHARIA",
+      "razao_social": "",
+      "municipio": "5699",
+      "success": true,
+      "url": "http://a3engenharia.eng.br/",
+      "error": "",
+      "tempo_ms": 6877.422791905701
+    },
+    {
+      "empresa": "A3M CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "3501",
+      "success": true,
+      "url": "http://www.a3mconstrutora.com.br/obras-lancamentos",
+      "error": "",
+      "tempo_ms": 6768.801624886692
+    },
+    {
+      "empresa": "A4 - ENGENHARIA E SERVICOS",
+      "razao_social": "",
+      "municipio": "7145",
+      "success": true,
+      "url": "http://a4engenharia.com/",
+      "error": "",
+      "tempo_ms": 6612.147583160549
+    },
+    {
+      "empresa": "A77 ENGENHARIA LTDA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://a77engenharia.com.br/",
+      "error": "",
+      "tempo_ms": 6432.96412518248
+    },
+    {
+      "empresa": "ABBADE ENGENHARIA",
+      "razao_social": "",
+      "municipio": "3413",
+      "success": true,
+      "url": "https://abbadeengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 6929.670958779752
+    },
+    {
+      "empresa": "ABC COMPONENTES",
+      "razao_social": "",
+      "municipio": "7057",
+      "success": true,
+      "url": "https://abccomp.com.br/",
+      "error": "",
+      "tempo_ms": 7795.54241662845
+    },
+    {
+      "empresa": "ABCD MANGUEIRAS",
+      "razao_social": "",
+      "municipio": "6377",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 6877.3786672391
+    },
+    {
+      "empresa": "POSITIVO SERVERS & SOLUTIONS",
+      "razao_social": "",
+      "municipio": "3573",
+      "success": true,
+      "url": "https://www.positivoservers.com.br/",
+      "error": "",
+      "tempo_ms": 6261.570166796446
+    },
+    {
+      "empresa": "ACF CONSTRUCOES",
+      "razao_social": "",
+      "municipio": "1389",
+      "success": true,
+      "url": "https://acfengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 7358.8121249340475
+    },
+    {
+      "empresa": "ACOMAP INDUSTRIA E COMERCIO DE PRODUTOS SIDERURGICOS",
+      "razao_social": "",
+      "municipio": "6597",
+      "success": true,
+      "url": "http://acomap.com.br/",
+      "error": "",
+      "tempo_ms": 7448.229332920164
+    },
+    {
+      "empresa": "OFICINA DO ZICO",
+      "razao_social": "",
+      "municipio": "8239",
+      "success": true,
+      "url": "https://mecanica-zico.ueniweb.com/",
+      "error": "",
+      "tempo_ms": 6877.328167203814
+    },
+    {
+      "empresa": "ISOACO INDUSTRIA E COMERCIO",
+      "razao_social": "",
+      "municipio": "2785",
+      "success": true,
+      "url": "https://isoaco.com.br/",
+      "error": "",
+      "tempo_ms": 6178.888958878815
+    },
+    {
+      "empresa": "ACP PECAS PARA COMPRESSORES",
+      "razao_social": "",
+      "municipio": "7075",
+      "success": true,
+      "url": "http://acppecas.com.br/",
+      "error": "",
+      "tempo_ms": 7499.104334041476
+    },
+    {
+      "empresa": "ACRILICOS PENEDO",
+      "razao_social": "",
+      "municipio": "5901",
+      "success": true,
+      "url": "http://acrilicospenedo.com.br/produtos-diversos.html",
+      "error": "",
+      "tempo_ms": 6316.96258392185
+    },
+    {
+      "empresa": "ACR INSTALACAO E MANUTENCAO",
+      "razao_social": "",
+      "municipio": "6861",
+      "success": true,
+      "url": "http://acrinstalacoes.com.br/",
+      "error": "",
+      "tempo_ms": 6658.367750234902
+    },
+    {
+      "empresa": "ACR MANUTENCAO INSTALACAO TREINAMENTO TAB.",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://acrinstalacoes.com.br/",
+      "error": "",
+      "tempo_ms": 6459.870249964297
+    },
+    {
+      "empresa": "ACROS CONSTRUTORA",
+      "razao_social": "",
+      "municipio": "0803",
+      "success": true,
+      "url": "http://acrosconstrutora.com.br/",
+      "error": "",
+      "tempo_ms": 6459.782707970589
+    },
+    {
+      "empresa": "A C SOLUCOES INTEGRADAS DE INFORMATICA",
+      "razao_social": "",
+      "municipio": "3849",
+      "success": true,
+      "url": "http://acsolucoesintegradas.com.br/",
+      "error": "",
+      "tempo_ms": 6894.654165953398
+    },
+    {
+      "empresa": "ADAS ENGENHARIA",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://adasengenharia.com.br/",
+      "error": "",
+      "tempo_ms": 6773.608582559973
+    },
+    {
+      "empresa": "ADA CALIBRACAO E INSPECAO",
+      "razao_social": "",
+      "municipio": "6789",
+      "success": true,
+      "url": "http://adaservicos.com.br/",
+      "error": "",
+      "tempo_ms": 6768.788833171129
+    },
+    {
+      "empresa": "ADDVENT",
+      "razao_social": "",
+      "municipio": "7107",
+      "success": true,
+      "url": "http://addvent.com.br/",
+      "error": "",
+      "tempo_ms": 6443.770624697208
+    },
+    {
+      "empresa": "FZ MED",
+      "razao_social": "",
+      "municipio": "7077",
+      "success": false,
+      "url": "",
+      "error": "Site não encontrado",
+      "tempo_ms": 7251.398874912411
+    }
+  ]
+}

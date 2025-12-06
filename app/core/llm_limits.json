@@ -1,0 +1,67 @@
+{
+  "openai": {
+    "gpt-4o-mini": {
+      "rpm": 5000,
+      "tpm": 4000000,
+      "tpd": 40000000000,
+      "description": "GPT-4o Mini - Principal modelo OpenAI"
+    },
+    "gpt-4o": {
+      "rpm": 5000,
+      "tpm": 800000,
+      "tpd": 100000000000,
+      "description": "GPT-4o - Modelo avançado"
+    },
+    "gpt-4.1-mini": {
+      "rpm": 5000,
+      "tpm": 4000000,
+      "tpd": 40000000000,
+      "description": "GPT-4.1 Mini"
+    },
+    "gpt-4.1-nano": {
+      "rpm": 5000,
+      "tpm": 4000000,
+      "tpd": 40000000000,
+      "description": "GPT-4.1 Nano"
+    },
+    "gpt-5-mini": {
+      "rpm": 5000,
+      "tpm": 4000000,
+      "tpd": 40000000000,
+      "description": "GPT-5 Mini"
+    }
+  },
+  "google": {
+    "gemini-2.0-flash": {
+      "rpm": 10000,
+      "tpm": 10000000,
+      "rpd": null,
+      "description": "Gemini 2.0 Flash - Principal modelo Google"
+    },
+    "gemini-2.5-flash": {
+      "rpm": 2000,
+      "tpm": 3000000,
+      "rpd": 100000,
+      "description": "Gemini 2.5 Flash"
+    },
+    "gemini-2.5-pro": {
+      "rpm": 1000,
+      "tpm": 5000000,
+      "rpd": 50000,
+      "description": "Gemini 2.5 Pro"
+    },
+    "gemini-2.0-flash-lite": {
+      "rpm": 20000,
+      "tpm": 10000000,
+      "rpd": null,
+      "description": "Gemini 2.0 Flash Lite - Mais rápido"
+    }
+  },
+  "config": {
+    "safety_margin": 0.8,
+    "description": "Usar 80% do limite para margem de segurança",
+    "retry_delay_seconds": 2,
+    "max_retries": 3
+  }
+}
+

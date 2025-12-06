@@ -1,0 +1,108 @@
+{
+  "timestamp": "2025-12-05T20:55:32.936829",
+  "total_testes": 6,
+  "resultados": [
+    {
+      "config": {
+        "empresas": 50,
+        "concorrencia": 50,
+        "timeout": 60
+      },
+      "taxa_sucesso": 44.0,
+      "tempo_medio": 31.42816477086903,
+      "completude": 60.30303030303032,
+      "tempo_total": 2171.312186209485,
+      "aprovado": false,
+      "erros": {
+        "Discovery": 1,
+        "Scrape": 7,
+        "Outro": 20
+      }
+    },
+    {
+      "config": {
+        "empresas": 50,
+        "concorrencia": 50,
+        "timeout": 90
+      },
+      "taxa_sucesso": 78.0,
+      "tempo_medio": 40.44079393483937,
+      "completude": 65.64102564102564,
+      "tempo_total": 2053.465233250521,
+      "aprovado": true,
+      "erros": {
+        "Discovery": 1,
+        "Scrape": 8,
+        "Outro": 2
+      }
+    },
+    {
+      "config": {
+        "empresas": 50,
+        "concorrencia": 50,
+        "timeout": 120
+      },
+      "taxa_sucesso": 78.0,
+      "tempo_medio": 47.63791617317698,
+      "completude": 63.4188034188034,
+      "tempo_total": 2418.2465918781236,
+      "aprovado": true,
+      "erros": {
+        "Discovery": 1,
+        "Scrape": 8,
+        "Outro": 2
+      }
+    },
+    {
+      "config": {
+        "empresas": 100,
+        "concorrencia": 100,
+        "timeout": 60
+      },
+      "taxa_sucesso": 25.0,
+      "tempo_medio": 39.56157425493002,
+      "completude": 60.80000000000001,
+      "tempo_total": 5290.381407207344,
+      "aprovado": false,
+      "erros": {
+        "Discovery": 1,
+        "Scrape": 8,
+        "Outro": 66
+      }
+    },
+    {
+      "config": {
+        "empresas": 100,
+        "concorrencia": 100,
+        "timeout": 90
+      },
+      "taxa_sucesso": 54.0,
+      "tempo_medio": 51.7263238480901,
+      "completude": 60.74074074074073,
+      "tempo_total": 6381.009643882047,
+      "aprovado": false,
+      "erros": {
+        "Discovery": 1,
+        "Scrape": 12,
+        "Outro": 33
+      }
+    },
+    {
+      "config": {
+        "empresas": 100,
+        "concorrencia": 100,
+        "timeout": 120
+      },
+      "taxa_sucesso": 59.0,
+      "tempo_medio": 67.09294319766873,
+      "completude": 60.564971751412415,
+      "tempo_total": 7874.599735579453,
+      "aprovado": false,
+      "erros": {
+        "Discovery": 1,
+        "Scrape": 19,
+        "Outro": 21
+      }
+    }
+  ]
+}
