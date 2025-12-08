@@ -10,22 +10,22 @@ class Settings:
     # LLM Settings
     # 1. Primary: Google Native
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
-    GOOGLE_MODEL: str = "gemini-2.0-flash"
+    GOOGLE_MODEL: str = os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
     GOOGLE_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
     # 2. Secondary: xAI Native
     XAI_API_KEY: str = os.getenv("XAI_API_KEY", "")
-    XAI_MODEL: str = "grok-4-1-fast-non-reasoning"  # Grok 4.1 Fast (sem reasoning)
+    XAI_MODEL: str = os.getenv("XAI_MODEL", "grok-4-1-fast-non-reasoning")
     XAI_BASE_URL: str = "https://api.x.ai/v1"
 
     # 3. Tertiary: OpenAI
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = "gpt-4.1-nano"  # GPT-4.1 Nano (rápido e econômico)
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
     
     # 4. Fallback: OpenRouter
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "google/gemini-pro-1.5") # Default seguro
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-lite-001") # Atualizado conforme solicitado
     OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
     
     # Logic to select provider (Priority: Google > xAI > OpenAI)
