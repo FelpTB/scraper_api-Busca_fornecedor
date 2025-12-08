@@ -118,7 +118,7 @@ USER_AGENTS = [
 ]
 
 
-async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str], List[str]]:
+async def scrape_url(url: str, max_subpages: int = 100, ctx_label: str = "") -> Tuple[str, List[str], List[str]]:
     """
     Scraper adaptativo v2.0 com Learning Engine.
     
@@ -144,21 +144,21 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
         # Site já conhecido - usar conhecimento específico
         known_strategy = site_profile_known.best_strategy
         known_protection = site_profile_known.protection_type
-        logger.info(f"📚 Conhecimento específico: proteção={known_protection}, estratégia={known_strategy}")
+        logger.info(f"{ctx_label} 📚 Conhecimento específico: proteção={known_protection}, estratégia={known_strategy}")
     else:
         # Site NOVO - usar aprendizado global dos padrões
         known_strategy = adaptive_config.get_default_strategy_for_new_site()
         known_protection = "none"
         if known_strategy != "standard":
-            logger.info(f"🧠 Usando aprendizado global: estratégia={known_strategy} (baseado em padrões)")
+            logger.info(f"{ctx_label} 🧠 Usando aprendizado global: estratégia={known_strategy} (baseado em padrões)")
     
     # 1. PROBE URL
     try:
         best_url, probe_time = await url_prober.probe(url)
-        logger.info(f"🎯 URL selecionada: {best_url} ({probe_time:.0f}ms)")
+        logger.info(f"{ctx_label} 🎯 URL selecionada: {best_url} ({probe_time:.0f}ms)")
         url = best_url
     except URLNotReachable as e:
-        logger.error(f"❌ URL inacessível: {url} - {e}")
+        logger.error(f"{ctx_label} ❌ URL inacessível: {url} - {e}")
         failure_tracker.record_failure(
             module=FailureModule.SCRAPER,
             error_type=FailureType.CONNECTION_ERROR,
@@ -168,7 +168,7 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
         )
         return "", [], []
     except Exception as e:
-        logger.warning(f"⚠️ Erro no probe, usando URL original: {e}")
+        logger.warning(f"{ctx_label} ⚠️ Erro no probe, usando URL original: {e}")
     
     # 2. ANALISAR SITE
     analysis_start = time.perf_counter()
@@ -185,17 +185,17 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
             if known_strat_enum in strategies:
                 strategies.remove(known_strat_enum)
             strategies.insert(0, known_strat_enum)
-            logger.info(f"📋 Estratégias (priorizando aprendizado): {[s.value for s in strategies]}")
+            logger.info(f"{ctx_label} 📋 Estratégias (priorizando aprendizado): {[s.value for s in strategies]}")
         except ValueError:
-            logger.info(f"📋 Estratégias: {[s.value for s in strategies]}")
+            logger.info(f"{ctx_label} 📋 Estratégias: {[s.value for s in strategies]}")
     else:
-        logger.info(f"📋 Estratégias: {[s.value for s in strategies]}")
+        logger.info(f"{ctx_label} 📋 Estratégias: {[s.value for s in strategies]}")
     
     # 4. SCRAPE MAIN PAGE
     main_page = await _scrape_main_page(url, strategies, site_profile)
     
     if not main_page or not main_page.success:
-        logger.error(f"❌ Falha ao obter main page de {url}")
+        logger.error(f"{ctx_label} ❌ Falha ao obter main page de {url}")
         failure_tracker.record_failure(
             module=FailureModule.SCRAPER,
             error_type=_classify_error(main_page.error if main_page else "unknown"),
@@ -245,7 +245,8 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
             site_profile,
             slow_mode=slow_mode,
             subpage_cap=effective_cap,
-            per_request_timeout=per_request_timeout
+            per_request_timeout=per_request_timeout,
+            ctx_label=ctx_label
         )
     
     # 8. CONSOLIDAR
@@ -275,7 +276,7 @@ async def scrape_url(url: str, max_subpages: int = 100) -> Tuple[str, List[str],
             )
     
     logger.info(
-        f"[PERF] scrape_url total={total_duration:.3f}s "
+        f"{ctx_label} [PERF] scrape_url total={total_duration:.3f}s "
         f"pages={len(content.visited_urls)} success_rate={content.success_rate:.1%}"
     )
     
@@ -514,14 +515,15 @@ async def _scrape_subpages_adaptive(
     site_profile: SiteProfile,
     slow_mode: bool = False,
     subpage_cap: Optional[int] = None,
-    per_request_timeout: Optional[int] = None
+    per_request_timeout: Optional[int] = None,
+    ctx_label: str = ""
 ) -> List[ScrapedPage]:
     """
     Faz scrape das subpáginas.
     Usa estratégia SEQUENCIAL para evitar sobrecarregar sites frágeis.
     """
     subpages_start = time.perf_counter()
-    logger.info(f"[Scraper] Processing {len(target_subpages)} subpages (sequential mode)")
+    logger.info(f"{ctx_label} [Scraper] Processing {len(target_subpages)} subpages (sequential mode)")
     
     # Limitar quantidade de subpáginas se necessário
     if subpage_cap:
@@ -531,13 +533,14 @@ async def _scrape_subpages_adaptive(
     results = await _scrape_subpages_sequential(
         target_subpages,
         main_strategy,
-        per_request_timeout
+        per_request_timeout,
+        ctx_label
     )
 
     success_count = sum(1 for p in results if p.success)
     subpages_duration = time.perf_counter() - subpages_start
     logger.info(
-        f"[PERF] subpages duration={subpages_duration:.3f}s "
+        f"{ctx_label} [PERF] subpages duration={subpages_duration:.3f}s "
         f"requested={len(target_subpages)} ok={success_count}"
     )
     
@@ -547,7 +550,8 @@ async def _scrape_subpages_adaptive(
 async def _scrape_subpages_sequential(
     target_subpages: List[str],
     main_strategy: ScrapingStrategy,
-    per_request_timeout: Optional[int] = None
+    per_request_timeout: Optional[int] = None,
+    ctx_label: str = ""
 ) -> List[ScrapedPage]:
     """
     Faz scrape das subpáginas de forma SEQUENCIAL (uma por vez).
@@ -565,7 +569,7 @@ async def _scrape_subpages_sequential(
     
     # Obter um proxy saudável para usar em todas as requisições
     shared_proxy = await _get_healthy_proxy()
-    logger.info(f"[Scraper] Using shared proxy for sequential scraping")
+    logger.info(f"{ctx_label} [Scraper] Using shared proxy for sequential scraping")
     
     for i, sub_url in enumerate(target_subpages):
         # Verificar circuit breaker
@@ -576,7 +580,7 @@ async def _scrape_subpages_sequential(
         normalized_url = normalize_url(sub_url)
         
         try:
-            logger.debug(f"[Scraper] Sequential {i+1}/{len(target_subpages)}: {normalized_url[:60]}")
+            logger.debug(f"{ctx_label} [Scraper] Sequential {i+1}/{len(target_subpages)}: {normalized_url[:60]}")
             
             # Tentar com cffi primeiro
             if HAS_CURL_CFFI and AsyncSession:
@@ -592,12 +596,12 @@ async def _scrape_subpages_sequential(
                         )
                         results.append(page)
                         if page.success:
-                            logger.info(f"   ✅ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} ({len(page.content)} chars)")
+                            logger.info(f"{ctx_label}    ✅ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} ({len(page.content)} chars)")
                         else:
-                            logger.debug(f"   ⚠️ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} - {page.error}")
+                            logger.debug(f"{ctx_label}    ⚠️ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} - {page.error}")
                         continue
                 except Exception as e:
-                    logger.debug(f"   cffi failed, trying fallback: {e}")
+                    logger.debug(f"{ctx_label}    cffi failed, trying fallback: {e}")
             
             # Fallback para system_curl
             page = await _scrape_single_subpage_fallback(
@@ -606,12 +610,12 @@ async def _scrape_subpages_sequential(
             results.append(page)
             
             if page.success:
-                logger.info(f"   ✅ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} ({len(page.content)} chars)")
+                logger.info(f"{ctx_label}    ✅ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} ({len(page.content)} chars)")
             else:
-                logger.debug(f"   ⚠️ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} - {page.error}")
+                logger.debug(f"{ctx_label}    ⚠️ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} - {page.error}")
                 
         except Exception as e:
-            logger.warning(f"   ❌ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} - {e}")
+            logger.warning(f"{ctx_label}    ❌ [{i+1}/{len(target_subpages)}] {normalized_url[:50]} - {e}")
             results.append(ScrapedPage(url=normalized_url, content="", error=str(e)))
         
         # Pequeno delay entre requisições para não sobrecarregar o servidor

@@ -59,10 +59,13 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def analyze_company(request: CompanyRequest):
     """
     Analyzes a company. Accepts URL directly OR company details (razao_social, nome_fantasia, cnpj) to find the website automatically.
-    Enforces a 240-second hard timeout.
+    Enforces a 300-second hard timeout.
     """
     start_ts = time.perf_counter()
     url_str = str(request.url) if request.url else None
+    
+    # Identificador de contexto para logs
+    ctx_label = f"[CNPJ: {request.cnpj or 'N/A'} - {request.nome_fantasia or request.razao_social or 'Unknown'}]"
 
     try:
         # Discovery Phase
@@ -73,7 +76,7 @@ async def analyze_company(request: CompanyRequest):
                     detail="Deve fornecer URL ou dados da empresa (razao_social, nome_fantasia, cnpj)"
                 )
             
-            logger.info(f"[DISCOVERY] Iniciando busca para: {request.nome_fantasia} / {request.razao_social}")
+            logger.info(f"{ctx_label} [DISCOVERY] Iniciando busca")
             found_url = await find_company_website(
                 request.razao_social or "",
                 request.nome_fantasia or "",
@@ -90,11 +93,11 @@ async def analyze_company(request: CompanyRequest):
                 )
             
             url_str = found_url
-            logger.info(f"[DISCOVERY] Site identificado: {url_str}")
+            logger.info(f"{ctx_label} [DISCOVERY] Site identificado: {url_str}")
 
         # Wrap the orchestration in a task to enforce timeout
-        logger.info(f"[PERF] analyze_company start url={url_str}")
-        result = await asyncio.wait_for(process_analysis(url_str), timeout=240.0)
+        logger.info(f"{ctx_label} [PERF] analyze_company start url={url_str}")
+        result = await asyncio.wait_for(process_analysis(url_str, ctx_label), timeout=300.0)
         
         # Add discovery source metadata if discovered
         if not request.url and url_str:
@@ -103,12 +106,12 @@ async def analyze_company(request: CompanyRequest):
             result.sources.insert(0, f"Discovered via Google Search: {url_str}")
             
         total = time.perf_counter() - start_ts
-        logger.info(f"[PERF] analyze_company end url={url_str} total={total:.3f}s")
+        logger.info(f"{ctx_label} [PERF] analyze_company end url={url_str} total={total:.3f}s")
         return result
     except asyncio.TimeoutError:
         total = time.perf_counter() - start_ts
-        logger.error(f"[PERF] analyze_company timeout url={url_str} total={total:.3f}s")
-        raise HTTPException(status_code=504, detail="Analysis timed out (exceeded 240s)")
+        logger.error(f"{ctx_label} [PERF] analyze_company timeout url={url_str} total={total:.3f}s")
+        raise HTTPException(status_code=504, detail="Analysis timed out (exceeded 300s)")
     except Exception as e:
         # Errors raised inside process_analysis (like LLM failure after retries) will be caught here
         total = time.perf_counter() - start_ts
@@ -116,15 +119,15 @@ async def analyze_company(request: CompanyRequest):
         # If it's already an HTTPException, handle accordingly
         if isinstance(e, HTTPException):
             if e.status_code < 500:
-                logger.warning(f"[PERF] analyze_company finished with expected error url={url_str} total={total:.3f}s code={e.status_code} detail={e.detail}")
+                logger.warning(f"{ctx_label} [PERF] analyze_company finished with expected error url={url_str} total={total:.3f}s code={e.status_code} detail={e.detail}")
             else:
-                logger.error(f"[PERF] analyze_company failed with HTTP error url={url_str} total={total:.3f}s code={e.status_code} detail={e.detail}")
+                logger.error(f"{ctx_label} [PERF] analyze_company failed with HTTP error url={url_str} total={total:.3f}s code={e.status_code} detail={e.detail}")
             raise e
             
-        logger.error(f"[PERF] analyze_company failed url={url_str} total={total:.3f}s error={e}")
+        logger.error(f"{ctx_label} [PERF] analyze_company failed url={url_str} total={total:.3f}s error={e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-async def process_analysis(url: str) -> CompanyProfile:
+async def process_analysis(url: str, ctx_label: str = "") -> CompanyProfile:
     """
     Orquestra o fluxo principal de análise.
     Registra métricas de tempo por etapa para facilitar profiling.
@@ -135,10 +138,10 @@ async def process_analysis(url: str) -> CompanyProfile:
 
     # 1. Scrape the main website AND subpages
     step_start = time.perf_counter()
-    markdown, _, scraped_urls = await scrape_url(url, max_subpages=100)
+    markdown, _, scraped_urls = await scrape_url(url, max_subpages=100, ctx_label=ctx_label)
     scrape_duration = time.perf_counter() - step_start
     logger.info(
-        f"[PERF] process_analysis step=scrape_url url={url} "
+        f"{ctx_label} [PERF] process_analysis step=scrape_url url={url} "
         f"duration={scrape_duration:.3f}s pages={len(scraped_urls)}"
     )
     
@@ -153,7 +156,7 @@ async def process_analysis(url: str) -> CompanyProfile:
     profile = await analyze_content(combined_text)
     llm_duration = time.perf_counter() - llm_start
     logger.info(
-        f"[PERF] process_analysis step=llm_analysis url={url} "
+        f"{ctx_label} [PERF] process_analysis step=llm_analysis url={url} "
         f"duration={llm_duration:.3f}s"
     )
     
@@ -162,7 +165,7 @@ async def process_analysis(url: str) -> CompanyProfile:
     
     total_duration = time.perf_counter() - overall_start
     logger.info(
-        f"[PERF] process_analysis step=total url={url} "
+        f"{ctx_label} [PERF] process_analysis step=total url={url} "
         f"duration={total_duration:.3f}s"
     )
     
