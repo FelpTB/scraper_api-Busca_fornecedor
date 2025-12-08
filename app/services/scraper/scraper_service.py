@@ -57,11 +57,11 @@ def _proxy_is_quarantined(proxy: str) -> bool:
     return until is not None and until > time.time()
 
 
-def _record_proxy_failure(proxy: str):
+def _record_proxy_failure(proxy: str, ctx_label: str = ""):
     _proxy_failures[proxy] = _proxy_failures.get(proxy, 0) + 1
     if _proxy_failures[proxy] >= scraper_config.proxy_max_failures:
         _proxy_quarantine_until[proxy] = time.time() + _PROXY_QUARANTINE_SECONDS
-        logger.debug(f"[Proxy] Quarentena aplicada ao proxy {proxy}")
+        logger.debug(f"{ctx_label} [Proxy] Quarentena aplicada ao proxy {proxy}")
 
 
 def _record_proxy_success(proxy: str):
@@ -192,7 +192,7 @@ async def scrape_url(url: str, max_subpages: int = 100, ctx_label: str = "") -> 
         logger.info(f"{ctx_label} 📋 Estratégias: {[s.value for s in strategies]}")
     
     # 4. SCRAPE MAIN PAGE
-    main_page = await _scrape_main_page(url, strategies, site_profile)
+    main_page = await _scrape_main_page(url, strategies, site_profile, ctx_label)
     
     if not main_page or not main_page.success:
         logger.error(f"{ctx_label} ❌ Falha ao obter main page de {url}")
@@ -396,7 +396,8 @@ def _classify_error(error_message: str) -> FailureType:
 async def _scrape_main_page(
     url: str, 
     strategies: List[ScrapingStrategy],
-    site_profile: SiteProfile
+    site_profile: SiteProfile,
+    ctx_label: str = ""
 ) -> Optional[ScrapedPage]:
     """
     Faz scrape da main page com fallback entre estratégias.
@@ -406,7 +407,7 @@ async def _scrape_main_page(
     
     for strategy in strategies:
         config = strategy_selector.get_strategy_config(strategy)
-        logger.info(f"🔄 Tentando estratégia {strategy.value} para main page")
+        logger.info(f"{ctx_label} 🔄 Tentando estratégia {strategy.value} para main page")
         
         try:
             page = await _execute_strategy(url, strategy, config)
@@ -414,7 +415,7 @@ async def _scrape_main_page(
             if page and page.success:
                 page.response_time_ms = (time.perf_counter() - main_start) * 1000
                 logger.info(
-                    f"✅ Main page OK com {strategy.value}: "
+                    f"{ctx_label} ✅ Main page OK com {strategy.value}: "
                     f"{len(page.content or '')} chars, {len(page.links)} links"
                 )
                 return page
@@ -428,16 +429,16 @@ async def _scrape_main_page(
                 if protection_detector.is_blocking_protection(protection):
                     rec = protection_detector.get_retry_recommendation(protection)
                     logger.warning(
-                        f"⚠️ Proteção {protection.value} detectada. "
+                        f"{ctx_label} ⚠️ Proteção {protection.value} detectada. "
                         f"Aguardando {rec['delay_seconds']}s..."
                     )
                     await asyncio.sleep(rec['delay_seconds'])
                     
         except Exception as e:
-            logger.warning(f"⚠️ Estratégia {strategy.value} falhou: {e}")
+            logger.warning(f"{ctx_label} ⚠️ Estratégia {strategy.value} falhou: {e}")
             continue
     
-    logger.error(f"❌ Todas estratégias falharam para {url}")
+    logger.error(f"{ctx_label} ❌ Todas estratégias falharam para {url}")
     return None
 
 
@@ -592,7 +593,7 @@ async def _scrape_subpages_sequential(
                         verify=False
                     ) as session:
                         page = await _scrape_single_subpage(
-                            normalized_url, session, config, effective_timeout
+                            normalized_url, session, config, effective_timeout, ctx_label
                         )
                         results.append(page)
                         if page.success:
@@ -605,7 +606,7 @@ async def _scrape_subpages_sequential(
             
             # Fallback para system_curl
             page = await _scrape_single_subpage_fallback(
-                normalized_url, shared_proxy, effective_timeout
+                normalized_url, shared_proxy, effective_timeout, ctx_label
             )
             results.append(page)
             
@@ -746,7 +747,8 @@ async def _scrape_chunk_adaptive(
 async def _scrape_single_subpage_fallback(
     url: str,
     proxy: Optional[str],
-    per_request_timeout: int
+    per_request_timeout: int,
+    ctx_label: str = ""
 ) -> ScrapedPage:
     """Faz scrape usando system_curl quando curl_cffi não está disponível."""
     try:
@@ -760,6 +762,7 @@ async def _scrape_single_subpage_fallback(
             return ScrapedPage(url=url, content="", error="Empty or soft 404")
         
         record_success(url)
+        logger.debug(f"{ctx_label} [Sub] ✅ {url[:60]} ({len(text)} chars)")
         return ScrapedPage(
             url=url,
             content=text,
@@ -775,7 +778,8 @@ async def _scrape_single_subpage(
     url: str,
     session: AsyncSession,
     config: dict,
-    per_request_timeout: int
+    per_request_timeout: int,
+    ctx_label: str = ""
 ) -> ScrapedPage:
     """Faz scrape de uma única subpágina."""
     try:
@@ -801,7 +805,7 @@ async def _scrape_single_subpage(
                 return ScrapedPage(url=url, content="", error="Empty or soft 404")
         
         record_success(url)
-        logger.debug(f"[Sub] ✅ {url} ({len(text)} chars)")
+        logger.debug(f"{ctx_label} [Sub] ✅ {url[:60]} ({len(text)} chars)")
         
         return ScrapedPage(
             url=url,
