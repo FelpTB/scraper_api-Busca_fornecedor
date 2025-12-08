@@ -211,6 +211,11 @@ Responda APENAS com um JSON array contendo os números dos links selecionados (e
             except (ValueError, TypeError):
                 continue
         
+        # Se LLM retornou lista vazia, mas tínhamos links válidos, usar fallback heurístico
+        if not selected_urls and filtered_links:
+            logger.warning("LLM retornou lista vazia de links, usando fallback heurístico para garantir navegação")
+            return prioritize_links(filtered_links, base_url)[:max_links]
+
         duration = time.perf_counter() - start_ts
         logger.info(f"[PERF] select_links_llm duration={duration:.3f}s selected={len(selected_urls)} strategy=llm")
         return selected_urls[:max_links]
