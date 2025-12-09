@@ -26,6 +26,7 @@ class ProviderConfig:
     priority: int = 50  # 0-100, maior = melhor
     timeout: float = 90.0
     enabled: bool = True
+    weight: int = 10  # Peso para distribuição proporcional (% da capacidade)
 
 
 class ProviderError(Exception):
@@ -68,46 +69,95 @@ class ProviderManager:
         """Carrega providers das configurações do sistema com limites do llm_limits.json."""
         # Carregar limites reais do arquivo de configuração
         limits = self._load_limits_from_file()
-        
-        # Calcular max_concurrent baseado em RPM real (80% de segurança)
-        # RPM / 60 = requests por segundo, usamos 80% do limite
-        gemini_rpm = limits.get("google", {}).get("gemini-2.0-flash", {}).get("rpm", 10000)
-        openai_rpm = limits.get("openai", {}).get("gpt-4o-mini", {}).get("rpm", 5000)
         safety_margin = limits.get("config", {}).get("safety_margin", 0.8)
         
-        # Converter RPM para concorrência máxima razoável
-        # max_concurrent = (RPM * safety_margin) / 60 * avg_request_time_seconds
-        # Configuração de produção: mínimo 300 para alta carga
-        gemini_concurrent = max(300, int(gemini_rpm * safety_margin / 12))  # mínimo 300
-        openai_concurrent = max(300, int(openai_rpm * safety_margin / 12))  # mínimo 300
+        # Obter limites por provider
+        gemini_config = limits.get("google", {}).get("gemini-2.0-flash", {})
+        openai_config = limits.get("openai", {}).get("gpt-4o-mini", {})
+        openrouter1_config = limits.get("openrouter", {}).get("google/gemini-2.0-flash-lite-001", {})
+        openrouter2_config = limits.get("openrouter", {}).get("google/gemini-2.5-flash-lite", {})
+        openrouter3_config = limits.get("openrouter", {}).get("openai/gpt-4.1-nano", {})
         
-        logger.info(f"LLM Limits: Gemini RPM={gemini_rpm}, concurrent={gemini_concurrent}")
-        logger.info(f"LLM Limits: OpenAI RPM={openai_rpm}, concurrent={openai_concurrent}")
+        # Calcular max_concurrent baseado em RPM real (80% de segurança)
+        gemini_rpm = gemini_config.get("rpm", 10000)
+        openai_rpm = openai_config.get("rpm", 5000)
+        openrouter1_rpm = openrouter1_config.get("rpm", 20000)
+        openrouter2_rpm = openrouter2_config.get("rpm", 15000)
+        openrouter3_rpm = openrouter3_config.get("rpm", 10000)
+        
+        # Obter pesos para distribuição proporcional
+        gemini_weight = gemini_config.get("weight", 29)
+        openai_weight = openai_config.get("weight", 14)
+        openrouter1_weight = openrouter1_config.get("weight", 30)
+        openrouter2_weight = openrouter2_config.get("weight", 25)
+        openrouter3_weight = openrouter3_config.get("weight", 20)
+        
+        # Converter RPM para concorrência máxima razoável
+        # Fórmula: (RPM * safety_margin) / 60 * avg_latency_seconds
+        # Com avg_latency ~2s, dividir por 30 dá uma estimativa conservadora
+        gemini_concurrent = max(200, int(gemini_rpm * safety_margin / 30))
+        openai_concurrent = max(150, int(openai_rpm * safety_margin / 30))
+        openrouter1_concurrent = max(300, int(openrouter1_rpm * safety_margin / 30))
+        openrouter2_concurrent = max(250, int(openrouter2_rpm * safety_margin / 30))
+        openrouter3_concurrent = max(200, int(openrouter3_rpm * safety_margin / 30))
+        
+        logger.info(f"LLM Limits carregados:")
+        logger.info(f"  Google Gemini: RPM={gemini_rpm}, concurrent={gemini_concurrent}, weight={gemini_weight}%")
+        logger.info(f"  OpenAI: RPM={openai_rpm}, concurrent={openai_concurrent}, weight={openai_weight}%")
+        logger.info(f"  OpenRouter 1: RPM={openrouter1_rpm}, concurrent={openrouter1_concurrent}, weight={openrouter1_weight}%")
+        logger.info(f"  OpenRouter 2: RPM={openrouter2_rpm}, concurrent={openrouter2_concurrent}, weight={openrouter2_weight}%")
+        logger.info(f"  OpenRouter 3: RPM={openrouter3_rpm}, concurrent={openrouter3_concurrent}, weight={openrouter3_weight}%")
         
         default_providers = [
+            # Google Gemini - API Nativa (alta prioridade, boa capacidade)
             ProviderConfig(
                 name="Google Gemini",
                 api_key=settings.GOOGLE_API_KEY or "",
                 base_url=settings.GOOGLE_BASE_URL or "https://generativelanguage.googleapis.com/v1beta/openai/",
                 model=settings.GOOGLE_MODEL or "gemini-2.0-flash",
                 max_concurrent=gemini_concurrent,
-                priority=60
+                priority=70,
+                weight=gemini_weight
             ),
+            # OpenAI - API Nativa (prioridade média, capacidade moderada)
             ProviderConfig(
                 name="OpenAI",
                 api_key=settings.OPENAI_API_KEY or "",
                 base_url=settings.OPENAI_BASE_URL or "https://api.openai.com/v1",
                 model=settings.OPENAI_MODEL or "gpt-4o-mini",
                 max_concurrent=openai_concurrent,
-                priority=50
+                priority=60,
+                weight=openai_weight
             ),
+            # OpenRouter 1 - Gemini 2.0 Flash Lite (ALTA capacidade, prioridade alta)
             ProviderConfig(
                 name="OpenRouter",
                 api_key=settings.OPENROUTER_API_KEY or "",
                 base_url=settings.OPENROUTER_BASE_URL,
                 model=settings.OPENROUTER_MODEL,
-                max_concurrent=300,  # Fallback robusto - alta concorrência
-                priority=10
+                max_concurrent=openrouter1_concurrent,
+                priority=80,  # Alta prioridade - maior capacidade
+                weight=openrouter1_weight
+            ),
+            # OpenRouter 2 - Gemini 2.5 Flash Lite (boa capacidade, prioridade alta)
+            ProviderConfig(
+                name="OpenRouter2",
+                api_key=settings.OPENROUTER_API_KEY or "",
+                base_url=settings.OPENROUTER_BASE_URL,
+                model=settings.OPENROUTER_MODEL_2,
+                max_concurrent=openrouter2_concurrent,
+                priority=75,  # Alta prioridade
+                weight=openrouter2_weight
+            ),
+            # OpenRouter 3 - GPT-4.1 Nano (capacidade adicional)
+            ProviderConfig(
+                name="OpenRouter3",
+                api_key=settings.OPENROUTER_API_KEY or "",
+                base_url=settings.OPENROUTER_BASE_URL,
+                model=settings.OPENROUTER_MODEL_3,
+                max_concurrent=openrouter3_concurrent,
+                priority=72,  # Prioridade boa
+                weight=openrouter3_weight
             ),
         ]
         
@@ -162,6 +212,52 @@ class ProviderManager:
     def provider_priorities(self) -> Dict[str, int]:
         """Dict de prioridades dos providers."""
         return {name: config.priority for name, config in self._configs.items()}
+    
+    @property
+    def provider_weights(self) -> Dict[str, int]:
+        """Dict de pesos dos providers para distribuição proporcional."""
+        return {name: config.weight for name, config in self._configs.items()}
+    
+    def get_weighted_provider_list(self, count: int) -> List[str]:
+        """
+        Gera lista de providers distribuídos por peso.
+        
+        Args:
+            count: Número de itens a distribuir
+        
+        Returns:
+            Lista de nomes de providers ordenados por peso
+        
+        Example:
+            Com weights {A: 40, B: 30, C: 20, D: 10} e count=10:
+            Retorna: [A, A, A, A, B, B, B, C, C, D]
+        """
+        providers = self.available_providers
+        if not providers:
+            return []
+        
+        # Obter pesos e calcular distribuição
+        weights = self.provider_weights
+        total_weight = sum(weights.get(p, 10) for p in providers)
+        
+        # Criar lista distribuída
+        distributed = []
+        for provider in providers:
+            weight = weights.get(provider, 10)
+            provider_count = max(1, int(count * weight / total_weight))
+            distributed.extend([provider] * provider_count)
+        
+        # Ajustar para o tamanho exato se necessário
+        while len(distributed) < count:
+            # Adicionar do provider com maior peso
+            best_provider = max(providers, key=lambda p: weights.get(p, 10))
+            distributed.append(best_provider)
+        
+        # Embaralhar para não ter todos do mesmo provider seguidos
+        import random
+        random.shuffle(distributed)
+        
+        return distributed[:count]
     
     def get_config(self, provider: str) -> Optional[ProviderConfig]:
         """Retorna configuração de um provider."""

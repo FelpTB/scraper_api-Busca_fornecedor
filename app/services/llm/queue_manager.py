@@ -1,10 +1,13 @@
 """
 Gerenciador de filas para requisições LLM.
-Seleciona o melhor provider baseado em saúde e disponibilidade.
+Seleciona o melhor provider baseado em saúde, disponibilidade e PESO (weighted).
+
+v2.1: Adicionado get_weighted_provider() para distribuição proporcional à capacidade.
 """
 
 import asyncio
 import logging
+import random
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
 
@@ -184,6 +187,112 @@ class QueueManager:
         self._round_robin_index += 1
         
         return provider
+    
+    def get_weighted_provider(self, exclude: List[str] = None, weights: dict = None) -> Optional[str]:
+        """
+        Seleciona provider usando weighted random baseado em capacidade.
+        
+        IMPORTANTE: Este método distribui chamadas proporcionalmente aos pesos,
+        garantindo que providers com maior capacidade recebam mais requisições.
+        
+        Args:
+            exclude: Lista de providers a excluir
+            weights: Dict de pesos {provider: weight}. Se None, usa priorities.
+        
+        Returns:
+            Nome do provider selecionado ou None
+        
+        Example:
+            Com weights = {"OpenRouter": 40, "OpenRouter2": 30, "Gemini": 20, "OpenAI": 10}
+            - OpenRouter será selecionado ~40% das vezes
+            - OpenRouter2 ~30%, Gemini ~20%, OpenAI ~10%
+        """
+        exclude = exclude or []
+        available = [p for p in self.providers if p not in exclude]
+        
+        if not available:
+            logger.warning("QueueManager: Nenhum provider disponível para weighted selection")
+            return None
+        
+        # Filtrar apenas providers saudáveis (se houver)
+        healthy = self.health_monitor.get_healthy_providers(available)
+        candidates = healthy if healthy else available
+        
+        if not candidates:
+            return None
+        
+        # Usar weights fornecidos ou priorities do queue_manager
+        weight_source = weights or self.priorities
+        
+        # Calcular pesos para cada candidato
+        provider_weights = []
+        for provider in candidates:
+            # Default weight = 10 se não especificado
+            weight = weight_source.get(provider, 10)
+            provider_weights.append((provider, weight))
+        
+        # Seleção aleatória ponderada
+        total_weight = sum(w for _, w in provider_weights)
+        if total_weight <= 0:
+            # Fallback: escolher aleatoriamente
+            return random.choice(candidates)
+        
+        r = random.uniform(0, total_weight)
+        cumulative = 0
+        
+        for provider, weight in provider_weights:
+            cumulative += weight
+            if r <= cumulative:
+                logger.debug(f"QueueManager: Weighted selection -> {provider} (weight={weight}/{total_weight})")
+                return provider
+        
+        # Fallback (não deveria chegar aqui)
+        return candidates[0]
+    
+    async def get_weighted_provider_with_fallback(
+        self,
+        exclude: List[str] = None,
+        weights: dict = None,
+        max_attempts: int = None
+    ) -> Optional[str]:
+        """
+        Seleciona provider usando weighted random com fallback.
+        
+        Se o provider selecionado não está saudável ou não tem capacity,
+        tenta o próximo usando a mesma distribuição weighted.
+        
+        Args:
+            exclude: Lista de providers a excluir
+            weights: Dict de pesos {provider: weight}
+            max_attempts: Máximo de tentativas (default: número de providers)
+        
+        Returns:
+            Nome do provider selecionado ou None
+        """
+        exclude = exclude or []
+        max_attempts = max_attempts or len(self.providers)
+        tried = list(exclude)
+        
+        for _ in range(max_attempts):
+            provider = self.get_weighted_provider(exclude=tried, weights=weights)
+            
+            if not provider:
+                break
+            
+            # Verificar se provider está disponível
+            if self.health_monitor.is_healthy(provider):
+                return provider
+            
+            # Provider não saudável, tentar próximo
+            tried.append(provider)
+            logger.debug(f"QueueManager: {provider} não saudável, tentando próximo...")
+        
+        # Nenhum provider saudável - retornar qualquer um disponível
+        available = [p for p in self.providers if p not in exclude]
+        if available:
+            return random.choice(available)
+        
+        return None
     
     def get_status(self) -> dict:
         """Retorna status atual do gerenciador."""

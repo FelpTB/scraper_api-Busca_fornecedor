@@ -176,10 +176,10 @@ async def _select_links_with_llm_internal(
     from app.services.llm.queue_manager import create_queue_manager
     from app.services.llm.health_monitor import health_monitor
     
-    # Criar queue manager para esta requisição
+    # Criar queue manager para esta requisição com WEIGHTS para distribuição proporcional
     queue_manager = create_queue_manager(
         providers=provider_manager.available_providers,
-        priorities=provider_manager.provider_priorities
+        priorities=provider_manager.provider_weights  # Usar WEIGHTS ao invés de priorities
     )
     
     links_list = "\n".join([f"{i+1}. {url}" for i, url in enumerate(sorted(filtered_links))])
@@ -215,22 +215,21 @@ Responda APENAS com um JSON array contendo os números dos links selecionados (e
         {"role": "user", "content": prompt}
     ]
     
-    # Tentar com cada provider disponível (com fallback)
+    # Tentar com cada provider usando WEIGHTED selection (com fallback)
     providers_tried = []
     max_attempts = len(provider_manager.available_providers)
     
     for attempt in range(max_attempts):
-        # Selecionar melhor provider disponível
-        selection = await queue_manager.get_best_provider(
-            estimated_tokens=1,
-            exclude=providers_tried
+        # NOVO: Usar weighted selection para distribuir carga proporcionalmente
+        provider = queue_manager.get_weighted_provider(
+            exclude=providers_tried,
+            weights=provider_manager.provider_weights
         )
         
-        if not selection:
+        if not provider:
             logger.warning(f"{ctx_label}[LinkSelector] Nenhum provider LLM disponível")
             break
         
-        provider = selection.provider
         providers_tried.append(provider)
         
         try:

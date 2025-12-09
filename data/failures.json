@@ -15071,5 +15071,65 @@
     "retry_count": 0,
     "error_message": "[❓ NO_RESPONSE] Nenhuma resposta obtida do servidor",
     "duration_ms": 3760.67979214713
+  },
+  {
+    "timestamp": "2025-12-09T18:08:55.952889",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://www.bradesco.com.br/",
+    "domain": "www.bradesco.com.br",
+    "context": {
+      "site_type": "static",
+      "diagnosis": "no_response"
+    },
+    "strategy_used": "fast",
+    "retry_count": 0,
+    "error_message": "[❓ NO_RESPONSE] Nenhuma resposta obtida do servidor",
+    "duration_ms": 21803.394083864987
+  },
+  {
+    "timestamp": "2025-12-09T18:13:01.183418",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://www.bradesco.com.br/",
+    "domain": "www.bradesco.com.br",
+    "context": {
+      "site_type": "static",
+      "diagnosis": "no_response"
+    },
+    "strategy_used": "fast",
+    "retry_count": 0,
+    "error_message": "[❓ NO_RESPONSE] Nenhuma resposta obtida do servidor",
+    "duration_ms": 19166.310249827802
+  },
+  {
+    "timestamp": "2025-12-09T18:23:40.289434",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://www.bradesco.com.br/",
+    "domain": "www.bradesco.com.br",
+    "context": {
+      "site_type": "static",
+      "diagnosis": "no_response"
+    },
+    "strategy_used": "fast",
+    "retry_count": 0,
+    "error_message": "[❓ NO_RESPONSE] Nenhuma resposta obtida do servidor",
+    "duration_ms": 21841.258250176907
+  },
+  {
+    "timestamp": "2025-12-09T18:31:54.489676",
+    "module": "scraper",
+    "error_type": "connection_error",
+    "url": "https://www.bradesco.com.br/",
+    "domain": "www.bradesco.com.br",
+    "context": {
+      "site_type": "static",
+      "diagnosis": "no_response"
+    },
+    "strategy_used": "fast",
+    "retry_count": 0,
+    "error_message": "[❓ NO_RESPONSE] Nenhuma resposta obtida do servidor",
+    "duration_ms": 19801.618666853756
   }
 ]

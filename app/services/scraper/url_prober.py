@@ -163,12 +163,12 @@ class URLProber:
                 resp_result, error_info = result
                 if resp_result:
                     response_time, status = resp_result
-                    if status < 400:
-                        successful.append((url, response_time, status))
-                    elif status >= 500:
-                        collected_errors.append((url, ProbeErrorType.SERVER_ERROR, f"Servidor retornou erro {status}"))
-                    elif status == 403:
-                        collected_errors.append((url, ProbeErrorType.BLOCKED, f"Acesso bloqueado (403)"))
+                if status < 400:
+                    successful.append((url, response_time, status))
+                elif status >= 500:
+                    collected_errors.append((url, ProbeErrorType.SERVER_ERROR, f"Servidor retornou erro {status}"))
+                elif status == 403:
+                    collected_errors.append((url, ProbeErrorType.BLOCKED, f"Acesso bloqueado (403)"))
                 if error_info:
                     collected_errors.append((url, error_info[0], error_info[1]))
         

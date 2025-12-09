@@ -72,27 +72,34 @@ class LLMService:
         start_time: float,
         ctx_label: str = ""
     ) -> CompanyProfile:
-        """Processa chunk único com fallback entre providers."""
+        """
+        Processa chunk único com WEIGHTED SELECTION + fallback.
+        
+        IMPORTANTE: Usa distribuição proporcional ao peso de cada provider,
+        garantindo que providers com maior capacidade (OpenRouter) recebam
+        mais requisições, não apenas como fallback.
+        """
         providers_tried = []
+        weights = self.provider_manager.provider_weights
         
         for attempt in range(len(self.provider_manager.available_providers)):
-            selection = await self.queue_manager.get_best_provider(
-                estimated_tokens=1,
-                exclude=providers_tried
+            # NOVO: Usar weighted selection ao invés de get_best_provider
+            provider = self.queue_manager.get_weighted_provider(
+                exclude=providers_tried,
+                weights=weights
             )
             
-            if not selection:
+            if not provider:
                 logger.error(f"{ctx_label}LLMService: Nenhum provider disponível")
                 break
             
-            provider = selection.provider
             providers_tried.append(provider)
             
             try:
                 profile = await self._call_provider(provider, chunk, ctx_label)
                 
                 duration = time.perf_counter() - start_time
-                logger.info(f"{ctx_label}LLMService: Sucesso com {provider} em {duration:.2f}s")
+                logger.info(f"{ctx_label}LLMService: Sucesso com {provider} em {duration:.2f}s (weighted)")
                 
                 return profile
             
@@ -114,19 +121,31 @@ class LLMService:
         start_time: float,
         ctx_label: str = ""
     ) -> CompanyProfile:
-        """Processa múltiplos chunks em paralelo."""
+        """Processa múltiplos chunks em paralelo usando weighted round-robin."""
         providers = self.provider_manager.available_providers
+        weights = self.provider_manager.provider_weights
         
         logger.info(
             f"{ctx_label}LLMService: Processando {len(chunks)} chunks com "
-            f"{len(providers)} providers"
+            f"{len(providers)} providers (weighted distribution)"
         )
         
-        # Criar tasks distribuindo entre providers
+        # Log dos pesos para debug
+        for p in providers:
+            logger.debug(f"{ctx_label}  Provider {p}: weight={weights.get(p, 10)}%")
+        
+        # Usar weighted round-robin para distribuir chunks
+        provider_distribution = self.provider_manager.get_weighted_provider_list(len(chunks))
+        
+        # Log da distribuição
+        from collections import Counter
+        dist_count = Counter(provider_distribution)
+        logger.info(f"{ctx_label}LLMService: Distribuição de chunks: {dict(dist_count)}")
+        
+        # Criar tasks distribuindo por peso
         tasks = []
         for i, chunk in enumerate(chunks):
-            provider_idx = i % len(providers)
-            provider = providers[provider_idx]
+            provider = provider_distribution[i]
             tasks.append(self._process_chunk_with_fallback(chunk, i + 1, len(chunks), provider, ctx_label))
         
         # Executar em paralelo com timeout global

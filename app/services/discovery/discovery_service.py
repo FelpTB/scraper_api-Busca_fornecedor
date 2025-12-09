@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.proxy import proxy_manager
 from app.services.llm.provider_manager import provider_manager
 from app.services.llm.health_monitor import health_monitor, FailureType
+from app.services.llm.queue_manager import create_queue_manager
 
 logger = logging.getLogger(__name__)
 
@@ -460,18 +461,28 @@ async def find_company_website(
     {results_text}
     """
     
-    # Retry com backoff exponencial e load balancing
+    # Retry com backoff exponencial e load balancing WEIGHTED
     last_error = None
+    providers_tried = []
+    
+    # Criar queue_manager para usar weighted selection
+    queue_manager = create_queue_manager(
+        providers=provider_manager.available_providers,
+        priorities=provider_manager.provider_weights  # Usar WEIGHTS ao invés de priorities
+    )
     
     for attempt in range(DISCOVERY_MAX_RETRIES):
-        # Selecionar provedor com menor carga
-        # Selecionar provider com melhor score de saúde
-        available = provider_manager.available_providers
-        selected_provider = health_monitor.get_best_provider(available) or (available[0] if available else None)
+        # NOVO: Usar weighted selection para distribuir carga proporcionalmente
+        selected_provider = queue_manager.get_weighted_provider(
+            exclude=providers_tried,
+            weights=provider_manager.provider_weights
+        )
         
         if not selected_provider:
             logger.error(f"{ctx_label}❌ Nenhum provider LLM disponível")
             continue
+        
+        providers_tried.append(selected_provider)
         
         # Calcular backoff para retry (0 na primeira tentativa)
         if attempt > 0:

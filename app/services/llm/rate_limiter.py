@@ -121,19 +121,86 @@ class TokenBucket:
 class RateLimiter:
     """
     Gerencia múltiplos buckets de tokens por provider.
+    Carrega limites reais do arquivo llm_limits.json.
     """
     
-    # Configurações padrão por provider (tokens por minuto)
+    # Configurações padrão por provider (RPM - requests per minute)
+    # Valores baseados em 80% dos limites reais para segurança
     DEFAULT_CONFIGS = {
-        "Google Gemini": BucketConfig(tokens_per_minute=1500, max_tokens=200),
-        "OpenAI": BucketConfig(tokens_per_minute=3500, max_tokens=300),
-        "OpenRouter": BucketConfig(tokens_per_minute=5000, max_tokens=400),
+        "Google Gemini": BucketConfig(tokens_per_minute=8000, max_tokens=400),   # 80% de 10k RPM
+        "OpenAI": BucketConfig(tokens_per_minute=4000, max_tokens=200),           # 80% de 5k RPM
+        "OpenRouter": BucketConfig(tokens_per_minute=16000, max_tokens=600),      # 80% de 20k RPM
+        "OpenRouter2": BucketConfig(tokens_per_minute=12000, max_tokens=500),     # 80% de 15k RPM
+        "OpenRouter3": BucketConfig(tokens_per_minute=8000, max_tokens=350),      # 80% de 10k RPM (GPT-4.1 Nano)
     }
     
     def __init__(self, configs: Dict[str, BucketConfig] = None):
-        self._configs = configs or self.DEFAULT_CONFIGS
+        self._configs = configs or self._load_configs_from_file()
         self._buckets: Dict[str, TokenBucket] = {}
         self._lock = asyncio.Lock()
+    
+    def _load_configs_from_file(self) -> Dict[str, BucketConfig]:
+        """Carrega configurações do arquivo llm_limits.json."""
+        import json
+        from pathlib import Path
+        
+        limits_file = Path(__file__).parent.parent.parent / "core" / "llm_limits.json"
+        
+        try:
+            if limits_file.exists():
+                with open(limits_file, 'r') as f:
+                    limits = json.load(f)
+                
+                safety_margin = limits.get("config", {}).get("safety_margin", 0.8)
+                
+                # Mapear providers para seus limites
+                configs = {}
+                
+                # Google Gemini
+                gemini_rpm = limits.get("google", {}).get("gemini-2.0-flash", {}).get("rpm", 10000)
+                configs["Google Gemini"] = BucketConfig(
+                    tokens_per_minute=int(gemini_rpm * safety_margin),
+                    max_tokens=int(gemini_rpm * safety_margin / 20)
+                )
+                
+                # OpenAI
+                openai_rpm = limits.get("openai", {}).get("gpt-4o-mini", {}).get("rpm", 5000)
+                configs["OpenAI"] = BucketConfig(
+                    tokens_per_minute=int(openai_rpm * safety_margin),
+                    max_tokens=int(openai_rpm * safety_margin / 20)
+                )
+                
+                # OpenRouter 1
+                or1_rpm = limits.get("openrouter", {}).get("google/gemini-2.0-flash-lite-001", {}).get("rpm", 20000)
+                configs["OpenRouter"] = BucketConfig(
+                    tokens_per_minute=int(or1_rpm * safety_margin),
+                    max_tokens=int(or1_rpm * safety_margin / 20)
+                )
+                
+                # OpenRouter 2
+                or2_rpm = limits.get("openrouter", {}).get("google/gemini-2.5-flash-lite", {}).get("rpm", 15000)
+                configs["OpenRouter2"] = BucketConfig(
+                    tokens_per_minute=int(or2_rpm * safety_margin),
+                    max_tokens=int(or2_rpm * safety_margin / 20)
+                )
+                
+                # OpenRouter 3 (GPT-4.1 Nano)
+                or3_rpm = limits.get("openrouter", {}).get("openai/gpt-4.1-nano", {}).get("rpm", 10000)
+                configs["OpenRouter3"] = BucketConfig(
+                    tokens_per_minute=int(or3_rpm * safety_margin),
+                    max_tokens=int(or3_rpm * safety_margin / 20)
+                )
+                
+                logger.info(f"RateLimiter: Carregou limites do arquivo - {len(configs)} providers")
+                for name, cfg in configs.items():
+                    logger.debug(f"  {name}: {cfg.tokens_per_minute} RPM, max_burst={cfg.max_tokens}")
+                
+                return configs
+                
+        except Exception as e:
+            logger.warning(f"RateLimiter: Erro ao carregar llm_limits.json: {e}, usando defaults")
+        
+        return self.DEFAULT_CONFIGS
     
     def _get_or_create_bucket(self, provider: str) -> TokenBucket:
         """Obtém ou cria bucket para um provider."""

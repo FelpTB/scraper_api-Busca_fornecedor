@@ -240,7 +240,7 @@ async def system_curl_scrape(
             
             if res.returncode != 0 or not res.stdout:
                 raise Exception("Curl Failed")
-        
+                
         # Decodificar com detecção de encoding
         text = _decode_content(res.stdout)
         return parse_html(text, url)
@@ -290,7 +290,7 @@ async def system_curl_scrape_with_exception(
         
         if res.returncode != 0 or not res.stdout:
             raise Exception("Curl Failed")
-    
+            
     # Decodificar com detecção de encoding
     text = _decode_content(res.stdout)
     return parse_html(text, url)

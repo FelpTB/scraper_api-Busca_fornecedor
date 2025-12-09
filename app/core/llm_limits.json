@@ -4,30 +4,35 @@
       "rpm": 5000,
       "tpm": 4000000,
       "tpd": 40000000000,
+      "weight": 14,
       "description": "GPT-4o Mini - Principal modelo OpenAI"
     },
     "gpt-4o": {
       "rpm": 5000,
       "tpm": 800000,
       "tpd": 100000000000,
+      "weight": 14,
       "description": "GPT-4o - Modelo avançado"
     },
     "gpt-4.1-mini": {
       "rpm": 5000,
       "tpm": 4000000,
       "tpd": 40000000000,
+      "weight": 14,
       "description": "GPT-4.1 Mini"
     },
     "gpt-4.1-nano": {
       "rpm": 5000,
       "tpm": 4000000,
       "tpd": 40000000000,
+      "weight": 14,
       "description": "GPT-4.1 Nano"
     },
     "gpt-5-mini": {
       "rpm": 5000,
       "tpm": 4000000,
       "tpd": 40000000000,
+      "weight": 14,
       "description": "GPT-5 Mini"
     }
   },
@@ -36,32 +41,61 @@
       "rpm": 10000,
       "tpm": 10000000,
       "rpd": null,
+      "weight": 29,
       "description": "Gemini 2.0 Flash - Principal modelo Google"
     },
     "gemini-2.5-flash": {
       "rpm": 2000,
       "tpm": 3000000,
       "rpd": 100000,
+      "weight": 6,
       "description": "Gemini 2.5 Flash"
     },
     "gemini-2.5-pro": {
       "rpm": 1000,
       "tpm": 5000000,
       "rpd": 50000,
+      "weight": 3,
       "description": "Gemini 2.5 Pro"
     },
     "gemini-2.0-flash-lite": {
       "rpm": 20000,
       "tpm": 10000000,
       "rpd": null,
+      "weight": 57,
       "description": "Gemini 2.0 Flash Lite - Mais rápido"
+    }
+  },
+  "openrouter": {
+    "google/gemini-2.0-flash-lite-001": {
+      "rpm": 20000,
+      "tpm": 10000000,
+      "rpd": null,
+      "weight": 30,
+      "description": "Gemini 2.0 Flash Lite via OpenRouter - Alta capacidade"
+    },
+    "google/gemini-2.5-flash-lite": {
+      "rpm": 15000,
+      "tpm": 8000000,
+      "rpd": null,
+      "weight": 25,
+      "description": "Gemini 2.5 Flash Lite via OpenRouter - Modelo adicional"
+    },
+    "openai/gpt-4.1-nano": {
+      "rpm": 10000,
+      "tpm": 5000000,
+      "rpd": null,
+      "weight": 20,
+      "description": "GPT-4.1 Nano via OpenRouter - Terceiro modelo"
     }
   },
   "config": {
     "safety_margin": 0.8,
     "description": "Usar 80% do limite para margem de segurança",
     "retry_delay_seconds": 2,
-    "max_retries": 3
+    "max_retries": 3,
+    "weighted_distribution": true,
+    "total_providers_capacity_rpm": 55000
   }
 }
 
