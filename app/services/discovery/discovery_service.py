@@ -14,7 +14,7 @@ HAS_CRAWL4AI = False
 
 from app.core.config import settings
 from app.core.proxy import proxy_manager
-from app.services.llm.provider_manager import provider_manager
+from app.services.llm.provider_manager import provider_manager, LLMPriority
 from app.services.llm.health_monitor import health_monitor, FailureType
 from app.services.llm.queue_manager import create_queue_manager
 
@@ -598,7 +598,8 @@ async def find_company_website(
                 messages=messages,
                 timeout=DISCOVERY_TIMEOUT,
                 response_format={"type": "json_object"},
-                ctx_label=ctx_label
+                ctx_label=ctx_label,
+                priority=LLMPriority.HIGH  # Discovery tem prioridade sobre Profile
             )
             
             duration = asyncio.get_event_loop().time() - start_time

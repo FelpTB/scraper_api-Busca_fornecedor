@@ -172,7 +172,7 @@ async def _select_links_with_llm_internal(
     Usa o sistema centralizado de gerenciamento de providers.
     """
     # Importar sistema centralizado de LLM
-    from app.services.llm.provider_manager import provider_manager
+    from app.services.llm.provider_manager import provider_manager, LLMPriority
     from app.services.llm.queue_manager import create_queue_manager
     from app.services.llm.health_monitor import health_monitor
     
@@ -211,8 +211,8 @@ Responda APENAS com um JSON array contendo os números dos links selecionados (e
 """
 
     messages = [
-        {"role": "system", "content": "Você é um assistente especializado em análise de websites B2B. Responda sempre em JSON válido."},
-        {"role": "user", "content": prompt}
+                {"role": "system", "content": "Você é um assistente especializado em análise de websites B2B. Responda sempre em JSON válido."},
+                {"role": "user", "content": prompt}
     ]
     
     # Tentar com cada provider usando WEIGHTED selection (com fallback)
@@ -234,13 +234,15 @@ Responda APENAS com um JSON array contendo os números dos links selecionados (e
         
         try:
             # Usar o provider_manager centralizado para fazer a chamada
+            # LinkSelector usa prioridade HIGH para não ser bloqueado pelo Profile
             response_content, latency_ms = await asyncio.wait_for(
                 provider_manager.call(
                     provider=provider,
                     messages=messages,
                     response_format={"type": "json_object"},
                     temperature=0.1,
-                    ctx_label=f"{ctx_label}[LinkSelector]"
+                    ctx_label=f"{ctx_label}[LinkSelector]",
+                    priority=LLMPriority.HIGH  # Prioridade alta - desbloqueia scrape
                 ),
                 timeout=30.0  # Timeout de 30s para seleção de links
             )

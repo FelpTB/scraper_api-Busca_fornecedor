@@ -1,18 +1,32 @@
 """
 Gerenciador de provedores LLM.
 Centraliza configuração e chamadas aos providers.
+
+v2.1: Adicionado suporte a prioridades (HIGH para Discovery/LinkSelector, NORMAL para Profile)
 """
 
 import asyncio
 import time
 import logging
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import List, Dict, Optional, Tuple
 from openai import AsyncOpenAI, RateLimitError, APIError, APITimeoutError, BadRequestError
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+class LLMPriority(IntEnum):
+    """
+    Níveis de prioridade para chamadas LLM.
+    
+    HIGH: Discovery e LinkSelector (etapas iniciais que desbloqueiam o scrape)
+    NORMAL: Montagem de perfil (etapa final após scrape)
+    """
+    HIGH = 1    # Discovery, LinkSelector - prioridade máxima
+    NORMAL = 2  # Profile building - prioridade normal
 
 
 @dataclass
@@ -52,12 +66,21 @@ class ProviderBadRequestError(ProviderError):
 class ProviderManager:
     """
     Gerencia conexões e chamadas aos providers LLM.
+    
+    v2.1: Suporte a prioridades - HIGH priority (Discovery/LinkSelector) é processado
+          antes de NORMAL priority (Profile building).
     """
     
     def __init__(self, configs: List[ProviderConfig] = None):
         self._configs: Dict[str, ProviderConfig] = {}
         self._clients: Dict[str, AsyncOpenAI] = {}
         self._semaphores: Dict[str, asyncio.Semaphore] = {}
+        
+        # Sistema de prioridade: HIGH priority passa na frente
+        self._high_priority_waiting = 0
+        self._priority_lock = asyncio.Lock()
+        self._priority_event = asyncio.Event()
+        self._priority_event.set()  # Inicialmente liberado
         
         if configs:
             for config in configs:
@@ -272,6 +295,36 @@ class ProviderManager:
         config = self._configs.get(provider)
         return config.model if config else None
     
+    async def _wait_for_priority(self, priority: LLMPriority):
+        """
+        Aguarda liberação baseada em prioridade.
+        
+        HIGH priority: passa direto
+        NORMAL priority: aguarda se houver HIGH priority esperando
+        """
+        if priority == LLMPriority.HIGH:
+            # HIGH priority: incrementa contador e passa
+            async with self._priority_lock:
+                self._high_priority_waiting += 1
+                self._priority_event.clear()  # Bloqueia NORMAL
+            return
+        
+        # NORMAL priority: aguarda até não haver HIGH priority esperando
+        while True:
+            async with self._priority_lock:
+                if self._high_priority_waiting == 0:
+                    return
+            # Aguarda um pouco e verifica novamente
+            await asyncio.sleep(0.05)
+    
+    async def _release_priority(self, priority: LLMPriority):
+        """Libera slot de prioridade após conclusão."""
+        if priority == LLMPriority.HIGH:
+            async with self._priority_lock:
+                self._high_priority_waiting = max(0, self._high_priority_waiting - 1)
+                if self._high_priority_waiting == 0:
+                    self._priority_event.set()  # Libera NORMAL
+    
     async def call(
         self,
         provider: str,
@@ -279,7 +332,8 @@ class ProviderManager:
         timeout: float = None,
         temperature: float = 0.0,
         response_format: dict = None,
-        ctx_label: str = ""
+        ctx_label: str = "",
+        priority: LLMPriority = LLMPriority.NORMAL
     ) -> Tuple[str, float]:
         """
         Faz chamada a um provider.
@@ -291,6 +345,7 @@ class ProviderManager:
             temperature: Temperatura da geração
             response_format: Formato de resposta (ex: {"type": "json_object"})
             ctx_label: Label de contexto para logs
+            priority: Prioridade da chamada (HIGH para Discovery/LinkSelector, NORMAL para Profile)
         
         Returns:
             Tuple de (response_content, latency_ms)
@@ -312,60 +367,67 @@ class ProviderManager:
         semaphore = self._semaphores.get(provider)
         actual_timeout = timeout or config.timeout
         
-        async with semaphore:
-            start_time = time.perf_counter()
-            
-            try:
-                request_params = {
-                    "model": config.model,
-                    "messages": messages,
-                    "temperature": temperature,
-                    "timeout": actual_timeout
-                }
+        # Aguardar baseado em prioridade
+        await self._wait_for_priority(priority)
+        
+        try:
+            async with semaphore:
+                start_time = time.perf_counter()
                 
-                if response_format:
-                    request_params["response_format"] = response_format
+                try:
+                    request_params = {
+                        "model": config.model,
+                        "messages": messages,
+                        "temperature": temperature,
+                        "timeout": actual_timeout
+                    }
+                    
+                    if response_format:
+                        request_params["response_format"] = response_format
+                    
+                    response = await client.chat.completions.create(**request_params)
+                    
+                    latency_ms = (time.perf_counter() - start_time) * 1000
+                    
+                    if not response.choices or not response.choices[0].message.content:
+                        raise ProviderError(f"{provider} retornou resposta vazia")
+                    
+                    content = response.choices[0].message.content.strip()
+                    
+                    logger.debug(
+                        f"ProviderManager: {provider} - "
+                        f"{len(content)} chars em {latency_ms:.0f}ms"
+                    )
+                    
+                    return content, latency_ms
                 
-                response = await client.chat.completions.create(**request_params)
+                except RateLimitError as e:
+                    latency_ms = (time.perf_counter() - start_time) * 1000
+                    logger.warning(f"{ctx_label}ProviderManager: {provider} RATE_LIMIT após {latency_ms:.0f}ms")
+                    raise ProviderRateLimitError(str(e))
                 
-                latency_ms = (time.perf_counter() - start_time) * 1000
+                except APITimeoutError as e:
+                    latency_ms = (time.perf_counter() - start_time) * 1000
+                    logger.warning(f"{ctx_label}ProviderManager: {provider} TIMEOUT após {latency_ms:.0f}ms")
+                    raise ProviderTimeoutError(str(e))
                 
-                if not response.choices or not response.choices[0].message.content:
-                    raise ProviderError(f"{provider} retornou resposta vazia")
+                except BadRequestError as e:
+                    latency_ms = (time.perf_counter() - start_time) * 1000
+                    logger.error(f"{ctx_label}ProviderManager: {provider} BAD_REQUEST: {e}")
+                    raise ProviderBadRequestError(str(e))
                 
-                content = response.choices[0].message.content.strip()
+                except asyncio.TimeoutError:
+                    latency_ms = (time.perf_counter() - start_time) * 1000
+                    logger.warning(f"{ctx_label}ProviderManager: {provider} ASYNC_TIMEOUT após {latency_ms:.0f}ms")
+                    raise ProviderTimeoutError("Async timeout")
                 
-                logger.debug(
-                    f"ProviderManager: {provider} - "
-                    f"{len(content)} chars em {latency_ms:.0f}ms"
-                )
-                
-                return content, latency_ms
-            
-            except RateLimitError as e:
-                latency_ms = (time.perf_counter() - start_time) * 1000
-                logger.warning(f"{ctx_label}ProviderManager: {provider} RATE_LIMIT após {latency_ms:.0f}ms")
-                raise ProviderRateLimitError(str(e))
-            
-            except APITimeoutError as e:
-                latency_ms = (time.perf_counter() - start_time) * 1000
-                logger.warning(f"{ctx_label}ProviderManager: {provider} TIMEOUT após {latency_ms:.0f}ms")
-                raise ProviderTimeoutError(str(e))
-            
-            except BadRequestError as e:
-                latency_ms = (time.perf_counter() - start_time) * 1000
-                logger.error(f"{ctx_label}ProviderManager: {provider} BAD_REQUEST: {e}")
-                raise ProviderBadRequestError(str(e))
-            
-            except asyncio.TimeoutError:
-                latency_ms = (time.perf_counter() - start_time) * 1000
-                logger.warning(f"{ctx_label}ProviderManager: {provider} ASYNC_TIMEOUT após {latency_ms:.0f}ms")
-                raise ProviderTimeoutError("Async timeout")
-            
-            except Exception as e:
-                latency_ms = (time.perf_counter() - start_time) * 1000
-                logger.error(f"{ctx_label}ProviderManager: {provider} ERROR: {type(e).__name__}: {e}")
-                raise ProviderError(str(e))
+                except Exception as e:
+                    latency_ms = (time.perf_counter() - start_time) * 1000
+                    logger.error(f"{ctx_label}ProviderManager: {provider} ERROR: {type(e).__name__}: {e}")
+                    raise ProviderError(str(e))
+        finally:
+            # Liberar slot de prioridade
+            await self._release_priority(priority)
     
     async def call_with_retry(
         self,

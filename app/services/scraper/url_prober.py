@@ -355,7 +355,7 @@ class URLProber:
             Tuple de (tempo_ms, status_code) ou None se falhar
         """
         result, _ = await self._test_url_with_error(url)
-        return result
+            return result
     
     async def _test_with_curl_cffi(self, url: str) -> Optional[Tuple[float, int]]:
         """
@@ -376,7 +376,7 @@ class URLProber:
             ) as session:
                 start = time.perf_counter()
                 try:
-                    resp = await session.head(url, headers=headers, allow_redirects=True)
+                resp = await session.head(url, headers=headers, allow_redirects=True)
                     elapsed = (time.perf_counter() - start) * 1000
                     
                     # Se HEAD retornou 403, servidor pode bloquear HEAD
@@ -396,8 +396,8 @@ class URLProber:
                         logger.debug(f"HEAD falhou com redirect loop para {url}, tentando GET...")
                         start = time.perf_counter()
                         resp = await session.get(url, headers=headers, allow_redirects=True)
-                        elapsed = (time.perf_counter() - start) * 1000
-                        return elapsed, resp.status_code
+                elapsed = (time.perf_counter() - start) * 1000
+                return elapsed, resp.status_code
                     raise
                     
         except Exception as e:
@@ -423,7 +423,7 @@ class URLProber:
             ) as client:
                 start = time.perf_counter()
                 try:
-                    resp = await client.head(url, headers=headers)
+                resp = await client.head(url, headers=headers)
                     elapsed = (time.perf_counter() - start) * 1000
                     
                     # Fallback para GET se HEAD retornar 403
@@ -440,8 +440,8 @@ class URLProber:
                     logger.debug(f"httpx HEAD falhou com redirect loop para {url}, tentando GET...")
                     start = time.perf_counter()
                     resp = await client.get(url, headers=headers)
-                    elapsed = (time.perf_counter() - start) * 1000
-                    return elapsed, resp.status_code
+                elapsed = (time.perf_counter() - start) * 1000
+                return elapsed, resp.status_code
                     
         except Exception as e:
             logger.debug(f"httpx falhou para {url}: {e}")

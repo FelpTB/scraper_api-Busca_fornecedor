@@ -22,7 +22,8 @@ from .provider_manager import (
     ProviderError,
     ProviderRateLimitError,
     ProviderTimeoutError,
-    ProviderBadRequestError
+    ProviderBadRequestError,
+    LLMPriority
 )
 from .queue_manager import create_queue_manager
 
@@ -236,11 +237,13 @@ class LLMService:
         ]
         
         try:
+            # Profile usa prioridade NORMAL - Discovery e LinkSelector têm prioridade
             response_content, latency_ms = await self.provider_manager.call(
                 provider=provider,
                 messages=messages,
                 response_format={"type": "json_object"},
-                ctx_label=ctx_label
+                ctx_label=ctx_label,
+                priority=LLMPriority.NORMAL
             )
             
             # Registrar sucesso
