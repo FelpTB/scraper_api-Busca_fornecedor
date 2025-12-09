@@ -355,7 +355,7 @@ class URLProber:
             Tuple de (tempo_ms, status_code) ou None se falhar
         """
         result, _ = await self._test_url_with_error(url)
-            return result
+        return result
     
     async def _test_with_curl_cffi(self, url: str) -> Optional[Tuple[float, int]]:
         """
