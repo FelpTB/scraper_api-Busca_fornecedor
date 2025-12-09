@@ -34,7 +34,7 @@ from .models import (
 from .site_analyzer import site_analyzer, SiteAnalyzer
 from .protection_detector import protection_detector, ProtectionDetector
 from .strategy_selector import strategy_selector, StrategySelector
-from .url_prober import url_prober, URLProber, URLNotReachable
+from .url_prober import url_prober, URLProber, URLNotReachable, ProbeErrorType
 
 # Importação direta do scrape_url para compatibilidade
 try:
@@ -91,6 +91,7 @@ __all__ = [
     'url_prober',
     'URLProber',
     'URLNotReachable',
+    'ProbeErrorType',
 ]
 
 

@@ -7,8 +7,10 @@ import asyncio
 import time
 import logging
 import subprocess
+import socket
 from typing import List, Tuple, Optional
 from urllib.parse import urlparse
+from enum import Enum
 
 try:
     from curl_cffi.requests import AsyncSession
@@ -28,6 +30,62 @@ from .constants import DEFAULT_HEADERS
 logger = logging.getLogger(__name__)
 
 
+class ProbeErrorType(Enum):
+    """Tipos de erro no probe de URL."""
+    DNS_ERROR = "dns_error"
+    CONNECTION_REFUSED = "connection_refused"
+    CONNECTION_TIMEOUT = "connection_timeout"
+    SSL_ERROR = "ssl_error"
+    TOO_MANY_REDIRECTS = "too_many_redirects"
+    HTTP_ERROR = "http_error"
+    SERVER_ERROR = "server_error"
+    BLOCKED = "blocked"
+    UNKNOWN = "unknown"
+
+
+def _classify_probe_error(error: Exception, url: str) -> Tuple[ProbeErrorType, str]:
+    """
+    Classifica um erro de probe em um tipo específico.
+    
+    Returns:
+        Tuple de (tipo_erro, mensagem_descritiva)
+    """
+    error_str = str(error).lower()
+    error_type = type(error).__name__
+    
+    # DNS errors
+    if any(x in error_str for x in ['nodename nor servname', 'name or service not known', 
+                                      'getaddrinfo failed', 'dns', 'resolve']):
+        return ProbeErrorType.DNS_ERROR, f"DNS não resolve - domínio pode estar expirado ou incorreto"
+    
+    if isinstance(error, socket.gaierror):
+        return ProbeErrorType.DNS_ERROR, f"Falha na resolução DNS: {error}"
+    
+    # Connection errors
+    if any(x in error_str for x in ['connection refused', 'errno 111', 'errno 61']):
+        return ProbeErrorType.CONNECTION_REFUSED, f"Conexão recusada - servidor pode estar offline"
+    
+    if any(x in error_str for x in ['timeout', 'timed out', 'time out']):
+        return ProbeErrorType.CONNECTION_TIMEOUT, f"Timeout - servidor não respondeu a tempo"
+    
+    if any(x in error_str for x in ['connection reset', 'broken pipe', 'connection aborted']):
+        return ProbeErrorType.CONNECTION_REFUSED, f"Conexão interrompida pelo servidor"
+    
+    # SSL errors
+    if any(x in error_str for x in ['ssl', 'certificate', 'cert', 'handshake']):
+        return ProbeErrorType.SSL_ERROR, f"Erro de SSL/TLS - certificado inválido ou expirado"
+    
+    # Redirect errors
+    if any(x in error_str for x in ['redirect', 'too many', '47']):
+        return ProbeErrorType.TOO_MANY_REDIRECTS, f"Loop de redirects - configuração problemática do servidor"
+    
+    # HTTP errors based on type name
+    if 'http' in error_type.lower():
+        return ProbeErrorType.HTTP_ERROR, f"Erro HTTP: {error}"
+    
+    return ProbeErrorType.UNKNOWN, str(error)
+
+
 class URLProber:
     """
     Testa variações de URL em paralelo para encontrar a melhor.
@@ -40,6 +98,7 @@ class URLProber:
         self.timeout = timeout
         self.semaphore = asyncio.Semaphore(max_concurrent)
         self._cache: dict = {}  # Cache de URLs já validadas
+        self._last_errors: dict = {}  # Armazena últimos erros para diagnóstico
     
     async def probe(self, base_url: str) -> Tuple[str, float]:
         """
@@ -53,7 +112,7 @@ class URLProber:
             Tuple de (melhor_url, tempo_resposta_ms)
         
         Raises:
-            URLNotReachable: Se nenhuma variação responder
+            URLNotReachable: Se nenhuma variação responder (com detalhes do erro)
         """
         # Verificar cache
         if base_url in self._cache:
@@ -64,11 +123,17 @@ class URLProber:
         if not base_url.startswith(('http://', 'https://')):
             base_url = 'https://' + base_url
         
+        # Coletar erros para diagnóstico
+        collected_errors: List[Tuple[str, ProbeErrorType, str]] = []
+        
         # OTIMIZAÇÃO: Tentar URL original primeiro (mais rápido)
-        result = await self._test_url(base_url)
+        result, error_info = await self._test_url_with_error(base_url)
         if result and result[1] < 400:
             self._cache[base_url] = {'url': base_url, 'time': result[0]}
             return base_url, result[0]
+        
+        if error_info:
+            collected_errors.append((base_url, error_info[0], error_info[1]))
         
         # Se falhou, tentar variações
         variations = self._generate_variations(base_url)
@@ -76,24 +141,44 @@ class URLProber:
         variations = [v for v in variations if v != base_url]
         
         if not variations:
-            raise URLNotReachable(f"URL {base_url} não respondeu")
+            error_type, error_msg = self._get_best_error_diagnosis(collected_errors, base_url)
+            raise URLNotReachable(
+                f"{error_msg}",
+                error_type=error_type,
+                url=base_url
+            )
         
         # Criar tasks para variações restantes
-        tasks = [self._test_url(url) for url in variations]
+        tasks = [self._test_url_with_error(url) for url in variations]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Filtrar resultados bem-sucedidos
+        # Filtrar resultados bem-sucedidos e coletar erros
         successful = []
         for url, result in zip(variations, results):
             if isinstance(result, Exception):
+                err_type, err_msg = _classify_probe_error(result, url)
+                collected_errors.append((url, err_type, err_msg))
                 continue
             if result is not None:
-                response_time, status = result
-                if status < 400:
-                    successful.append((url, response_time, status))
+                resp_result, error_info = result
+                if resp_result:
+                    response_time, status = resp_result
+                    if status < 400:
+                        successful.append((url, response_time, status))
+                    elif status >= 500:
+                        collected_errors.append((url, ProbeErrorType.SERVER_ERROR, f"Servidor retornou erro {status}"))
+                    elif status == 403:
+                        collected_errors.append((url, ProbeErrorType.BLOCKED, f"Acesso bloqueado (403)"))
+                if error_info:
+                    collected_errors.append((url, error_info[0], error_info[1]))
         
         if not successful:
-            raise URLNotReachable(f"Nenhuma variação de {base_url} respondeu")
+            error_type, error_msg = self._get_best_error_diagnosis(collected_errors, base_url)
+            raise URLNotReachable(
+                f"{error_msg}",
+                error_type=error_type,
+                url=base_url
+            )
         
         # Ordenar por status (2xx primeiro) e depois por tempo
         successful.sort(key=lambda x: (x[2] >= 300, x[1]))
@@ -106,6 +191,113 @@ class URLProber:
         logger.info(f"🎯 Melhor URL: {best_url} ({best_time:.0f}ms, status {best_status})")
         
         return best_url, best_time
+    
+    def _get_best_error_diagnosis(
+        self, 
+        errors: List[Tuple[str, ProbeErrorType, str]], 
+        base_url: str
+    ) -> Tuple[ProbeErrorType, str]:
+        """
+        Determina o melhor diagnóstico baseado nos erros coletados.
+        Prioriza erros mais específicos/informativos.
+        """
+        if not errors:
+            return ProbeErrorType.UNKNOWN, f"Nenhuma variação de {base_url} respondeu"
+        
+        # Prioridade de erros (mais específico primeiro)
+        priority = {
+            ProbeErrorType.DNS_ERROR: 1,
+            ProbeErrorType.SSL_ERROR: 2,
+            ProbeErrorType.CONNECTION_REFUSED: 3,
+            ProbeErrorType.CONNECTION_TIMEOUT: 4,
+            ProbeErrorType.TOO_MANY_REDIRECTS: 5,
+            ProbeErrorType.BLOCKED: 6,
+            ProbeErrorType.SERVER_ERROR: 7,
+            ProbeErrorType.HTTP_ERROR: 8,
+            ProbeErrorType.UNKNOWN: 9,
+        }
+        
+        # Ordenar por prioridade
+        errors.sort(key=lambda x: priority.get(x[1], 99))
+        
+        best_error = errors[0]
+        return best_error[1], best_error[2]
+    
+    async def _test_url_with_error(
+        self, 
+        url: str
+    ) -> Tuple[Optional[Tuple[float, int]], Optional[Tuple[ProbeErrorType, str]]]:
+        """
+        Testa URL e retorna resultado ou informação de erro detalhada.
+        
+        Returns:
+            Tuple de (resultado, erro_info)
+            - resultado: (tempo_ms, status_code) ou None
+            - erro_info: (tipo_erro, mensagem) ou None
+        """
+        async with self.semaphore:
+            last_error = None
+            
+            # Tentar curl_cffi primeiro
+            if HAS_CURL_CFFI:
+                result = await self._test_with_curl_cffi(url)
+                if result:
+                    return result, None
+            
+            # Fallback para httpx
+            if HAS_HTTPX:
+                result = await self._test_with_httpx(url)
+                if result:
+                    return result, None
+            
+            # Fallback para system curl
+            result = await self._test_with_system_curl(url)
+            if result:
+                return result, None
+            
+            # Se chegou aqui, todos falharam - tentar detectar o tipo de erro
+            error_info = await self._diagnose_connection_error(url)
+            return None, error_info
+    
+    async def _diagnose_connection_error(
+        self, 
+        url: str
+    ) -> Tuple[ProbeErrorType, str]:
+        """
+        Faz diagnóstico detalhado de por que a conexão falhou.
+        """
+        parsed = urlparse(url)
+        hostname = parsed.netloc
+        port = 443 if parsed.scheme == 'https' else 80
+        
+        # 1. Testar DNS
+        try:
+            socket.gethostbyname(hostname)
+        except socket.gaierror:
+            return ProbeErrorType.DNS_ERROR, f"DNS não resolve '{hostname}' - domínio inexistente ou expirado"
+        except Exception as e:
+            return ProbeErrorType.DNS_ERROR, f"Erro de DNS: {e}"
+        
+        # 2. Testar conexão TCP
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(hostname, port),
+                timeout=5.0
+            )
+            writer.close()
+            await writer.wait_closed()
+        except asyncio.TimeoutError:
+            return ProbeErrorType.CONNECTION_TIMEOUT, f"Timeout ao conectar em {hostname}:{port} - servidor não responde"
+        except ConnectionRefusedError:
+            return ProbeErrorType.CONNECTION_REFUSED, f"Conexão recusada por {hostname}:{port} - servidor offline ou porta fechada"
+        except Exception as e:
+            error_str = str(e).lower()
+            if 'ssl' in error_str or 'certificate' in error_str:
+                return ProbeErrorType.SSL_ERROR, f"Erro de SSL: {e}"
+            return ProbeErrorType.UNKNOWN, f"Erro de conexão: {e}"
+        
+        # Se TCP funciona mas HTTP não, pode ser bloqueio
+        return ProbeErrorType.BLOCKED, f"Servidor alcançável mas não responde HTTP - possível bloqueio ou proteção"
     
     def _generate_variations(self, base_url: str) -> List[str]:
         """
@@ -162,65 +354,113 @@ class URLProber:
         Returns:
             Tuple de (tempo_ms, status_code) ou None se falhar
         """
-        async with self.semaphore:
-            # Tentar curl_cffi primeiro (mais robusto)
-            if HAS_CURL_CFFI:
-                result = await self._test_with_curl_cffi(url)
-                if result:
-                    return result
-            
-            # Fallback para httpx
-            if HAS_HTTPX:
-                result = await self._test_with_httpx(url)
-                if result:
-                    return result
-            
-            # Fallback para system curl
-            result = await self._test_with_system_curl(url)
-            return result
+        result, _ = await self._test_url_with_error(url)
+        return result
     
     async def _test_with_curl_cffi(self, url: str) -> Optional[Tuple[float, int]]:
-        """Testa URL com curl_cffi."""
+        """
+        Testa URL com curl_cffi.
+        
+        Otimizado para lidar com:
+        - Servidores que bloqueiam HEAD (403) -> fallback para GET
+        - Redirect loops no HEAD -> fallback para GET com limite de redirects
+        """
         try:
             headers = DEFAULT_HEADERS.copy()
             
             async with AsyncSession(
                 impersonate="chrome120",
                 timeout=self.timeout,
-                verify=False
+                verify=False,
+                max_redirects=5  # Limitar redirects para evitar loops
             ) as session:
                 start = time.perf_counter()
-                resp = await session.head(url, headers=headers, allow_redirects=True)
-                elapsed = (time.perf_counter() - start) * 1000
-                return elapsed, resp.status_code
+                try:
+                    resp = await session.head(url, headers=headers, allow_redirects=True)
+                    elapsed = (time.perf_counter() - start) * 1000
+                    
+                    # Se HEAD retornou 403, servidor pode bloquear HEAD
+                    # Fazer fallback para GET (mais lento, mas funciona)
+                    if resp.status_code == 403:
+                        logger.debug(f"HEAD retornou 403 para {url}, tentando GET...")
+                        start = time.perf_counter()
+                        resp = await session.get(url, headers=headers, allow_redirects=True)
+                        elapsed = (time.perf_counter() - start) * 1000
+                    
+                    return elapsed, resp.status_code
+                    
+                except Exception as head_error:
+                    # Se HEAD falhou (ex: TooManyRedirects), tentar GET
+                    error_str = str(head_error).lower()
+                    if "redirect" in error_str or "47" in error_str:
+                        logger.debug(f"HEAD falhou com redirect loop para {url}, tentando GET...")
+                        start = time.perf_counter()
+                        resp = await session.get(url, headers=headers, allow_redirects=True)
+                        elapsed = (time.perf_counter() - start) * 1000
+                        return elapsed, resp.status_code
+                    raise
+                    
         except Exception as e:
             logger.debug(f"curl_cffi falhou para {url}: {e}")
             return None
     
     async def _test_with_httpx(self, url: str) -> Optional[Tuple[float, int]]:
-        """Testa URL com httpx."""
+        """
+        Testa URL com httpx.
+        
+        Otimizado para lidar com:
+        - Servidores que bloqueiam HEAD (403) -> fallback para GET
+        - Redirect loops no HEAD -> fallback para GET
+        """
         try:
             headers = {k: v for k, v in DEFAULT_HEADERS.items()}
             
             async with httpx.AsyncClient(
                 timeout=self.timeout,
                 verify=False,
-                follow_redirects=True
+                follow_redirects=True,
+                max_redirects=5  # Limitar redirects
             ) as client:
                 start = time.perf_counter()
-                resp = await client.head(url, headers=headers)
-                elapsed = (time.perf_counter() - start) * 1000
-                return elapsed, resp.status_code
+                try:
+                    resp = await client.head(url, headers=headers)
+                    elapsed = (time.perf_counter() - start) * 1000
+                    
+                    # Fallback para GET se HEAD retornar 403
+                    if resp.status_code == 403:
+                        logger.debug(f"httpx HEAD retornou 403 para {url}, tentando GET...")
+                        start = time.perf_counter()
+                        resp = await client.get(url, headers=headers)
+                        elapsed = (time.perf_counter() - start) * 1000
+                    
+                    return elapsed, resp.status_code
+                    
+                except httpx.TooManyRedirects:
+                    # Se HEAD falhou por redirect loop, tentar GET
+                    logger.debug(f"httpx HEAD falhou com redirect loop para {url}, tentando GET...")
+                    start = time.perf_counter()
+                    resp = await client.get(url, headers=headers)
+                    elapsed = (time.perf_counter() - start) * 1000
+                    return elapsed, resp.status_code
+                    
         except Exception as e:
             logger.debug(f"httpx falhou para {url}: {e}")
             return None
     
     async def _test_with_system_curl(self, url: str) -> Optional[Tuple[float, int]]:
-        """Testa URL com system curl (último recurso)."""
+        """
+        Testa URL com system curl (último recurso).
+        
+        Otimizado para lidar com:
+        - Servidores que bloqueiam HEAD (403) -> fallback para GET
+        - Redirect loops no HEAD -> fallback para GET com --max-redirs
+        """
         try:
+            # HEAD request com limite de redirects
             cmd = [
                 "curl", "-I", "-L", "-k", "-s", 
                 "--max-time", str(int(self.timeout)),
+                "--max-redirs", "5",  # Limitar redirects
                 "-o", "/dev/null", "-w", "%{http_code}",
                 "-A", "Mozilla/5.0",
                 url
@@ -235,7 +475,49 @@ class URLProber:
             
             if res.returncode == 0 and res.stdout.strip():
                 status_code = int(res.stdout.strip())
+                
+                # Se HEAD retornou 403, tentar GET
+                if status_code == 403:
+                    logger.debug(f"system curl HEAD retornou 403 para {url}, tentando GET...")
+                    cmd_get = [
+                        "curl", "-L", "-k", "-s",
+                        "--max-time", str(int(self.timeout)),
+                        "--max-redirs", "5",
+                        "-o", "/dev/null", "-w", "%{http_code}",
+                        "-A", "Mozilla/5.0",
+                        url
+                    ]
+                    start = time.perf_counter()
+                    res = await asyncio.to_thread(
+                        subprocess.run, cmd_get,
+                        capture_output=True, text=True, timeout=self.timeout + 2
+                    )
+                    elapsed = (time.perf_counter() - start) * 1000
+                    if res.returncode == 0 and res.stdout.strip():
+                        status_code = int(res.stdout.strip())
+                
                 return elapsed, status_code
+            
+            # Se HEAD falhou (ex: redirect loop - returncode 47), tentar GET
+            if res.returncode == 47:  # CURLE_TOO_MANY_REDIRECTS
+                logger.debug(f"system curl HEAD falhou com redirect loop para {url}, tentando GET...")
+                cmd_get = [
+                    "curl", "-L", "-k", "-s",
+                    "--max-time", str(int(self.timeout)),
+                    "--max-redirs", "10",  # GET pode ter mais redirects
+                    "-o", "/dev/null", "-w", "%{http_code}",
+                    "-A", "Mozilla/5.0",
+                    url
+                ]
+                start = time.perf_counter()
+                res = await asyncio.to_thread(
+                    subprocess.run, cmd_get,
+                    capture_output=True, text=True, timeout=self.timeout + 2
+                )
+                elapsed = (time.perf_counter() - start) * 1000
+                if res.returncode == 0 and res.stdout.strip():
+                    return elapsed, int(res.stdout.strip())
+            
             return None
         except Exception as e:
             logger.debug(f"system curl falhou para {url}: {e}")
@@ -273,8 +555,36 @@ class URLProber:
 
 
 class URLNotReachable(Exception):
-    """Exceção quando nenhuma variação de URL responde."""
-    pass
+    """
+    Exceção quando nenhuma variação de URL responde.
+    Inclui informações detalhadas sobre o tipo de erro.
+    """
+    def __init__(
+        self, 
+        message: str, 
+        error_type: ProbeErrorType = ProbeErrorType.UNKNOWN,
+        url: str = ""
+    ):
+        self.error_type = error_type
+        self.url = url
+        self.message = message
+        super().__init__(message)
+    
+    def get_log_message(self) -> str:
+        """Retorna mensagem formatada para log."""
+        type_labels = {
+            ProbeErrorType.DNS_ERROR: "🌐 DNS_ERROR",
+            ProbeErrorType.CONNECTION_REFUSED: "🚫 CONNECTION_REFUSED",
+            ProbeErrorType.CONNECTION_TIMEOUT: "⏱️ TIMEOUT",
+            ProbeErrorType.SSL_ERROR: "🔒 SSL_ERROR",
+            ProbeErrorType.TOO_MANY_REDIRECTS: "🔄 REDIRECT_LOOP",
+            ProbeErrorType.HTTP_ERROR: "📡 HTTP_ERROR",
+            ProbeErrorType.SERVER_ERROR: "💥 SERVER_ERROR",
+            ProbeErrorType.BLOCKED: "🛡️ BLOCKED",
+            ProbeErrorType.UNKNOWN: "❓ UNKNOWN",
+        }
+        label = type_labels.get(self.error_type, "❓ UNKNOWN")
+        return f"[{label}] {self.message}"
 
 
 # Instância singleton

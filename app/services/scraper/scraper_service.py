@@ -33,7 +33,7 @@ from .link_selector import select_links_with_llm
 from .site_analyzer import site_analyzer
 from .protection_detector import protection_detector, ProtectionType
 from .strategy_selector import strategy_selector
-from .url_prober import url_prober, URLNotReachable
+from .url_prober import url_prober, URLNotReachable, ProbeErrorType
 
 logger = logging.getLogger(__name__)
 
@@ -158,12 +158,30 @@ async def scrape_url(url: str, max_subpages: int = 100, ctx_label: str = "") -> 
         logger.info(f"{ctx_label} 🎯 URL selecionada: {best_url} ({probe_time:.0f}ms)")
         url = best_url
     except URLNotReachable as e:
-        logger.error(f"{ctx_label} ❌ URL inacessível: {url} - {e}")
+        # Log detalhado com tipo de erro específico
+        log_msg = e.get_log_message() if hasattr(e, 'get_log_message') else str(e)
+        logger.error(f"{ctx_label} ❌ URL inacessível: {url} - {log_msg}")
+        
+        # Mapear tipo de erro do prober para FailureType
+        error_type_map = {
+            ProbeErrorType.DNS_ERROR: FailureType.DNS_ERROR,
+            ProbeErrorType.CONNECTION_TIMEOUT: FailureType.TIMEOUT,
+            ProbeErrorType.CONNECTION_REFUSED: FailureType.CONNECTION_ERROR,
+            ProbeErrorType.SSL_ERROR: FailureType.SSL_ERROR,
+            ProbeErrorType.TOO_MANY_REDIRECTS: FailureType.CONNECTION_ERROR,
+            ProbeErrorType.BLOCKED: FailureType.WAF,
+            ProbeErrorType.SERVER_ERROR: FailureType.CONNECTION_ERROR,
+        }
+        failure_type = error_type_map.get(
+            e.error_type if hasattr(e, 'error_type') else ProbeErrorType.UNKNOWN, 
+            FailureType.CONNECTION_ERROR
+        )
+        
         failure_tracker.record_failure(
             module=FailureModule.SCRAPER,
-            error_type=FailureType.CONNECTION_ERROR,
+            error_type=failure_type,
             url=url,
-            error_message=str(e),
+            error_message=log_msg,
             duration_ms=(time.perf_counter() - overall_start) * 1000
         )
         return "", [], []
@@ -195,17 +213,23 @@ async def scrape_url(url: str, max_subpages: int = 100, ctx_label: str = "") -> 
     main_page = await _scrape_main_page(url, strategies, site_profile, ctx_label)
     
     if not main_page or not main_page.success:
-        logger.error(f"{ctx_label} ❌ Falha ao obter main page de {url}")
+        # Diagnóstico detalhado do erro
+        error_diagnosis = _diagnose_scrape_failure(main_page, url)
+        logger.error(f"{ctx_label} ❌ Falha ao obter main page de {url} - {error_diagnosis['log_message']}")
+        
         failure_tracker.record_failure(
             module=FailureModule.SCRAPER,
-            error_type=_classify_error(main_page.error if main_page else "unknown"),
+            error_type=error_diagnosis['failure_type'],
             url=url,
-            error_message=main_page.error if main_page else "No content",
-            context={"site_type": site_profile.site_type.value if site_profile else "unknown"},
+            error_message=error_diagnosis['log_message'],
+            context={
+                "site_type": site_profile.site_type.value if site_profile else "unknown",
+                "diagnosis": error_diagnosis['diagnosis']
+            },
             strategy_used=str(strategies[0].value) if strategies else "",
             duration_ms=(time.perf_counter() - overall_start) * 1000
         )
-        site_knowledge.record_failure(url, main_page.error if main_page else "unknown")
+        site_knowledge.record_failure(url, error_diagnosis['log_message'])
         return "", [], []
     
     # 5. CONFIGURAÇÃO DE PERFORMANCE
@@ -391,6 +415,153 @@ def _classify_error(error_message: str) -> FailureType:
         return FailureType.CONNECTION_ERROR
     
     return FailureType.UNKNOWN
+
+
+def _diagnose_scrape_failure(page: Optional[ScrapedPage], url: str) -> dict:
+    """
+    Faz diagnóstico detalhado de por que o scrape falhou.
+    
+    Returns:
+        Dict com:
+        - log_message: Mensagem formatada para log
+        - failure_type: Tipo de falha para o tracker
+        - diagnosis: Descrição detalhada do problema
+    """
+    if not page:
+        return {
+            "log_message": "[❓ NO_RESPONSE] Nenhuma resposta obtida do servidor",
+            "failure_type": FailureType.CONNECTION_ERROR,
+            "diagnosis": "no_response"
+        }
+    
+    error = page.error or ""
+    error_lower = error.lower()
+    content = page.content or ""
+    content_lower = content.lower()
+    status = page.status_code or 0
+    
+    # 1. Verificar Cloudflare
+    if "cloudflare" in error_lower or "cloudflare" in content_lower:
+        if "challenge" in content_lower or "ray id" in content_lower:
+            return {
+                "log_message": "[🛡️ CLOUDFLARE_CHALLENGE] Site protegido por Cloudflare - requer resolução de desafio JS",
+                "failure_type": FailureType.CLOUDFLARE,
+                "diagnosis": "cloudflare_challenge"
+            }
+        return {
+            "log_message": "[🛡️ CLOUDFLARE] Site protegido por Cloudflare",
+            "failure_type": FailureType.CLOUDFLARE,
+            "diagnosis": "cloudflare"
+        }
+    
+    # 2. Verificar CAPTCHA
+    if "captcha" in error_lower or "captcha" in content_lower:
+        return {
+            "log_message": "[🤖 CAPTCHA] Site exige resolução de CAPTCHA",
+            "failure_type": FailureType.CAPTCHA,
+            "diagnosis": "captcha"
+        }
+    
+    # 3. Verificar bloqueio WAF/403
+    if status == 403 or "403" in error_lower or "forbidden" in error_lower:
+        return {
+            "log_message": "[🚫 BLOCKED_403] Acesso bloqueado pelo servidor (403 Forbidden)",
+            "failure_type": FailureType.WAF,
+            "diagnosis": "blocked_403"
+        }
+    
+    # 4. Verificar rate limiting
+    if status == 429 or "rate limit" in error_lower or "too many requests" in error_lower:
+        return {
+            "log_message": "[⏳ RATE_LIMITED] Muitas requisições - servidor aplicou rate limiting",
+            "failure_type": FailureType.RATE_LIMIT,
+            "diagnosis": "rate_limited"
+        }
+    
+    # 5. Verificar erro de servidor
+    if status >= 500:
+        return {
+            "log_message": f"[💥 SERVER_ERROR_{status}] Erro interno do servidor",
+            "failure_type": FailureType.CONNECTION_ERROR,
+            "diagnosis": f"server_error_{status}"
+        }
+    
+    # 6. Verificar soft 404
+    if "soft 404" in error_lower or status == 404:
+        return {
+            "log_message": "[📭 NOT_FOUND] Página não encontrada (404)",
+            "failure_type": FailureType.EMPTY_CONTENT,
+            "diagnosis": "not_found"
+        }
+    
+    # 7. Verificar timeout
+    if "timeout" in error_lower:
+        return {
+            "log_message": "[⏱️ TIMEOUT] Servidor demorou demais para responder",
+            "failure_type": FailureType.TIMEOUT,
+            "diagnosis": "timeout"
+        }
+    
+    # 8. Verificar SSL
+    if "ssl" in error_lower or "certificate" in error_lower:
+        return {
+            "log_message": "[🔒 SSL_ERROR] Problema com certificado SSL/TLS",
+            "failure_type": FailureType.SSL_ERROR,
+            "diagnosis": "ssl_error"
+        }
+    
+    # 9. Verificar conteúdo vazio ou muito pequeno (possível site JavaScript)
+    if len(content) < 100:
+        # Verificar se o HTML tem indicadores de JavaScript-heavy site
+        raw_html = page.content if page.content else ""
+        
+        # Detectar sinais de site JavaScript-heavy
+        js_indicators = [
+            "react" in raw_html.lower(),
+            "angular" in raw_html.lower(),
+            "vue" in raw_html.lower(),
+            "__next" in raw_html.lower(),  # Next.js
+            "window.__" in raw_html.lower(),
+            "data-reactroot" in raw_html.lower(),
+            'id="root"' in raw_html.lower() and len(content) < 200,
+            'id="app"' in raw_html.lower() and len(content) < 200,
+            "noscript" in raw_html.lower() and "javascript" in raw_html.lower(),
+        ]
+        
+        if any(js_indicators):
+            return {
+                "log_message": "[⚡ JAVASCRIPT_REQUIRED] Site renderizado por JavaScript - conteúdo não acessível via HTTP simples",
+                "failure_type": FailureType.EMPTY_CONTENT,
+                "diagnosis": "javascript_required"
+            }
+        
+        # Verificar se é site baseado em imagens (como CONAIR)
+        if "<img" in raw_html.lower() and "<table" in raw_html.lower() and len(content) < 100:
+            return {
+                "log_message": "[🖼️ IMAGE_BASED] Site baseado em imagens sem conteúdo textual",
+                "failure_type": FailureType.EMPTY_CONTENT,
+                "diagnosis": "image_based_site"
+            }
+        
+        return {
+            "log_message": f"[📄 EMPTY_CONTENT] Conteúdo insuficiente ({len(content)} chars) - página pode estar vazia ou protegida",
+            "failure_type": FailureType.EMPTY_CONTENT,
+            "diagnosis": "empty_content"
+        }
+    
+    # 10. Erro genérico
+    if error:
+        return {
+            "log_message": f"[❓ ERROR] {error}",
+            "failure_type": _classify_error(error),
+            "diagnosis": "unknown_error"
+        }
+    
+    return {
+        "log_message": "[❓ UNKNOWN] Falha desconhecida no scraping",
+        "failure_type": FailureType.UNKNOWN,
+        "diagnosis": "unknown"
+    }
 
 
 async def _scrape_main_page(

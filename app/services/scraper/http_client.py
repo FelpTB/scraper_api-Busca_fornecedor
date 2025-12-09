@@ -6,6 +6,7 @@ Responsável por baixar o conteúdo das páginas.
 import asyncio
 import subprocess
 import logging
+import re
 from typing import Tuple, Set, Optional
 
 try:
@@ -19,6 +20,90 @@ from .constants import DEFAULT_HEADERS, scraper_config
 from .html_parser import parse_html
 
 logger = logging.getLogger(__name__)
+
+# Regex para detectar charset na meta tag HTML
+_CHARSET_META_REGEX = re.compile(
+    rb'<meta[^>]+charset=["\']?([^"\'\s>]+)',
+    re.IGNORECASE
+)
+_CHARSET_CONTENT_TYPE_REGEX = re.compile(
+    rb'<meta[^>]+content=["\'][^"\']*charset=([^"\'\s;]+)',
+    re.IGNORECASE
+)
+
+
+def _detect_encoding(content: bytes, content_type: Optional[str] = None) -> str:
+    """
+    Detecta o encoding do conteúdo HTML.
+    
+    Ordem de prioridade:
+    1. Header Content-Type
+    2. Meta tag charset
+    3. Fallback para UTF-8
+    
+    Args:
+        content: Bytes do conteúdo HTML
+        content_type: Header Content-Type da resposta
+    
+    Returns:
+        Nome do encoding detectado
+    """
+    # 1. Tentar extrair do header Content-Type
+    if content_type:
+        ct_lower = content_type.lower()
+        if 'charset=' in ct_lower:
+            charset = ct_lower.split('charset=')[-1].split(';')[0].strip()
+            if charset:
+                return charset
+    
+    # 2. Tentar extrair da meta tag (apenas primeiros 2KB para performance)
+    head_content = content[:2048]
+    
+    # Padrão: <meta charset="utf-8">
+    match = _CHARSET_META_REGEX.search(head_content)
+    if match:
+        return match.group(1).decode('ascii', errors='ignore').strip()
+    
+    # Padrão: <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    match = _CHARSET_CONTENT_TYPE_REGEX.search(head_content)
+    if match:
+        return match.group(1).decode('ascii', errors='ignore').strip()
+    
+    # 3. Fallback para UTF-8
+    return 'utf-8'
+
+
+def _decode_content(content: bytes, content_type: Optional[str] = None) -> str:
+    """
+    Decodifica bytes para string usando encoding detectado.
+    
+    Args:
+        content: Bytes do conteúdo
+        content_type: Header Content-Type da resposta
+    
+    Returns:
+        String decodificada
+    """
+    encoding = _detect_encoding(content, content_type)
+    
+    # Normalizar nomes de encoding comuns
+    encoding_map = {
+        'iso-8859-1': 'latin-1',
+        'iso8859-1': 'latin-1',
+        'latin1': 'latin-1',
+        'windows-1252': 'cp1252',
+    }
+    encoding = encoding_map.get(encoding.lower(), encoding)
+    
+    try:
+        return content.decode(encoding)
+    except (UnicodeDecodeError, LookupError):
+        # Se falhar, tentar UTF-8
+        try:
+            return content.decode('utf-8')
+        except UnicodeDecodeError:
+            # Último recurso: latin-1 (aceita qualquer byte)
+            return content.decode('latin-1')
 
 
 async def cffi_scrape(
@@ -60,7 +145,11 @@ async def cffi_scrape(
             logger.warning(f"CFFI Status {resp.status_code} para {url}")
             raise Exception(f"Status {resp.status_code}")
         
-        return parse_html(resp.text, url)
+        # Usar detecção de encoding para decodificar corretamente
+        content_type = resp.headers.get('content-type', '')
+        text = _decode_content(resp.content, content_type)
+        
+        return parse_html(text, url)
         
     except Exception as e:
         logger.debug(f"[CFFI] Erro em {url}: {type(e).__name__}: {str(e)}")
@@ -92,7 +181,12 @@ async def cffi_scrape_safe(
             resp = await s.get(url)
             if resp.status_code != 200:
                 raise Exception(f"Status {resp.status_code}")
-            return parse_html(resp.text, url)
+            
+            # Usar detecção de encoding para decodificar corretamente
+            content_type = resp.headers.get('content-type', '')
+            text = _decode_content(resp.content, content_type)
+            
+            return parse_html(text, url)
     except:
         return "", set(), set()
 
@@ -117,6 +211,7 @@ async def system_curl_scrape(
         headers_args.extend(["-H", f"{k}: {v}"])
     headers_args.extend(["-H", "Referer: https://www.google.com/"])
     
+    # Usar capture como bytes para poder detectar encoding
     cmd = ["curl", "-L", "-k", "-s", "--compressed", "--max-time", "15"]
     
     if proxy:
@@ -127,7 +222,7 @@ async def system_curl_scrape(
     try:
         res = await asyncio.to_thread(
             subprocess.run, cmd, 
-            capture_output=True, text=True, timeout=20
+            capture_output=True, timeout=20
         )
         
         if res.returncode != 0 or not res.stdout:
@@ -140,13 +235,15 @@ async def system_curl_scrape(
                 cmd_simple.extend(["-x", proxy])
             res = await asyncio.to_thread(
                 subprocess.run, cmd_simple, 
-                capture_output=True, text=True, timeout=15
+                capture_output=True, timeout=15
             )
             
             if res.returncode != 0 or not res.stdout:
                 raise Exception("Curl Failed")
-                
-        return parse_html(res.stdout, url)
+        
+        # Decodificar com detecção de encoding
+        text = _decode_content(res.stdout)
+        return parse_html(text, url)
         
     except Exception as e:
         logger.debug(f"[SystemCurl] Erro em {url}: {type(e).__name__}: {str(e)}")
@@ -166,6 +263,7 @@ async def system_curl_scrape_with_exception(
         headers_args.extend(["-H", f"{k}: {v}"])
     headers_args.extend(["-H", "Referer: https://www.google.com/"])
     
+    # Usar capture como bytes para poder detectar encoding
     cmd = ["curl", "-L", "-k", "-s", "--compressed", "--max-time", "15"]
     
     if proxy:
@@ -175,7 +273,7 @@ async def system_curl_scrape_with_exception(
     
     res = await asyncio.to_thread(
         subprocess.run, cmd, 
-        capture_output=True, text=True, timeout=20
+        capture_output=True, timeout=20
     )
     
     if res.returncode != 0 or not res.stdout:
@@ -187,11 +285,13 @@ async def system_curl_scrape_with_exception(
             cmd_simple.extend(["-x", proxy])
         res = await asyncio.to_thread(
             subprocess.run, cmd_simple, 
-            capture_output=True, text=True, timeout=15
+            capture_output=True, timeout=15
         )
         
         if res.returncode != 0 or not res.stdout:
             raise Exception("Curl Failed")
-            
-    return parse_html(res.stdout, url)
+    
+    # Decodificar com detecção de encoding
+    text = _decode_content(res.stdout)
+    return parse_html(text, url)
 
