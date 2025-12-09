@@ -27,14 +27,21 @@ DISCOVERY_BACKOFF_MAX = 16  # Máximo de backoff (segundos)
 
 # --- CONFIGURAÇÃO DO SERPER API ---
 # Rate Limit oficial: 300 queries/segundo
-# Usando 80% da capacidade para margem de segurança
-SERPER_RATE_LIMIT = 240  # queries por segundo (80% de 300)
-SERPER_RESPONSE_TIME = 2.0  # segundos esperados por query
-SERPER_RETRY_DELAY = 3.0  # segundos entre retries
+# Porém, limitamos concorrência local para evitar exaustão de conexões
+SERPER_CONCURRENT_LIMIT = 200  # conexões simultâneas máximas (limitação local, não da API)
+SERPER_REQUEST_TIMEOUT = 15.0  # timeout por request (segundos)
+SERPER_CONNECT_TIMEOUT = 5.0   # timeout para estabelecer conexão (segundos)
+SERPER_MAX_RETRIES = 3         # tentativas máximas por request
+SERPER_RETRY_BASE_DELAY = 1.0  # delay base para backoff exponencial (segundos)
+SERPER_RETRY_MAX_DELAY = 10.0  # delay máximo para backoff (segundos)
 
-# Semáforo global para controle de rate limit do Serper
+# Semáforo global para controle de concorrência do Serper
 _serper_semaphore: Optional[asyncio.Semaphore] = None
 _serper_lock = asyncio.Lock()
+
+# Cliente HTTP global com connection pooling
+_serper_client: Optional[httpx.AsyncClient] = None
+_serper_client_lock = asyncio.Lock()
 
 
 async def get_serper_semaphore() -> asyncio.Semaphore:
@@ -42,8 +49,46 @@ async def get_serper_semaphore() -> asyncio.Semaphore:
     global _serper_semaphore
     async with _serper_lock:
         if _serper_semaphore is None:
-            _serper_semaphore = asyncio.Semaphore(SERPER_RATE_LIMIT)
+            _serper_semaphore = asyncio.Semaphore(SERPER_CONCURRENT_LIMIT)
     return _serper_semaphore
+
+
+async def get_serper_client() -> httpx.AsyncClient:
+    """
+    Retorna cliente HTTP global com connection pooling.
+    
+    Connection pooling evita criar/destruir conexões a cada request,
+    o que era a causa dos erros de conexão em batch de 500 empresas.
+    """
+    global _serper_client
+    async with _serper_client_lock:
+        if _serper_client is None or _serper_client.is_closed:
+            _serper_client = httpx.AsyncClient(
+                timeout=httpx.Timeout(
+                    connect=SERPER_CONNECT_TIMEOUT,
+                    read=SERPER_REQUEST_TIMEOUT,
+                    write=SERPER_REQUEST_TIMEOUT,
+                    pool=SERPER_REQUEST_TIMEOUT
+                ),
+                limits=httpx.Limits(
+                    max_keepalive_connections=50,
+                    max_connections=SERPER_CONCURRENT_LIMIT,
+                    keepalive_expiry=30.0
+                ),
+                http2=True  # HTTP/2 para melhor performance
+            )
+            logger.info(f"🌐 Serper: Cliente HTTP criado (pool={SERPER_CONCURRENT_LIMIT}, http2=True)")
+    return _serper_client
+
+
+async def close_serper_client():
+    """Fecha o cliente HTTP global (chamar no shutdown da aplicação)."""
+    global _serper_client
+    async with _serper_client_lock:
+        if _serper_client and not _serper_client.is_closed:
+            await _serper_client.aclose()
+            _serper_client = None
+            logger.info("🌐 Serper: Cliente HTTP fechado")
 
 
 # --- BLACKLIST DE DOMÍNIOS (Pré-filtro antes da LLM) ---
@@ -182,15 +227,17 @@ async def search_google_serper(query: str, num_results: int = 100) -> List[Dict[
     """
     Realiza uma busca no Google usando a API Serper.dev.
     
-    Rate Limiting:
-    - Limite: 240 queries/segundo (80% de 300)
-    - Usa semáforo para controle de fila
+    Melhorias v2.1:
+    - Connection pooling (cliente HTTP global)
+    - Retry com backoff exponencial
+    - Logging detalhado de erros (tipo + mensagem)
+    - Controle de concorrência local
     """
     if not settings.SERPER_API_KEY:
         logger.warning("⚠️ SERPER_API_KEY não configurada.")
         return await search_google(query, num_results)
 
-    # Obter semáforo de rate limit
+    # Obter semáforo de concorrência
     semaphore = await get_serper_semaphore()
     
     async with semaphore:
@@ -208,25 +255,45 @@ async def search_google_serper(query: str, num_results: int = 100) -> List[Dict[
             'Content-Type': 'application/json'
         }
 
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, headers=headers, data=payload, 
-                    timeout=SERPER_RESPONSE_TIME * 5  # 10s timeout
-                )
-                
-                if response.status_code == 429:
-                    # Rate limit atingido - aguardar e tentar novamente
-                    logger.warning(f"⚠️ Serper rate limit, aguardando {SERPER_RETRY_DELAY}s...")
-                    await asyncio.sleep(SERPER_RETRY_DELAY)
-                    response = await client.post(
-                        url, headers=headers, data=payload, timeout=10.0
+        # Obter cliente HTTP com connection pooling
+        client = await get_serper_client()
+        
+        last_error = None
+        last_error_type = None
+        
+        for attempt in range(SERPER_MAX_RETRIES):
+            try:
+                # Calcular delay de backoff (0 na primeira tentativa)
+                if attempt > 0:
+                    delay = min(
+                        SERPER_RETRY_BASE_DELAY * (2 ** (attempt - 1)) + random.uniform(0, 0.5),
+                        SERPER_RETRY_MAX_DELAY
                     )
+                    logger.debug(f"🔄 Serper retry {attempt + 1}/{SERPER_MAX_RETRIES} após {delay:.1f}s")
+                    await asyncio.sleep(delay)
                 
-                if response.status_code != 200:
-                    logger.error(f"❌ Serper API: {response.status_code}")
+                response = await client.post(url, headers=headers, content=payload)
+                
+                # Rate limit - fazer backoff e retry
+                if response.status_code == 429:
+                    logger.warning(f"⚠️ Serper rate limit (429), tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+                    last_error = "Rate limit (429)"
+                    last_error_type = "RateLimit"
+                    continue
+                
+                # Erro de servidor - pode ser temporário
+                if response.status_code >= 500:
+                    logger.warning(f"⚠️ Serper server error ({response.status_code}), tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+                    last_error = f"Server error ({response.status_code})"
+                    last_error_type = "ServerError"
+                    continue
+                
+                # Erro de cliente (4xx exceto 429) - não faz retry
+                if response.status_code >= 400:
+                    logger.error(f"❌ Serper client error: {response.status_code}")
                     return []
                 
+                # Sucesso
                 data = response.json()
                 organic_results = data.get("organic", [])
                 
@@ -241,9 +308,35 @@ async def search_google_serper(query: str, num_results: int = 100) -> List[Dict[
                 logger.debug(f"✅ Serper: {len(results)} resultados")
                 return results
                 
-        except Exception as e:
-            logger.error(f"❌ Serper erro: {e}")
-            return []
+            except httpx.TimeoutException as e:
+                last_error_type = "Timeout"
+                last_error = f"timeout após {SERPER_REQUEST_TIMEOUT}s"
+                logger.warning(f"⚠️ Serper {last_error_type}: {last_error}, tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+                
+            except httpx.ConnectError as e:
+                last_error_type = "ConnectError"
+                last_error = str(e) if str(e) else "falha ao conectar"
+                logger.warning(f"⚠️ Serper {last_error_type}: {last_error}, tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+                
+            except httpx.PoolTimeout as e:
+                last_error_type = "PoolTimeout"
+                last_error = "pool de conexões esgotado"
+                logger.warning(f"⚠️ Serper {last_error_type}: {last_error}, tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+                
+            except httpx.HTTPStatusError as e:
+                last_error_type = "HTTPStatusError"
+                last_error = f"status {e.response.status_code}"
+                logger.warning(f"⚠️ Serper {last_error_type}: {last_error}, tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+                
+            except Exception as e:
+                # Captura qualquer outra exceção com tipo explícito
+                last_error_type = type(e).__name__
+                last_error = str(e) if str(e) else "erro desconhecido"
+                logger.warning(f"⚠️ Serper {last_error_type}: {last_error}, tentativa {attempt + 1}/{SERPER_MAX_RETRIES}")
+        
+        # Todas as tentativas falharam
+        logger.error(f"❌ Serper falhou após {SERPER_MAX_RETRIES} tentativas: [{last_error_type}] {last_error}")
+        return []
 
 async def search_google(query: str, num_results: int = 10) -> List[Dict[str, str]]:
     """

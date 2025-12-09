@@ -42,15 +42,35 @@ def normalize_llm_response(data: Any) -> dict:
 
 
 def _normalize_team(data: dict) -> None:
-    """Normaliza a seção team."""
+    """
+    Normaliza a seção team.
+    
+    Correções v2.1:
+    - Filtra None e não-strings de key_roles e team_certifications
+    """
     if "team" in data:
         if not isinstance(data["team"], dict):
             data["team"] = {}
         team = data["team"]
-        if team.get("key_roles") is None:
-            team["key_roles"] = []
-        if team.get("team_certifications") is None:
-            team["team_certifications"] = []
+        
+        # key_roles e team_certifications: filtrar valores inválidos
+        for field in ["key_roles", "team_certifications"]:
+            if team.get(field) is None:
+                team[field] = []
+            elif isinstance(team[field], list):
+                # Filtrar: apenas strings não-vazias
+                team[field] = [
+                    item for item in team[field]
+                    if isinstance(item, str) and item.strip()
+                ]
+            elif isinstance(team[field], str) and team[field].strip():
+                team[field] = [team[field].strip()]
+            else:
+                team[field] = []
+        
+        # size_range: garantir que é string ou None
+        if team.get("size_range") is not None and not isinstance(team.get("size_range"), str):
+            team["size_range"] = str(team["size_range"]) if team["size_range"] else None
 
 
 def _normalize_offerings(data: dict) -> None:
@@ -122,7 +142,13 @@ def _normalize_service_details(offerings: dict) -> None:
 
 
 def _normalize_reputation(data: dict) -> None:
-    """Normaliza a seção reputation."""
+    """
+    Normaliza a seção reputation.
+    
+    Correções v2.1:
+    - Filtra dicts/None de listas (partnerships, certifications, etc.)
+    - Extrai strings de objetos complexos quando possível
+    """
     if "reputation" in data:
         if not isinstance(data["reputation"], dict):
             data["reputation"] = {}
@@ -132,10 +158,36 @@ def _normalize_reputation(data: dict) -> None:
             if reputation.get(field) is None:
                 reputation[field] = []
             elif not isinstance(reputation[field], list):
-                if isinstance(reputation[field], str):
-                    reputation[field] = [reputation[field]]
+                if isinstance(reputation[field], str) and reputation[field].strip():
+                    reputation[field] = [reputation[field].strip()]
                 else:
                     reputation[field] = []
+            else:
+                # Filtrar lista: apenas strings válidas
+                # Se item é dict, tenta extrair nome/title/name
+                valid_items = []
+                for item in reputation[field]:
+                    if isinstance(item, str) and item.strip():
+                        valid_items.append(item.strip())
+                    elif isinstance(item, dict):
+                        # Tentar extrair string de campos comuns
+                        extracted = (
+                            item.get("name") or 
+                            item.get("title") or 
+                            item.get("partner_name") or
+                            item.get("company") or
+                            item.get("client_name") or
+                            item.get("certification") or
+                            item.get("award")
+                        )
+                        if extracted and isinstance(extracted, str) and extracted.strip():
+                            valid_items.append(extracted.strip())
+                            logger.debug(f"Extraído '{extracted}' de dict em {field}")
+                        else:
+                            logger.warning(f"Item dict ignorado em {field}: {list(item.keys())[:3]}")
+                    elif item is not None:
+                        logger.warning(f"Item inválido em {field}: {type(item).__name__}")
+                reputation[field] = valid_items
         
         _normalize_case_studies(reputation)
 
@@ -167,14 +219,79 @@ def _normalize_case_studies(reputation: dict) -> None:
 
 
 def _normalize_contact(data: dict) -> None:
-    """Normaliza a seção contact."""
+    """
+    Normaliza a seção contact.
+    
+    Correções v2.1:
+    - website_url: lista → primeira string válida
+    - emails/phones/locations: filtra None e não-strings
+    - linkedin_url: lista → primeira string válida
+    """
     if "contact" in data:
         if not isinstance(data["contact"], dict):
             data["contact"] = {}
         contact = data["contact"]
+        
+        # Campos de lista: filtrar valores inválidos (None, não-strings, strings vazias)
         for field in ["emails", "phones", "locations"]:
             if contact.get(field) is None:
                 contact[field] = []
+            elif isinstance(contact[field], list):
+                # Filtrar: apenas strings não-vazias
+                contact[field] = [
+                    item for item in contact[field]
+                    if isinstance(item, str) and item.strip()
+                ]
+            elif isinstance(contact[field], str) and contact[field].strip():
+                # String única → converter para lista
+                contact[field] = [contact[field].strip()]
+            else:
+                contact[field] = []
+        
+        # website_url: deve ser string, não lista
+        website = contact.get("website_url")
+        if website is None:
+            pass  # Manter None (campo opcional)
+        elif isinstance(website, list):
+            # Lista → extrair primeira URL válida
+            valid_url = None
+            for url in website:
+                if isinstance(url, str) and url.strip() and url.startswith("http"):
+                    valid_url = url.strip()
+                    break
+            if valid_url:
+                logger.warning(f"website_url era lista, extraído: {valid_url[:50]}...")
+            contact["website_url"] = valid_url
+        elif isinstance(website, str) and website.strip():
+            contact["website_url"] = website.strip()
+        else:
+            contact["website_url"] = None
+        
+        # linkedin_url: mesmo tratamento
+        linkedin = contact.get("linkedin_url")
+        if linkedin is None:
+            pass
+        elif isinstance(linkedin, list):
+            valid_url = None
+            for url in linkedin:
+                if isinstance(url, str) and url.strip() and "linkedin" in url.lower():
+                    valid_url = url.strip()
+                    break
+            if valid_url:
+                logger.warning(f"linkedin_url era lista, extraído: {valid_url[:50]}...")
+            contact["linkedin_url"] = valid_url
+        elif isinstance(linkedin, str) and linkedin.strip():
+            contact["linkedin_url"] = linkedin.strip()
+        else:
+            contact["linkedin_url"] = None
+        
+        # headquarters_address: garantir que é string
+        address = contact.get("headquarters_address")
+        if address is not None and not isinstance(address, str):
+            if isinstance(address, list) and address:
+                contact["headquarters_address"] = str(address[0]) if address[0] else None
+            else:
+                contact["headquarters_address"] = None
 
 
 def _normalize_root_fields(data: dict) -> None:
