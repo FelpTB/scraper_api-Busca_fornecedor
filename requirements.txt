@@ -11,3 +11,6 @@ curl_cffi
 httpx
 beautifulsoup4
 hypercorn
+matplotlib
+pandas
+mistral-common[sentencepiece]>=0.2.0

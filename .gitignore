@@ -9,6 +9,8 @@ results/
 resultado.json
 logs.*.json
 logs_app*.json
+logs/
+debug_profile_builder/
 analysis_*.json
 
 # Test reports
