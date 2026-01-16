@@ -15,3 +15,46 @@ analysis_*.json
 
 # Test reports
 tests/reports/*.json
+
+# IDE and editor
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Analysis and debug folders
+analysis/
+fixes/
+docs/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Test data
+empresas*.json
+erros.json
+*_answer.md
+
+# Example/template files with secrets
+exemploenv.md
+
+# Documentation that shouldn't be in deploy
+CONFIGURACAO_PROVIDERS.md
+INTEGRACAO_RUNPOD.md
+RUNPOD_CONFIG_FASE1.md
+cursor.md
+IMPLEMENTATION_PLAN.md
+PRD.md
+
+# Test files
+test_*.py
+pytest.ini
+tests/
