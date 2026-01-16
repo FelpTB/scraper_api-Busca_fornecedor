@@ -8,10 +8,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Instalar dependências do sistema necessárias para build e playwright
+# libpq-dev é necessário para compilar asyncpg (PostgreSQL driver)
 RUN apt-get update && apt-get install -y \
     gcc \
     libffi-dev \
     musl-dev \
+    libpq-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
