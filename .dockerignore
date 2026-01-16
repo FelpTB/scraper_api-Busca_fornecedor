@@ -1,25 +1,47 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.coverage
-.tox/
-.pytest_cache/
-.mypy_cache/
-results/
-.git/
+# Git
+.git
 .gitignore
-README.md
-steps.md
-cursor.md
-prd.md
-benchmark_last_content.txt
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
 
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
 
+# Logs
+logs/
+*.log
+
+# Testes
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentação
+docs/_build/
+docs/.doctrees/
+
+# Resultados temporários
+results/
+debug_*/
+
+# Arquivos de ambiente (não devem estar no Docker de qualquer forma)
+.env
+.env.local
+.env.*.local
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db

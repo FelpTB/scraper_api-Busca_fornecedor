@@ -19,6 +19,11 @@ RUN apt-get update && apt-get install -y \
 
 # Copiar requirements e instalar dependências Python
 COPY requirements.txt .
+# Atualizar pip primeiro para garantir instalação correta
+RUN pip install --upgrade pip setuptools wheel
+# Instalar asyncpg explicitamente primeiro (requer libpq-dev que já instalamos)
+RUN pip install --no-cache-dir asyncpg>=0.29.0
+# Depois instalar todas as outras dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Instalar navegadores do Playwright (necessário para crawl4ai)
