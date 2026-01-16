@@ -1,0 +1,5 @@
+{
+  "timeout": 70.0,
+  "max_retries": 2,
+  "serper_num_results": 25
+}

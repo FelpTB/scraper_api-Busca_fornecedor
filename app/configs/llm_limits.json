@@ -1,0 +1,100 @@
+{
+  "runpod": {
+    "mistralai/Ministral-3-8B-Instruct-2512": {
+      "rpm": 50000,
+      "rpm_note": "WHAT: limite de requisições/min do RunPod. WHY: controlar carga no pod. HOW: ↑ para mais throughput; ↓ para proteger o pod. WHEN: ajustar conforme capacidade do pod.",
+      "tpm": 10000000,
+      "tpm_note": "WHAT: tokens/min processados. WHY: controlar carga no pod. HOW: ↑ permite mais tokens; ↓ protege o pod. WHEN: ajustar conforme capacidade do pod.",
+      "context_window": 131072,
+      "context_window_note": "WHAT: tamanho máximo de contexto (128k tokens). WHY: garante que caiba o prompt. HOW: depende do modelo (não alterar). IMPACT: define teto de entrada suportada.",
+      "max_output_tokens": 8192,
+      "max_output_tokens_note": "WHAT: teto de tokens de saída. WHY: controlar tamanho de resposta. HOW: ↑ para respostas detalhadas; ↓ para economizar. WHEN: ajustar conforme necessidade.",
+      "weight": 50,
+      "weight_note": "WHAT: peso no balanceamento. WHY: priorizar RunPod como provider primário. HOW: ↑ envia mais tráfego; ↓ envia menos. WHEN: ajustar conforme necessidade.",
+      "description": "Mistral 3 8B Instruct (RunPod) - Provider Primário"
+    }
+  },
+  "google": {
+    "gemini-2.0-flash": {
+      "rpm": 10000,
+      "rpm_note": "WHAT: limite de requisições/min deste modelo. WHY: proteger contra 429. HOW: ↑ para acelerar picos; ↓ para reduzir bloqueios. WHEN: ajustar ao ver fila alta (↑) ou 429/custos (↓). IMPACT: mais/menos throughput imediato.",
+      "tpm": 10000000,
+      "tpm_note": "WHAT: tokens/min processados. WHY: controlar custo e 429. HOW: ↑ permite prompts/saídas maiores; ↓ limita gasto e risco de rate limit. WHEN: cargas maiores ou menor custo.",
+      "context_window": 1048576,
+      "context_window_note": "WHAT: tamanho máximo de contexto. WHY: garante que caiba o prompt. HOW: depende do provider (não alterar aqui). IMPACT: define teto de entrada suportada.",
+      "max_output_tokens": 8192,
+      "max_output_tokens_note": "WHAT: teto de tokens de saída. WHY: controlar verbosidade/custo. HOW: ↑ para respostas detalhadas; ↓ para economizar e ser conciso.",
+      "weight": 29,
+      "weight_note": "WHAT: peso no balanceamento. WHY: priorizar modelos. HOW: ↑ envia mais tráfego; ↓ envia menos. WHEN: ajustar conforme custo, latência ou qualidade.",
+      "description": "Gemini 2.0 Flash (1M context)"
+    }
+  },
+  "openai": {
+    "gpt-4.1-nano": {
+      "rpm": 5000,
+      "rpm_note": "WHAT: req/min deste modelo. WHY: evitar 429. HOW: ↑ acelera; ↓ aumenta margem. WHEN: se fila ou 429.",
+      "tpm": 4000000,
+      "tpm_note": "WHAT: tokens/min. WHY: custo/limite. HOW: ↑ para textos maiores; ↓ para economizar.",
+      "context_window": 1047576,
+      "context_window_note": "WHAT: teto de contexto ~1M. WHY: caber o prompt. IMPACT: não alterável aqui.",
+      "max_output_tokens": 32768,
+      "max_output_tokens_note": "WHAT: saída máxima. WHY: controlar custo. HOW: ↑ mais detalhes; ↓ mais economia.",
+      "weight": 14,
+      "weight_note": "WHAT: peso no balanceamento. HOW: ↑ mais carga; ↓ menos carga. WHEN: priorização/custo.",
+      "description": "GPT-4.1 Nano (1M context)"
+    }
+  },
+  "openrouter": {
+    "google/gemini-2.0-flash-lite-001": {
+      "rpm": 20000,
+      "rpm_note": "WHAT: req/min via OpenRouter. WHY: usar capacidade de pico. HOW: ↑ para throughput; ↓ para margem anti-429.",
+      "tpm": 10000000,
+      "tpm_note": "WHAT: tokens/min. WHY: custo/limite. HOW: ↑ mais tokens; ↓ economiza e evita 429.",
+      "context_window": 1048576,
+      "context_window_note": "WHAT: contexto máximo. WHY: cabeçalho de entrada. IMPACT: fixo do modelo.",
+      "max_output_tokens": 8192,
+      "max_output_tokens_note": "WHAT: saída máxima. HOW: ↑ detalha; ↓ economiza.",
+      "weight": 30,
+      "weight_note": "WHAT: peso no balanceamento. HOW: ↑ envia mais tráfego; ↓ menos.",
+      "description": "Gemini 2.0 Flash Lite via OpenRouter (1M context)"
+    },
+    "google/gemini-2.5-flash-lite": {
+      "rpm": 15000,
+      "rpm_note": "WHAT: req/min. WHY: throughput vs 429. HOW: ↑ acelera; ↓ protege.",
+      "tpm": 8000000,
+      "tpm_note": "WHAT: tokens/min. WHY: custo/limite. HOW: ↑ mais tokens; ↓ economiza.",
+      "context_window": 1048576,
+      "context_window_note": "WHAT: contexto máximo. IMPACT: define tamanho de prompt seguro.",
+      "max_output_tokens": 65536,
+      "max_output_tokens_note": "WHAT: saída máxima. HOW: ↑ respostas longas; ↓ custo.",
+      "weight": 25,
+      "weight_note": "WHAT: peso. HOW: ↑ mais tráfego; ↓ menos.",
+      "description": "Gemini 2.5 Flash Lite via OpenRouter (1M context)"
+    },
+    "openai/gpt-4.1-nano": {
+      "rpm": 10000,
+      "rpm_note": "WHAT: req/min via OpenRouter. WHY: throughput. HOW: ↑ pico; ↓ margem anti-429.",
+      "tpm": 5000000,
+      "tpm_note": "WHAT: tokens/min. HOW: ↑ mais tokens; ↓ economiza.",
+      "context_window": 1047576,
+      "context_window_note": "WHAT: contexto máximo ~1M. IMPACT: tamanho de prompt.",
+      "max_output_tokens": 32768,
+      "max_output_tokens_note": "WHAT: saída máxima. HOW: ↑ texto; ↓ custo.",
+      "weight": 20,
+      "weight_note": "WHAT: peso. HOW: ↑ tráfego; ↓ tráfego.",
+      "description": "GPT-4.1 Nano via OpenRouter (1M context)"
+    }
+  },
+  "config": {
+    "safety_margin": 0.8,
+    "safety_margin_note": "WHAT: fator de uso (80% do limite). WHY: evitar 429. HOW: ↑ (0.9) mais throughput/risco; ↓ (0.7) mais seguro/mais fila.",
+    "weighted_distribution": true,
+    "weighted_distribution_note": "WHAT: habilita balanceamento por peso. WHY: distribuir carga. HOW: true usa pesos; false ordem fixa.",
+    "total_providers_capacity_rpm": 50000,
+    "total_providers_capacity_rpm_note": "WHAT: capacidade RPM agregada para cálculo interno. WHY: dimensionar distribuição. HOW: ↑ assume mais espaço; ↓ torna conservador.",
+    "default_max_chunk_tokens": 200000,
+    "default_max_chunk_tokens_note": "WHAT: chunk padrão de entrada. WHY: evitar estouro de contexto/TPM. HOW: ↑ menos cortes/mais custo; ↓ mais cortes/mais seguro.",
+    "system_prompt_overhead": 2500,
+    "system_prompt_overhead_note": "WHAT: reserva de tokens para system prompt. WHY: evitar overflow de contexto. HOW: ↑ mais folga; ↓ mais risco de exceder."
+  }
+}

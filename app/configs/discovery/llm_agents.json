@@ -1,0 +1,10 @@
+{
+  "discovery": {
+    "timeout": 50.0,
+    "max_retries": 1
+  },
+  "link_selector": {
+    "timeout": 40.0,
+    "max_retries": 1
+  }
+}

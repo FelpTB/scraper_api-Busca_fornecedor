@@ -1,0 +1,20 @@
+{
+  "unhealthy_threshold": 30,
+  "unhealthy_threshold_note": "WHAT: score abaixo disto é unhealthy. WHY: cortar provider ruim. HOW: ↑ tolera mais falhas; ↓ mais rígido.",
+  "degraded_threshold": 60,
+  "degraded_threshold_note": "WHAT: score abaixo disto é degradado. WHY: sinalizar degradação. HOW: ↑ mais tolerante; ↓ mais sensível.",
+  "latency_ideal_ms": 3000,
+  "latency_ideal_ms_note": "WHAT: latência ideal (ms). WHY: referência para score. HOW: ↑ aceita respostas mais lentas como ideais; ↓ exige mais rapidez. CHANGED: 2000→3000.",
+  "latency_max_ms": 25000,
+  "latency_max_ms_note": "WHAT: latência máxima (ms) para score zero. WHY: limitar tempo aceitável. HOW: ↑ tolera lentidão; ↓ zera score mais cedo. CHANGED: 30000→25000.",
+  "score_weights": {
+    "success_rate": 0.40,
+    "success_rate_note": "Peso do sucesso. WHY: refletir estabilidade.",
+    "latency": 0.30,
+    "latency_note": "Peso da latência. WHY: refletir rapidez.",
+    "rate_limit": 0.20,
+    "rate_limit_note": "Peso de rate limit. WHY: punir 429.",
+    "recency": 0.10,
+    "recency_note": "Peso de recência de falha. WHY: considerar falhas recentes."
+  }
+}

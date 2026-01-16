@@ -1,0 +1,45 @@
+{
+  "max_chunk_tokens": 20000,
+  "max_chunk_tokens_note": "WHAT: Limite máximo de tokens por chunk (input para LLM). WHY: Garantir que input+system_message não exceda context window. HOW: ↑ menos chunks/mais contexto; ↓ mais chunks/mais seguro. WHEN: Ajustar conforme limite do modelo.",
+
+  "system_prompt_overhead": 2500,
+  "system_prompt_overhead_note": "WHAT: Tokens reservados para system prompt. WHY: O system prompt consome parte do context window. HOW: Medir tamanho real do SYSTEM_PROMPT em tokens.",
+
+  "message_overhead": 200,
+  "message_overhead_note": "WHAT: Tokens para formatação de mensagens (role markers, separadores). WHY: Chat format adiciona tokens extras. HOW: ~100 tokens por mensagem × 2 mensagens.",
+
+  "safety_margin": 0.85,
+  "safety_margin_note": "WHAT: Fator de segurança (85% do limite). WHY: Margem para variações de tokenização. HOW: ↑ (0.90) mais tokens/risco; ↓ (0.80) menos tokens/seguro.",
+
+  "group_target_tokens": 12000,
+  "group_target_tokens_note": "WHAT: Alvo de tokens ao agrupar páginas pequenas. WHY: Otimizar número de chamadas LLM. HOW: ↑ chunks maiores/menos chamadas; ↓ chunks menores/mais chamadas.",
+
+  "min_chunk_chars": 500,
+  "min_chunk_chars_note": "WHAT: Mínimo de caracteres por chunk. WHY: Evitar fragmentos muito pequenos. HOW: Chunks menores são mesclados ou descartados.",
+
+  "dedupe": {
+    "enabled": true,
+    "enabled_note": "WHAT: Ativar deduplicação de linhas. WHY: Remover conteúdo repetido (menus, headers). HOW: true/false.",
+
+    "scope": "document",
+    "scope_note": "WHAT: Escopo da deduplicação. WHY: 'document' remove em todo arquivo; 'consecutive' só consecutivas. HOW: 'document' | 'consecutive'.",
+
+    "min_line_length": 5,
+    "min_line_length_note": "WHAT: Tamanho mínimo de linha para deduplicar. WHY: Linhas muito curtas podem ser intencionais. HOW: ↑ ignora linhas curtas; ↓ dedup mais agressivo.",
+
+    "preserve_first_occurrence": true,
+    "preserve_first_occurrence_note": "WHAT: Manter primeira ocorrência de linha repetida. WHY: Preservar ordem natural do conteúdo. HOW: Sempre true."
+  },
+
+  "tokenizer": {
+    "type": "mistral-common",
+    "type_note": "WHAT: Tipo de tokenizer. WHY: Contagem precisa de tokens. HOW: 'mistral-common' | 'tiktoken' | 'estimate'.",
+
+    "model": "mistralai/Ministral-3-8B-Instruct-2512",
+    "model_note": "WHAT: Modelo para tokenizer. WHY: Cada modelo tem tokenizer diferente. HOW: HuggingFace model ID.",
+
+    "fallback_chars_per_token": 3,
+    "fallback_chars_per_token_note": "WHAT: Estimativa chars/token se tokenizer falhar. WHY: Fallback para contagem. HOW: ~3 para português/markdown."
+  }
+}
+

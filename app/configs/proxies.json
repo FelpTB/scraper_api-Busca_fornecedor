@@ -1,0 +1,6 @@
+{
+  "max_latency_ms": 250,
+  "max_latency_ms_note": "WHAT: latência máxima aceitável (ms). WHY: qualidade da rota. HOW: ↑ aceita mais proxies lentos; ↓ filtra para rotas mais rápidas. CHANGED: 300→250.",
+  "max_failures": 2,
+  "max_failures_note": "WHAT: falhas antes de quarentena. WHY: manter pool saudável. HOW: ↑ tolerante (mais tentativas); ↓ agressivo (limpa rápido). CHANGED: 3→2."
+}
