@@ -405,13 +405,24 @@ class ProviderManager:
         
         # Verificar se o conteúdo cabe no context window do provider
         safe_input_tokens = self._rate_limiter.get_safe_input_tokens(provider)
+        context_window = self._rate_limiter.get_context_window(provider)
+
+        # CORREÇÃO CRÍTICA: Validação mais conservadora para RunPod
+        # O vLLM calcula internamente: max_tokens = context_window - prompt_tokens - safety_margin
+        # Quando prompt_tokens > context_window, max_tokens fica negativo causando "max_tokens must be at least 1, got -XXXX"
+        is_runpod = "runpod" in provider.lower() or "runpod" in config.base_url.lower()
+        if is_runpod:
+            # Para RunPod, ser ainda mais conservador: usar apenas 80% do context window
+            # Isso deixa margem para system prompts internos e formatação do vLLM
+            safe_input_tokens = int(context_window * 0.8)  # 80% do context window
+
         if estimated_tokens > safe_input_tokens:
-            context_window = self._rate_limiter.get_context_window(provider)
             logger.error(
                 f"{ctx_label}❌ Conteúdo muito grande para {provider}! "
                 f"Estimado: {estimated_tokens:,} tokens, "
                 f"Limite seguro: {safe_input_tokens:,} tokens, "
                 f"Context window: {context_window:,} tokens"
+                f"{' (RunPod: usando 80% do context window)' if is_runpod else ''}"
             )
             raise ProviderBadRequestError(
                 f"Conteúdo excede context window do {provider}. "
