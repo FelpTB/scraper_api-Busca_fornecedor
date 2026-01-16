@@ -101,9 +101,25 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handler para exceções HTTP com informações adicionais"""
+    response_content = {
+        "detail": exc.detail,
+        "status_code": exc.status_code,
+        "path": str(request.url.path),
+        "method": request.method
+    }
+    
+    # Adicionar sugestão para erro "Method Not Allowed"
+    if exc.status_code == 405:
+        response_content["suggestion"] = "Verifique se está usando o método HTTP correto. Endpoints v2 requerem POST."
+        response_content["available_endpoints"] = {
+            "GET": ["/", "/health", "/v2", "/docs", "/redoc"],
+            "POST": ["/v2/serper", "/v2/encontrar_site", "/v2/scrape", "/v2/montagem_perfil"]
+        }
+    
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail}
+        content=response_content
     )
 
 
@@ -249,4 +265,32 @@ async def process_analysis(url: str, ctx_label: str = "", request_id: str = "") 
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "service": "B2B Flash Profiler"}
+    """Endpoint raiz - informações básicas da API"""
+    return {
+        "status": "ok",
+        "service": "B2B Flash Profiler",
+        "version": "2.0",
+        "endpoints": {
+            "v2": "/v2",
+            "docs": "/docs",
+            "redoc": "/redoc"
+        }
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    try:
+        # Testar conexão com banco
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        db_status = "ok"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "status": "ok",
+        "database": db_status,
+        "service": "B2B Flash Profiler"
+    }

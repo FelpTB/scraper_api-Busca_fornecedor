@@ -8,6 +8,22 @@ from app.api.v2 import serper, encontrar_site, scrape, montagem_perfil
 # Criar router principal
 router = APIRouter()
 
+# Endpoint de health check e documentação
+@router.get("/")
+async def v2_root():
+    """Endpoint raiz da API v2 - lista endpoints disponíveis"""
+    return {
+        "version": "v2",
+        "status": "ok",
+        "endpoints": {
+            "serper": "POST /v2/serper",
+            "encontrar_site": "POST /v2/encontrar_site",
+            "scrape": "POST /v2/scrape",
+            "montagem_perfil": "POST /v2/montagem_perfil"
+        },
+        "docs": "/docs"
+    }
+
 # Incluir todos os routers v2
 router.include_router(serper.router, tags=["v2-serper"])
 router.include_router(encontrar_site.router, tags=["v2-discovery"])
