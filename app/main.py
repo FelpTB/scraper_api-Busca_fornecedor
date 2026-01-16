@@ -22,6 +22,9 @@ from app.services.discovery import find_company_website
 from app.core.security import get_api_key
 from app.core.logging_utils import setup_logging
 from app.services.llm_manager import start_health_monitor
+from app.core.database import get_pool, close_pool, test_connection
+from app.core.vllm_client import check_vllm_health
+from app.api.v2.router import router as v2_router
 
 # Configurar Logging (JSON Structured)
 setup_logging()
@@ -29,13 +32,41 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="B2B Flash Profiler")
 
+# Registrar router v2
+app.include_router(v2_router, prefix="/api/v2")
+
 # Iniciar monitor de saúde dos providers LLM no startup
 @app.on_event("startup")
 async def startup_event():
     """Executado quando a aplicação inicia"""
+    # Inicializar pool de conexões do banco de dados
+    try:
+        await get_pool()
+        # Testar conexão
+        if await test_connection():
+            logger.info("✅ Conexão com banco de dados estabelecida")
+        else:
+            logger.warning("⚠️ Falha ao testar conexão com banco de dados")
+    except Exception as e:
+        logger.error(f"❌ Erro ao inicializar banco de dados: {e}")
+    
+    # Health check do vLLM
+    try:
+        vllm_health = await check_vllm_health()
+        logger.info(f"🔍 vLLM Health: {vllm_health}")
+    except Exception as e:
+        logger.warning(f"⚠️ Erro ao verificar saúde do vLLM: {e}")
+    
     start_health_monitor()
 
     logger.info("🚀 Aplicação inicializada com sucesso")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Executado quando a aplicação encerra"""
+    await close_pool()
+    logger.info("🔌 Aplicação encerrada")
 
 
 class CompanyRequest(BaseModel):
