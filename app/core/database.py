@@ -32,8 +32,20 @@ async def get_pool() -> asyncpg.Pool:
         try:
             # Função para configurar search_path em cada conexão
             async def init_connection(conn):
-                await conn.execute(f'SET search_path TO "{DB_SCHEMA}", public')
-                logger.debug(f"🔍 Search path configurado para: {DB_SCHEMA}")
+                """
+                Configura search_path para cada conexão do pool.
+                Executado automaticamente pelo asyncpg quando uma nova conexão é criada.
+                
+                IMPORTANTE: Schema sem aspas no SET search_path (foi criado sem aspas).
+                """
+                try:
+                    # Schema sem aspas no SET search_path (foi criado sem aspas)
+                    await conn.execute(f'SET search_path TO {DB_SCHEMA}, public')
+                    logger.debug(f"✅ Search path configurado: {DB_SCHEMA}")
+                except Exception as e:
+                    # Se falhar, a conexão não será adicionada ao pool
+                    logger.error(f"❌ Erro crítico ao configurar search_path no init_connection: {e}")
+                    raise
             
             _pool = await asyncpg.create_pool(
                 settings.DATABASE_URL,
