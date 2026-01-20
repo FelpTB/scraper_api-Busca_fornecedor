@@ -11,7 +11,27 @@
       "max_output_tokens_note": "WHAT: teto de tokens de saída. WHY: controlar tamanho de resposta. HOW: ↑ para respostas detalhadas; ↓ para economizar. WHEN: ajustar conforme necessidade.",
       "weight": 50,
       "weight_note": "WHAT: peso no balanceamento. WHY: priorizar RunPod como provider primário. HOW: ↑ envia mais tráfego; ↓ envia menos. WHEN: ajustar conforme necessidade.",
+      "supports_structured_output": true,
+      "structured_output_backend": "xgrammar",
       "description": "Mistral 3 8B Instruct (RunPod) - Provider Primário"
+    },
+    "Qwen/Qwen2.5-3B-Instruct": {
+      "rpm": 50000,
+      "rpm_note": "WHAT: limite de requisições/min do RunPod SGLang. WHY: controlar carga no pod. HOW: ↑ para mais throughput; ↓ para proteger o pod.",
+      "tpm": 10000000,
+      "tpm_note": "WHAT: tokens/min processados. WHY: controlar carga no pod. HOW: ↑ permite mais tokens; ↓ protege o pod.",
+      "context_window": 32768,
+      "context_window_note": "WHAT: tamanho máximo de contexto (32k tokens). WHY: Qwen2.5-3B suporta 32k. HOW: depende do modelo (não alterar).",
+      "max_output_tokens": 4096,
+      "max_output_tokens_note": "WHAT: teto de tokens de saída. WHY: controlar tamanho de resposta para profile. HOW: 4k suficiente para JSON completo.",
+      "weight": 50,
+      "weight_note": "WHAT: peso no balanceamento. WHY: priorizar RunPod SGLang como provider primário.",
+      "supports_structured_output": true,
+      "structured_output_backend": "xgrammar",
+      "structured_output_note": "SGLang com XGrammar suporta json_schema nativo para garantir JSON válido.",
+      "recommended_temperature": 0.0,
+      "recommended_temperature_note": "Para JSON estruturado, usar temperature 0 para output determinístico.",
+      "description": "Qwen 2.5 3B Instruct (SGLang/RunPod) - Provider Primário com Structured Output"
     }
   },
   "google": {

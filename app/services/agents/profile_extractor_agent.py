@@ -3,11 +3,16 @@ Agente de Extração de Perfil - Extrai dados estruturados de conteúdo scraped.
 
 Responsável por analisar conteúdo de sites e extrair informações de perfil
 de empresa em formato estruturado.
+
+v4.0: Suporte a Structured Output via SGLang/XGrammar
+      - Usa json_schema do Pydantic para garantir JSON válido
+      - XGrammar garante aderência ao schema durante geração
+      - Fallback para json_repair se necessário
 """
 
 import json
 import logging
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 import json_repair
 
@@ -18,10 +23,40 @@ from app.services.concurrency_manager.config_loader import get_section as get_co
 
 logger = logging.getLogger(__name__)
 
+# Cache do schema JSON para evitar recomputação
+_COMPANY_PROFILE_SCHEMA: Optional[Dict[str, Any]] = None
+
+
+def _get_company_profile_schema() -> Dict[str, Any]:
+    """
+    Retorna JSON Schema do CompanyProfile para structured output.
+    
+    Usa cache para evitar recomputação do schema.
+    
+    Returns:
+        Dict com JSON Schema completo do CompanyProfile
+    """
+    global _COMPANY_PROFILE_SCHEMA
+    
+    if _COMPANY_PROFILE_SCHEMA is None:
+        # Gerar schema a partir do modelo Pydantic
+        _COMPANY_PROFILE_SCHEMA = CompanyProfile.model_json_schema()
+        logger.info(
+            f"ProfileExtractorAgent: Schema JSON gerado "
+            f"({len(json.dumps(_COMPANY_PROFILE_SCHEMA))} chars)"
+        )
+    
+    return _COMPANY_PROFILE_SCHEMA
+
 
 class ProfileExtractorAgent(BaseAgent):
     """
     Agente especializado em extrair perfil de empresa de conteúdo scraped.
+    
+    v4.0: Otimizado para SGLang com Qwen2.5-3B-Instruct
+          - Usa json_schema via XGrammar para garantir JSON válido
+          - Temperature 0.0 para output determinístico
+          - Schema baseado no modelo Pydantic CompanyProfile
     
     Usa prioridade NORMAL por padrão pois roda após Discovery e LinkSelector.
     """
@@ -30,6 +65,9 @@ class ProfileExtractorAgent(BaseAgent):
     _CFG = get_config("profile/llm_agents", {}).get("profile_extractor", {})
     DEFAULT_TIMEOUT = _CFG.get("timeout", 90.0)
     DEFAULT_MAX_RETRIES = _CFG.get("max_retries", 2)
+    
+    # Temperature otimizada para structured output (determinístico)
+    DEFAULT_TEMPERATURE: float = 0.0
     
     SYSTEM_PROMPT = """Você é um extrator de dados B2B especializado. Gere estritamente um JSON válido correspondente ao schema abaixo.
 Extraia dados do texto Markdown e PDF fornecido.
@@ -121,9 +159,34 @@ Schema (Mantenha as chaves em inglês, valores em Português):
 }
 """
     
+    def _get_json_schema(self) -> Optional[Dict[str, Any]]:
+        """
+        Retorna JSON Schema do CompanyProfile para structured output.
+        
+        SGLang/XGrammar usa este schema para garantir que a saída
+        seja um JSON válido conforme a estrutura definida.
+        
+        Returns:
+            Dict com JSON Schema do CompanyProfile
+        """
+        return _get_company_profile_schema()
+    
+    def _get_schema_name(self) -> str:
+        """
+        Retorna nome do schema para identificação.
+        
+        Returns:
+            Nome do schema
+        """
+        return "company_profile_extraction"
+    
     def _build_user_prompt(self, content: str = "", **kwargs) -> str:
         """
         Constrói prompt com conteúdo para análise.
+        
+        v4.0: Prompt otimizado para structured output
+              - Menos instruções de formato (XGrammar garante)
+              - Foco na qualidade da extração
         
         Args:
             content: Conteúdo scraped para análise
@@ -131,11 +194,23 @@ Schema (Mantenha as chaves em inglês, valores em Português):
         Returns:
             Prompt formatado
         """
+        # Se usando structured output, menos instruções de formato necessárias
+        if self._use_structured_output:
+            return f"""Analise este conteúdo e extraia os dados da empresa em Português.
+Preencha todos os campos disponíveis baseado no conteúdo fornecido.
+
+CONTEÚDO:
+{content}"""
+        
+        # Fallback: prompt original com instruções de formato
         return f"Analise este conteúdo e extraia os dados em Português:\n\n{content}"
     
     def _parse_response(self, response: str, **kwargs) -> CompanyProfile:
         """
         Processa resposta e cria CompanyProfile.
+        
+        v4.0: Com structured output via XGrammar, o JSON é garantido válido.
+              O parsing é simplificado e mais robusto.
         
         Args:
             response: Resposta JSON do LLM
@@ -144,41 +219,61 @@ Schema (Mantenha as chaves em inglês, valores em Português):
             CompanyProfile com dados extraídos
         """
         try:
-            # Limpar markdown
-            content = response
+            content = response.strip()
+            
+            # Limpar markdown (caso provider não suporte structured output)
             if content.startswith("```json"):
                 content = content[7:]
             if content.startswith("```"):
                 content = content[3:]
             if content.endswith("```"):
                 content = content[:-3]
+            content = content.strip()
             
-            # Tentar parse JSON
+            # Com structured output, JSON deve ser válido na primeira tentativa
+            data = None
+            
+            # Tentativa 1: Parse direto (esperado funcionar com XGrammar)
             try:
                 data = json.loads(content)
-            except json.JSONDecodeError:
-                logger.warning("ProfileExtractorAgent: JSON padrão falhou, tentando reparar")
+                logger.debug("ProfileExtractorAgent: JSON parseado com sucesso (structured output)")
+            except json.JSONDecodeError as e:
+                # Structured output falhou - pode ser provider sem suporte
+                logger.warning(
+                    f"ProfileExtractorAgent: JSON inválido apesar de structured output: {e}. "
+                    f"Primeiros 200 chars: {content[:200]}"
+                )
+                
+                # Tentativa 2: json_repair como fallback
                 try:
                     data = json_repair.loads(content)
-                except Exception as e:
-                    logger.error(f"ProfileExtractorAgent: Falha crítica no parse JSON: {e}")
+                    logger.info("ProfileExtractorAgent: JSON reparado com sucesso")
+                except Exception as repair_error:
+                    logger.error(f"ProfileExtractorAgent: Falha crítica no parse JSON: {repair_error}")
                     return CompanyProfile()
             
             # Normalizar estrutura
             if isinstance(data, list):
                 data = data[0] if data and isinstance(data[0], dict) else {}
             if not isinstance(data, dict):
+                logger.warning(f"ProfileExtractorAgent: Resposta não é dict, tipo: {type(data)}")
                 data = {}
             
             # Normalizar resposta
             data = self._normalize_response(data)
             
-            # Criar perfil
+            # Criar perfil usando validação Pydantic
             try:
-                return CompanyProfile(**data)
+                # model_validate é mais robusto que **kwargs
+                return CompanyProfile.model_validate(data)
             except Exception as e:
-                logger.error(f"ProfileExtractorAgent: Erro ao criar CompanyProfile: {e}")
-                return CompanyProfile()
+                logger.warning(f"ProfileExtractorAgent: Validação Pydantic falhou: {e}, usando fallback")
+                # Fallback: construtor direto
+                try:
+                    return CompanyProfile(**data)
+                except Exception as fallback_error:
+                    logger.error(f"ProfileExtractorAgent: Fallback também falhou: {fallback_error}")
+                    return CompanyProfile()
                 
         except Exception as e:
             logger.error(f"ProfileExtractorAgent: Erro ao processar resposta: {e}")

@@ -104,8 +104,19 @@ class ProviderManager:
         # Carregar configuração de providers habilitados
         provider_enabled = self._load_provider_enabled_config()
         
-        # RunPod (Provider Primário)
-        runpod_config = limits.get("runpod", {}).get("mistralai/Ministral-3-8B-Instruct-2512", {})
+        # RunPod (Provider Primário) - Detectar modelo configurado
+        # v4.0: Suporte a Qwen2.5-3B-Instruct (SGLang) e Mistral
+        vllm_model = settings.VLLM_MODEL or settings.RUNPOD_MODEL or ""
+        is_qwen_model = "qwen" in vllm_model.lower()
+        runpod_model_key = "Qwen/Qwen2.5-3B-Instruct" if is_qwen_model else "mistralai/Ministral-3-8B-Instruct-2512"
+        runpod_config = limits.get("runpod", {}).get(runpod_model_key, {})
+        
+        # Log do modelo detectado
+        if is_qwen_model:
+            logger.info(f"ProviderManager: Detectado modelo Qwen: {vllm_model} (structured output via XGrammar)")
+        else:
+            logger.info(f"ProviderManager: Detectado modelo Mistral: {vllm_model}")
+        
         gemini_config = limits.get("google", {}).get("gemini-2.0-flash", {})
         openai_config = limits.get("openai", {}).get("gpt-4.1-nano", {})
         openrouter1_config = limits.get("openrouter", {}).get("google/gemini-2.0-flash-lite-001", {})
@@ -143,8 +154,15 @@ class ProviderManager:
         openrouter2_concurrent = max(250, int(openrouter2_rpm * safety_margin / 30))
         openrouter3_concurrent = max(200, int(openrouter3_rpm * safety_margin / 30))
         
+        # Verificar se structured output está habilitado para RunPod
+        runpod_structured = runpod_config.get("supports_structured_output", False)
+        runpod_backend = runpod_config.get("structured_output_backend", "none")
+        
         logger.info(f"LLM Limits carregados:")
-        logger.info(f"  RunPod Mistral: RPM={runpod_rpm}, TPM={runpod_tpm:,}, weight={runpod_weight}%")
+        logger.info(
+            f"  RunPod {runpod_model_key}: RPM={runpod_rpm}, TPM={runpod_tpm:,}, "
+            f"weight={runpod_weight}%, structured_output={runpod_structured} ({runpod_backend})"
+        )
         logger.info(f"  Google Gemini: RPM={gemini_rpm}, TPM={gemini_tpm:,}, weight={gemini_weight}%")
         logger.info(f"  OpenAI: RPM={openai_rpm}, TPM={openai_tpm:,}, weight={openai_weight}%")
         logger.info(f"  OpenRouter 1: RPM={openrouter1_rpm}, TPM={openrouter1_tpm:,}, weight={openrouter1_weight}%")
@@ -468,7 +486,13 @@ class ProviderManager:
         provider: str,
         estimated_tokens: int
     ) -> Tuple[str, float]:
-        """Executa a chamada LLM real com controle de rate limiting."""
+        """
+        Executa a chamada LLM real com controle de rate limiting.
+        
+        v4.0: Suporte a Structured Output via SGLang/XGrammar
+              - SGLang suporta json_schema nativo com XGrammar
+              - Habilita response_format para RunPod/SGLang
+        """
         
         # 1. Adquirir permissão do rate limiter (RPM + TPM)
         # Timeout reduzido para 5s (fail fast) para evitar lock contenção
@@ -490,8 +514,9 @@ class ProviderManager:
             start_time = time.perf_counter()
             
             try:
-                # Detectar RunPod (não suporta response_format)
+                # Detectar SGLang/RunPod (agora suporta response_format via XGrammar)
                 is_runpod = "runpod" in provider.lower() or "runpod" in config.base_url.lower()
+                is_sglang = is_runpod or "sglang" in config.base_url.lower()
                 
                 # Obter max_output_tokens do provider para garantir valor válido
                 max_output_tokens = self._rate_limiter.get_max_output_tokens(provider)
@@ -503,21 +528,41 @@ class ProviderManager:
                     "max_tokens": max_output_tokens  # Garantir valor explícito e válido
                 }
                 
-                # Para RunPod sem response_format: apenas reforçar no prompt
-                # NÃO usar stop tokens pois podem causar resposta vazia
-                if is_runpod and response_format:
-                    # Reforçar no último message que deve ser JSON puro
-                    if messages and messages[-1].get("role") == "user":
-                        user_msg = messages[-1]["content"]
-                        messages[-1]["content"] = f"""{user_msg}
+                # v4.0: SGLang com XGrammar suporta json_schema nativo
+                # Habilitar response_format para todos os providers que suportam
+                if response_format:
+                    response_format_type = response_format.get("type", "")
+                    
+                    if is_sglang:
+                        # SGLang: suporta json_schema e json_object via XGrammar
+                        if response_format_type == "json_schema":
+                            # json_schema: usar diretamente (XGrammar garante formato)
+                            request_params["response_format"] = response_format
+                            logger.debug(
+                                f"{ctx_label}ProviderManager: {provider} usando json_schema "
+                                f"(SGLang/XGrammar structured output)"
+                            )
+                        elif response_format_type == "json_object":
+                            # json_object: SGLang também suporta
+                            request_params["response_format"] = response_format
+                            logger.debug(
+                                f"{ctx_label}ProviderManager: {provider} usando json_object "
+                                f"(SGLang structured output)"
+                            )
+                        else:
+                            # Formato desconhecido: fallback para reforço de prompt
+                            if messages and messages[-1].get("role") == "user":
+                                user_msg = messages[-1]["content"]
+                                messages[-1]["content"] = f"""{user_msg}
 
-IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicações.
-A resposta deve começar com {{ e terminar com }}."""
-                    # Não usar stop tokens - confiar no prompt e fazer parsing robusto
-                    logger.debug(f"{ctx_label}ProviderManager: {provider} usando apenas reforço de prompt (sem stop tokens)")
-                elif response_format:
-                    # Outros providers: usar response_format normalmente
-                    request_params["response_format"] = response_format
+IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicações."""
+                            logger.debug(
+                                f"{ctx_label}ProviderManager: {provider} usando reforço de prompt "
+                                f"(formato {response_format_type} não suportado)"
+                            )
+                    else:
+                        # Outros providers: usar response_format normalmente
+                        request_params["response_format"] = response_format
                 
                 # Log dos parâmetros da requisição para debug
                 logger.debug(

@@ -337,11 +337,38 @@ class RateLimiter:
             "config": {"safety_margin": 0.8}
         }
     
+    def _detect_runpod_model(self) -> str:
+        """
+        Detecta qual modelo está configurado no RunPod.
+        
+        v4.0: Suporte a múltiplos modelos (Qwen, Mistral, etc.)
+        
+        Returns:
+            Nome do modelo configurado ou default
+        """
+        from app.core.config import settings
+        
+        model = settings.VLLM_MODEL or settings.RUNPOD_MODEL or ""
+        
+        # Verificar se é Qwen
+        if "qwen" in model.lower():
+            # Tentar encontrar configuração específica do Qwen
+            qwen_config = self._config.get("runpod", {}).get("Qwen/Qwen2.5-3B-Instruct", {})
+            if qwen_config:
+                logger.info(f"RateLimiter: Detectado modelo Qwen: {model}")
+                return "Qwen/Qwen2.5-3B-Instruct"
+        
+        # Default: Mistral
+        return "mistralai/Ministral-3-8B-Instruct-2512"
+    
     def _init_providers(self):
         """Inicializa rate limiters para cada provider."""
         # Mapear nomes de providers para configurações
+        # v4.0: Adicionado mapeamento dinâmico para Qwen2.5-3B-Instruct (SGLang)
+        runpod_model = self._detect_runpod_model()
+        
         provider_mapping = {
-            "RunPod": ("runpod", "mistralai/Ministral-3-8B-Instruct-2512"),
+            "RunPod": ("runpod", runpod_model),
             "Google Gemini": ("google", "gemini-2.0-flash"),
             "OpenAI": ("openai", "gpt-4.1-nano"),
             "OpenRouter": ("openrouter", "google/gemini-2.0-flash-lite-001"),

@@ -2,19 +2,29 @@
 Classe base para agentes LLM.
 
 Define interface padrão que todos os agentes devem implementar.
+
+v4.0: Suporte a Structured Output via SGLang/XGrammar
+      - Método _get_json_schema() para definir schema Pydantic
+      - Método _get_response_format() suporta json_schema nativo
+      - Compatibilidade com SGLang, vLLM e OpenAI
 """
 
+import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.services.llm_manager import (
     LLMCallManager,
     get_llm_manager,
     LLMPriority
 )
+from app.services.concurrency_manager.config_loader import get_section as get_config
 
 logger = logging.getLogger(__name__)
+
+# Carregar configuração de structured output
+_PROFILE_LLM_CONFIG = get_config("profile/profile_llm", {})
 
 
 class BaseAgent(ABC):
@@ -25,6 +35,10 @@ class BaseAgent(ABC):
     - SYSTEM_PROMPT: Prompt de sistema do agente
     - _build_user_prompt(): Constrói o prompt do usuário
     - _parse_response(): Processa a resposta do LLM
+    
+    v4.0: Suporte a Structured Output
+    - _get_json_schema(): Retorna schema JSON para structured output (opcional)
+    - _get_response_format(): Retorna formato de resposta (json_object ou json_schema)
     
     Observação: os valores DEFAULT_* aqui são apenas fallback.
     Cada agente deve carregar timeout/retries de config dedicada
@@ -39,6 +53,9 @@ class BaseAgent(ABC):
     DEFAULT_TEMPERATURE: float = 0.0
     DEFAULT_MAX_RETRIES: int = 3
     
+    # Configuração de structured output
+    USE_STRUCTURED_OUTPUT: bool = _PROFILE_LLM_CONFIG.get("use_structured_output", True)
+    
     def __init__(self, llm_manager: LLMCallManager = None):
         """
         Inicializa o agente.
@@ -47,6 +64,9 @@ class BaseAgent(ABC):
             llm_manager: Instância do gerenciador de LLM. Se None, usa singleton.
         """
         self.llm_manager = llm_manager or get_llm_manager()
+        
+        # Carregar configuração de structured output
+        self._use_structured_output = _PROFILE_LLM_CONFIG.get("use_structured_output", True)
     
     @abstractmethod
     def _build_user_prompt(self, **kwargs) -> str:
@@ -176,14 +196,53 @@ class BaseAgent(ABC):
         # 3. Processar resposta
         return self._parse_response(response_content, **kwargs)
     
+    def _get_json_schema(self) -> Optional[Dict[str, Any]]:
+        """
+        Retorna JSON Schema para structured output.
+        
+        Subclasses devem sobrescrever para fornecer schema específico.
+        Se retornar None, usa json_object genérico.
+        
+        Returns:
+            Dict com JSON Schema ou None
+        """
+        return None
+    
+    def _get_schema_name(self) -> str:
+        """
+        Retorna nome do schema para identificação.
+        
+        Returns:
+            Nome do schema (default: nome da classe)
+        """
+        return self.__class__.__name__.lower()
+    
     def _get_response_format(self) -> Optional[dict]:
         """
         Retorna formato de resposta para o LLM.
-        Subclasses podem sobrescrever para formatos específicos.
+        
+        v4.0: Suporta três modos:
+        1. json_schema: Usa schema Pydantic (SGLang/XGrammar - mais preciso)
+        2. json_object: Fallback genérico para providers sem suporte a schema
+        3. None: Texto livre
         
         Returns:
             Dict com formato ou None para texto livre
         """
+        # Se structured output está habilitado e temos schema
+        if self._use_structured_output:
+            schema = self._get_json_schema()
+            if schema:
+                # SGLang/XGrammar: usar json_schema para garantia de formato
+                return {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": self._get_schema_name(),
+                        "schema": schema
+                    }
+                }
+        
+        # Fallback: json_object genérico
         return {"type": "json_object"}
 
 
