@@ -52,3 +52,4 @@ O problema estava na configuração do `search_path` no `init_connection` do poo
 
 Janeiro 2026
 
+

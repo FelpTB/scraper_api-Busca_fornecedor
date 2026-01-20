@@ -46,8 +46,7 @@ POST /v2/scrape
 ```json
 POST /v2/montagem_perfil
 {
-  "cnpj_basico": "12345678",
-  "website_url": "https://example.com"
+  "cnpj_basico": "12345678"
 }
 ```
 
