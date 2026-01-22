@@ -78,7 +78,7 @@ class Settings:
     
     # vLLM RunPod Configuration (Provider Primário)
     # URL base do vLLM (deve incluir /v1 para compatibilidade OpenAI)
-    _vllm_url_raw = os.getenv("VLLM_BASE_URL", "https://5u888x525vvzvs-8000.proxy.runpod.net")
+    _vllm_url_raw = os.getenv("VLLM_BASE_URL", "https://jvjwcu6s7pcrag-8000.proxy.runpod.net")
     # Garantir que a URL termine com /v1
     VLLM_BASE_URL: str = (
         _vllm_url_raw if _vllm_url_raw.endswith("/v1")
@@ -88,7 +88,7 @@ class Settings:
     VLLM_API_KEY: str = os.getenv("VLLM_API_KEY", "buscafornecedor")
     VLLM_MODEL: str = os.getenv(
         "VLLM_MODEL",
-        "mistralai/Ministral-3-3B-Instruct-2512"
+        "Qwen/Qwen2.5-3B-Instruct"
     )
 
 settings = Settings()
