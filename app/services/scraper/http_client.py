@@ -73,17 +73,46 @@ def _detect_encoding(content: bytes, content_type: Optional[str] = None) -> str:
     return 'utf-8'
 
 
-def _decode_content(content: bytes, content_type: Optional[str] = None) -> str:
+def _is_pdf_content(content: bytes, content_type: Optional[str] = None) -> bool:
     """
-    Decodifica bytes para string usando encoding detectado.
+    Detecta se o conteúdo é um PDF.
     
     Args:
         content: Bytes do conteúdo
         content_type: Header Content-Type da resposta
     
     Returns:
-        String decodificada
+        True se for PDF, False caso contrário
     """
+    # 1. Verificar Content-Type
+    if content_type and 'application/pdf' in content_type.lower():
+        return True
+    
+    # 2. Verificar magic bytes do PDF (%PDF- no início)
+    if content[:5] == b'%PDF-':
+        return True
+    
+    return False
+
+
+def _decode_content(content: bytes, content_type: Optional[str] = None) -> str:
+    """
+    Decodifica bytes para string usando encoding detectado.
+    
+    IMPORTANTE: PDFs são detectados e retornam string vazia para evitar corrupção.
+    
+    Args:
+        content: Bytes do conteúdo
+        content_type: Header Content-Type da resposta
+    
+    Returns:
+        String decodificada ou vazia se for PDF
+    """
+    # Detectar e bloquear PDFs (evita corrupção de caracteres)
+    if _is_pdf_content(content, content_type):
+        logger.warning("PDF detectado - retornando conteúdo vazio (PDFs não são processados)")
+        return ""
+    
     encoding = _detect_encoding(content, content_type)
     
     # Normalizar nomes de encoding comuns
