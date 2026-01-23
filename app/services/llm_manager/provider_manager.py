@@ -539,44 +539,21 @@ class ProviderManager:
                     "max_tokens": max_output_tokens  # Garantir valor explícito e válido
                 }
                 
-                # v3.5: Parâmetros anti-repetição para vLLM/SGLang/OpenAI
-                # repetition_penalty: vLLM/SGLang específico (1.1 recomendado para evitar loops)
-                # frequency_penalty: OpenAI/compatível (-2.0 a 2.0, penaliza tokens frequentes)
+                # v3.5: Parâmetros anti-repetição TEMPORARIAMENTE DESABILITADOS
+                # PROBLEMA: API OpenAI-compatible do SGLang NÃO aceita repetition_penalty
+                # via API /v1/chat/completions (é um parâmetro interno do vLLM)
                 # 
-                # IMPORTANTE: Só adicionar se provider explicitamente suportar
-                # Detecção baseada em nome do provider E URL base
-                provider_lower = provider.lower()
-                base_url_lower = config.base_url.lower()
-                
-                # Lista de providers conhecidos que suportam cada parâmetro
-                supports_repetition_penalty = (
-                    "runpod" in provider_lower or 
-                    "runpod" in base_url_lower or
-                    "sglang" in base_url_lower or
-                    "vllm" in provider_lower or
-                    "vllm" in base_url_lower
+                # SOLUÇÃO TEMPORÁRIA: Desabilitar completamente até encontrar
+                # a forma correta de passar esses parâmetros para o SGLang
+                # 
+                # TODO: Investigar documentação do SGLang para parâmetros corretos
+                logger.debug(
+                    f"{ctx_label}ProviderManager: Parâmetros anti-repetição DESABILITADOS "
+                    f"(provider={provider}, repetition_penalty solicitado={repetition_penalty}, "
+                    f"frequency_penalty solicitado={frequency_penalty})"
                 )
-                
-                supports_frequency_penalty = (
-                    "openai" in provider_lower or
-                    "google" in provider_lower or
-                    "gemini" in provider_lower or
-                    "openrouter" in provider_lower or
-                    "xai" in provider_lower
-                )
-                
-                if supports_repetition_penalty and repetition_penalty != 1.0:
-                    request_params["repetition_penalty"] = repetition_penalty
-                    logger.debug(f"{ctx_label}ProviderManager: Usando repetition_penalty={repetition_penalty}")
-                elif supports_frequency_penalty and frequency_penalty != 0.0:
-                    request_params["frequency_penalty"] = frequency_penalty
-                    logger.debug(f"{ctx_label}ProviderManager: Usando frequency_penalty={frequency_penalty}")
-                else:
-                    logger.debug(
-                        f"{ctx_label}ProviderManager: Pulando parâmetros anti-repetição "
-                        f"(provider={provider}, suporta_repetition={supports_repetition_penalty}, "
-                        f"suporta_frequency={supports_frequency_penalty})"
-                    )
+                # NÃO adicionar repetition_penalty ou frequency_penalty aos request_params
+                # até descobrir a forma correta
                 
                 # v4.0: SGLang com XGrammar suporta json_schema nativo
                 # Habilitar response_format para todos os providers que suportam
