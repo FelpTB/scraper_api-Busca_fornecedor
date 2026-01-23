@@ -24,5 +24,7 @@
   "structured_output_backend": "xgrammar",
   "structured_output_backend_note": "WHAT: backend de gramática do SGLang. WHY: XGrammar tem melhor performance. HOW: xgrammar (default), outlines, ou llguidance.",
   "recommended_temperature": 0.1,
+  "recommended_presence_penalty": 0.15,
+  "recommended_frequency_penalty": 0.20,
   "recommended_temperature_note": "WHAT: temperatura para geração estruturada. WHY: 0.1 reduz loops em catálogos (0.0 aumenta risco). HOW: v8.0 = 0.1 baseline, retry com 0.2 se loop detectado."
 }

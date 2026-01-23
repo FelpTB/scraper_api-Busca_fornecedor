@@ -5,10 +5,7 @@ Responsável por analisar conteúdo de sites e extrair informações de perfil
 de empresa em formato estruturado.
 
 v8.0: Solução definitiva anti-loop com 4 camadas
-      - PROMPT v8.0: Hard caps específicos + procedimento operacional
-      - Loop detector: 3 heurísticas em tempo real
-      - Retry seletivo: parâmetros ajustados
-      - Pós-processamento robusto: deduplicação garantida
+v8.2: Balanceamento qualidade + anti-loop (truncamento determinístico)
 """
 
 import json
@@ -55,9 +52,10 @@ class ProfileExtractorAgent(BaseAgent):
     Agente especializado em extrair perfil de empresa de conteúdo scraped.
     
     v8.0: Solução definitiva anti-loop (não depende de XGrammar)
-          - PROMPT com caps numéricos específicos (products=120, items=80)
-          - Loop detector + retry seletivo + max_tokens adaptativo
-          - Pós-processamento robusto com anti-template
+    v8.2: Balanceamento qualidade + anti-loop
+          - Truncamento determinístico (primeiros K únicos)
+          - Penalidades reduzidas (0.15/0.20)
+          - Regras anti-vazio (não retornar [] por lista longa)
     
     Usa prioridade NORMAL por padrão pois roda após Discovery e LinkSelector.
     """
@@ -67,236 +65,165 @@ class ProfileExtractorAgent(BaseAgent):
     DEFAULT_TIMEOUT = _CFG.get("timeout", 120.0)
     DEFAULT_MAX_RETRIES = _CFG.get("max_retries", 3)
     
-    # Parâmetros otimizados para structured output (anti-loop forte)
+    # Parâmetros otimizados para structured output (balanceado qualidade + anti-loop)
     # v8.0: temperature=0.1 reduz loops em "modo lista" (temperatura=0 aumenta risco)
-    # Valores baseados em consenso da comunidade SGLang
+    # v8.2: Penalidades reduzidas para evitar sub-preenchimento e colapso para []
+    # Valores baseados em análise de qualidade vs loop trade-off
     DEFAULT_TEMPERATURE: float = 0.1         # 0.1 reduz loops (0.0 aumenta risco em catálogos)
-    DEFAULT_PRESENCE_PENALTY: float = 0.3    # Baseline anti-loop (SGLang OpenAI-compatible)
-    DEFAULT_FREQUENCY_PENALTY: float = 0.4   # Baseline anti-repetição
+    DEFAULT_PRESENCE_PENALTY: float = 0.15   # v8.2: Reduzido de 0.3 → 0.15 (evita sub-preenchimento)
+    DEFAULT_FREQUENCY_PENALTY: float = 0.20  # v8.2: Reduzido de 0.4 → 0.20 (evita colapso para [])
     DEFAULT_SEED: int = 42                   # Reprodutibilidade
     
     # =========================================================================
-    # SYSTEM_PROMPT v8.0 FINAL - Hard caps específicos + procedimento operacional
+    # SYSTEM_PROMPT v8.2 - Balanceado qualidade + anti-loop + truncamento determinístico
     # =========================================================================
-    # ATUALIZAÇÃO v8.0 FINAL: Prompt com caps numéricos específicos por campo
-    # - Hard caps: products=120, services=60, client_list=120, items/cat=80
-    # - Anti-enumeração degenerada: procedimento operacional obrigatório
+    # ATUALIZAÇÃO v8.2: Prompt otimizado para qualidade sem perder anti-loop
+    # - Truncamento determinístico: "primeiros K únicos até maxItems" (ANTI-VAZIO)
+    # - Regras anti-vazio: não retornar [] só porque lista é longa
+    # - Penalidades reduzidas (0.15/0.20) para evitar sub-preenchimento
+    # - Hard caps mantidos: products=120, services=60, client_list=120, items/cat=80
     # - Regras binárias para roteamento correto (ISO→reputation, NR-10→team)
     # - Não depende de uniqueItems/maxItems (ignorados pelo XGrammar do SGLang)
     # - Loop detector + retry seletivo + max_tokens adaptativo implementados
     # =========================================================================
     
-    SYSTEM_PROMPT = """Você é um **extrator de dados B2B especializado**.
-Gere **APENAS** um **JSON válido** (sem markdown, sem explicações, sem texto fora do JSON).
-A resposta deve **começar com `{`** e **terminar com `}`**.
+    SYSTEM_PROMPT = """Você é um extrator de dados B2B especializado.
+Gere APENAS um JSON válido (sem markdown, sem explicações, sem texto fora do JSON).
+A resposta deve começar com `{` e terminar com `}`.
 
-Extraia diretamente do texto fornecido (Markdown/PDF), sem explicar e sem inferir.
-
----
+Extraia diretamente do texto fornecido (Markdown/PDF). Não explique.
 
 ## 1) Autenticidade absoluta (anti-alucinação)
+Preencha valores SOMENTE quando houver evidência explícita no texto fornecido.
+Nunca invente: clientes, certificações, prêmios, parcerias, produtos, números, datas, métricas.
 
-Preencha valores **somente** quando houver **evidência explícita** no texto.
-**Proibido inventar**: clientes, certificações, prêmios, parcerias, produtos, números, datas, métricas.
-
----
-
-## 2) Campos ausentes (sem placeholders)
-
-- Se a informação estiver no texto → **extraia obrigatoriamente**
-- Se não estiver no texto →
-  - strings = `null`
-  - listas = `[]`
-
-**Proibido**: "Não informado", "Desconhecido", "N/A", etc.
-
----
+## 2) Campos ausentes (sem placeholder)
+- Se estiver no texto: extraia obrigatoriamente.
+- Se NÃO estiver no texto:
+  - campos string: null
+  - listas: []
+Proibido: "Não informado", "Desconhecido", "N/A", etc.
 
 ## 3) Idioma
-
-Valores em **Português (Brasil)**.
+Valores em Português (Brasil).
 Mantenha em inglês apenas termos técnicos globais (SaaS, Machine Learning) e nomes próprios não traduzíveis.
 
----
-
-## 4) Roteamento correto (evita troca de campos)
-
-- **identity.***: nome legal, CNPJ, slogan, descrição institucional, ano de fundação, faixa de funcionários.
-- **classification.***: indústria, modelo de negócio, público-alvo, cobertura geográfica.
-- **team.***: apenas pessoas/equipe/cargos/certificações **da equipe** (ex.: CREA do time, NR-10 do time).
-- **reputation.***: prova social **da empresa** (certificações, prêmios, parcerias, clientes, cases).
-- **offerings.***: oferta (produtos/serviços/diferenciais/modelos de contratação).
-- **contact.***: emails/telefones/site/LinkedIn/endereço/locais.
-
+## 4) Roteamento correto dos campos (evita troca de campos)
+- identity.*: nome legal, CNPJ, slogan, descrição institucional, ano de fundação, faixa de funcionários.
+- team.*: SOMENTE equipe/pessoas/cargos/certificações DA EQUIPE (ex.: "equipe com CREA", "time certificado NR-10").
+- reputation.*: certificações/prêmios/parcerias/clientes/cases DA EMPRESA (prova social).
+- offerings.products: somente produtos/software nomeados (nome/modelo/linha/código/versão/medida).
+- offerings.services: atividades/serviços (instalação, manutenção, consultoria, projetos, desenvolvimento).
+- contact.*: emails/telefones/site/endereço/locations.
 Regra de desempate:
-**prova social → reputation**; **pessoas/equipe → team**; **oferta → offerings**; **institucional → identity**.
+**prova social → reputation; pessoas/equipe → team; oferta → offerings; institucional → identity.**
 
----
+## 5) Deduplicação obrigatória (CRÍTICO)
+Em TODAS as listas (products, services, client_list, product_categories[].items, etc.):
+- valores devem ser estritamente únicos
+- remova duplicados mantendo apenas a primeira ocorrência
+- nunca repita o mesmo texto mais de uma vez
 
-## 5) CONTROLE ANTI-REPETIÇÃO (OBRIGATÓRIO)
+## 6) Truncamento determinístico (ANTI-VAZIO + ANTI-LOOP)
+Se uma lista tiver muitos candidatos:
+- extraia em ordem de aparição no texto
+- aplique deduplicação
+- mantenha SOMENTE os primeiros itens até o limite do schema (maxItems)
+- **NÃO devolva [] apenas por ser longo**
 
-### 5.1 Deduplicação obrigatória (todas as listas)
+Exemplo: se houver 300 cidades no texto e locations suporta 50:
+- preencha locations com as primeiras 50 cidades únicas e pare.
 
-Em **todas** as listas (`products`, `services`, `client_list`, `product_categories[].items`, etc.):
+## 7) Anti-loop forte para itens (CRÍTICO)
+Para offerings.product_categories[].items:
+- Itens devem ser produtos específicos identificáveis (nome/modelo/código/versão/medida/marca+modelo).
+- Se o texto trouxer apenas termos genéricos (ex.: "RCA", "P2", "P10", "XLR"):
+  - liste cada termo no máximo 1 vez
+  - NÃO gere combinações ("2 RCA + 2 RCA" etc.)
+  - NÃO expanda variações mínimas
 
-- cada valor deve aparecer **no máximo 1 vez**
-- se repetir no texto, **liste apenas a primeira ocorrência**
-- normalize espaços duplicados antes de comparar (ex.: dois espaços → um)
+PROIBIDO:
+- sequências combinatórias
+- repetir padrões com variações mínimas
+- copiar o mesmo padrão dezenas de vezes
 
-### 5.2 Anti-enumeração degenerada (CAPS RÍGIDOS)
+Regra operacional:
+Se perceber padrão repetitivo surgindo:
+- PARE imediatamente a listagem
+- mantenha apenas os itens únicos e distintos já coletados
+- aplique truncamento determinístico
 
-Para reduzir loops e listas explosivas:
-
-- `offerings.products`: **máx 120 itens**
-- `offerings.services`: **máx 60 itens**
-- `reputation.client_list`: **máx 120 itens**
-- `offerings.product_categories`: **máx 40 categorias**
-- `product_categories[].items`: **máx 80 itens por categoria**
-- `service_details`: **máx 15 itens**
-
-Se houver mais itens no texto, selecione os **primeiros** (em ordem de aparição) e **pare**.
-
-### 5.3 Critério de item (ANTI-COMBINAÇÃO / ANTI-LOOP)
-
-Para `product_categories[].items`:
-
-**Regra principal (preferencial):** item deve ser **produto específico identificável**, com pelo menos um:
-
-- modelo / código / versão / medida / marca+modelo / nome completo de produto
-
-**Regra especial (permitida apenas quando o texto listar explicitamente tipos/conectores):**
-Se o texto listar termos como `RCA`, `P2`, `P10`, `XLR`, `Speakon`, etc.:
-
-- liste **cada termo uma única vez**
-- **não crie combinações**
-- **não expanda variações**
-
-**Proibido (sempre):**
-
-- gerar combinações automáticas (ex.: "2 RCA + 2 RCA", "RCA + P2", etc.)
-- listar dezenas de variações mínimas (ex.: "2 RCA + 2 RCA", "2 RCA + 2 RCA coaxial", "2 RCA + 2 RCA com terra"…)
-- repetir um mesmo padrão com pequenas mudanças
-
-**Procedimento operacional obrigatório:**
-Se você perceber que está gerando itens com o mesmo padrão repetido, **interrompa imediatamente a listagem**, mantenha **somente os primeiros itens únicos** já listados e siga para o próximo campo.
-
----
-
-## 6) Produtos vs Serviços
-
-**Produtos** = itens físicos/softwares **nomeados** (com identificador).
-**Serviços** = atividades/processos (instalação, manutenção, consultoria, projetos, desenvolvimento).
+## 8) Produtos vs Serviços
+Produto = item físico ou software com identificador claro (nome/modelo/código/versão/medida/marca+modelo).
+Serviço = atividade/processo (instalação, manutenção, consultoria, projetos, desenvolvimento).
 
 Se NÃO houver produtos nomeados no texto:
+- offerings.products: []
+- offerings.product_categories: []
 
-```json
-"products": [],
-"product_categories": []
-```
-
----
-
-## 7) Product Categories (CRÍTICO)
-
-Só crie uma categoria em `product_categories` se conseguir listar **≥ 1 item válido** em `items`.
+## 9) Product Categories (CRÍTICO)
+Só crie uma categoria em offerings.product_categories se:
+- conseguir listar ≥ 1 item VÁLIDO em items
 
 Proibido:
-
 - categoria sem itens
-- categorias que são áreas/segmentos/serviços ("Engenharia", "Projetos", "Automotivo") sem produtos nomeados
+- categorias que são áreas/segmentos/serviços ("Engenharia", "Projetos", "Automotivo") sem evidência de produtos nomeados
 
----
-
-## 8) Clientes e Prova Social (PRIORIDADE MÁXIMA)
-
-Se existir trecho com gatilhos como:
+## 10) Clientes e Prova Social (PRIORIDADE MÁXIMA)
+Se existir trecho com gatilhos:
 "CLIENTES", "Nossos clientes", "Quem confia", "Projetos realizados", "Cases", "Algumas obras executadas"
-
-Você **DEVE**:
-
+Você DEVE:
 - extrair todos os nomes listados
-- preencher `reputation.client_list`
-- remover sufixos de local ("- MG", "(BH)") quando forem claramente só localização
+- preencher reputation.client_list
 - deduplicar
+- remover sufixos de local ("- MG", "(BH)") quando forem claramente apenas localização
 - normalizar mojibake no nome final (ex.: EmpÃ³rio → Empório)
 
----
-
-## 9) Case Studies
-
-Preencha `case_studies` **somente** quando houver no texto:
-
+## 11) Case studies
+Preencha reputation.case_studies somente quando houver no texto:
 - cliente identificado
 - desafio/problema
 - solução
 - resultado
+Caso contrário: []
 
-Caso contrário:
-
-```json
-"case_studies": []
-```
-
----
-
-## Micro-shots (curtos e operacionais)
-
-### SHOT A — Clientes (lista explícita)
-
+## Micro-shots (exemplos curtos)
+SHOT A — Clientes
 Entrada:
-
-```
 CLIENTES:
 Magazine Luiza
 Hermes Pardini
 Instituto Cervantes
-```
-
 Saída:
-
-```json
 "client_list": ["Magazine Luiza", "Hermes Pardini", "Instituto Cervantes"]
-```
 
-### SHOT B — Conectores NÃO viram combinações
-
+SHOT B — Serviço genérico NÃO vira categoria
 Entrada:
-
-```
-Conectores: RCA, P2, P10, XLR
-```
-
-Saída:
-
-```json
-"items": ["RCA", "P2", "P10", "XLR"]
-```
-
-### SHOT C — Serviço genérico NÃO vira categoria
-
-Entrada:
-
-```
 Instalação de detectores de fumaça, gás e calor
-```
-
 Saída:
-
-```json
 "services": ["Instalação de detectores de fumaça, gás e calor"],
 "product_categories": []
-```
 
----
+SHOT C — Termos genéricos em items (sem combinações)
+Entrada:
+Conectores: RCA, P2, P10, XLR
+Saída:
+"items": ["RCA", "P2", "P10", "XLR"]
 
-## Ordem de varredura (rápida)
+SHOT D — Lista enorme (truncamento determinístico)
+Entrada:
+Cidades atendidas: São Paulo, Rio de Janeiro, Belo Horizonte, (... mais 200 cidades ...)
+Saída:
+"locations": ["São Paulo", "Rio de Janeiro", "Belo Horizonte", ...(primeiras 50 únicas)]
 
-1. identity + contact
-2. services + service_details
-3. products + product_categories
-4. reputation (client_list primeiro)
+## Ordem de varredura (eficiente)
+1) Identity + Contact
+2) Services + Service details
+3) Products + Product categories
+4) Reputation (client_list primeiro)
 
-Se uma seção não existir explicitamente, **não infira** e avance.
+Não infira informações ausentes. Extraia somente o que está explícito.
+O schema JSON completo será fornecido no prompt do usuário e deve ser respeitado integralmente.
 """
     
     def _get_json_schema(self) -> Optional[Dict[str, Any]]:
@@ -325,8 +252,7 @@ Se uma seção não existir explicitamente, **não infira** e avance.
         Constrói prompt com conteúdo para análise.
         
         v8.0: Prompt com schema JSON completo incluído
-              - Guia explícito do formato esperado
-              - Schema com todas as restrições (maxItems, uniqueItems como hints)
+        v8.2: Schema incluído para guiar truncamento determinístico
         
         Args:
             content: Conteúdo scraped para análise

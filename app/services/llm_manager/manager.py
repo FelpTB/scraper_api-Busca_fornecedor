@@ -274,13 +274,14 @@ class LLMCallManager:
                 adjusted_max_tokens = None
                 
                 # Se já tentamos e falhou por degeneração, ajustar
+                # v8.2: Penalidades moderadas (não muito altas para evitar sub-preenchimento)
                 if attempt > 0 and last_error and isinstance(last_error, ProviderDegenerationError):
-                    adjusted_temperature = 0.2  # Aumentar levemente
-                    adjusted_presence = 0.6     # Penalizar mais
-                    adjusted_frequency = 0.8    # Penalizar mais
+                    adjusted_temperature = 0.2   # Aumentar levemente
+                    adjusted_presence = 0.25     # v8.2: Moderado (era 0.6)
+                    adjusted_frequency = 0.35    # v8.2: Moderado (era 0.8)
                     logger.info(
                         f"{ctx_label}LLMCallManager: Retry anti-loop (attempt={attempt+1}): "
-                        f"temp=0.2, presence=0.6, frequency=0.8"
+                        f"temp=0.2, presence=0.25, frequency=0.35"
                     )
                 
                 content, latency_ms = await self.provider_manager.call(
