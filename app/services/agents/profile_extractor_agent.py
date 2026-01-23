@@ -512,7 +512,12 @@ Se uma seção não existir explicitamente no texto, **não procure inferir** e 
             return CompanyProfile()
         
         try:
-            return await self.execute(
+            logger.info(
+                f"{ctx_label}ProfileExtractorAgent: Iniciando extração "
+                f"(content_len={len(content)}, request_id={request_id})"
+            )
+            
+            result = await self.execute(
                 priority=LLMPriority.NORMAL,  # Profile usa prioridade normal
                 timeout=self.DEFAULT_TIMEOUT,
                 max_retries=self.DEFAULT_MAX_RETRIES,
@@ -520,8 +525,18 @@ Se uma seção não existir explicitamente no texto, **não procure inferir** e 
                 request_id=request_id,
                 content=content
             )
+            
+            logger.info(
+                f"{ctx_label}ProfileExtractorAgent: Extração concluída "
+                f"(empty={result.is_empty() if result else True})"
+            )
+            
+            return result
         except Exception as e:
-            logger.error(f"{ctx_label}ProfileExtractorAgent: Erro na extração: {e}")
+            logger.error(
+                f"{ctx_label}ProfileExtractorAgent: Erro na extração: {e}",
+                exc_info=True
+            )
             return CompanyProfile()
 
 

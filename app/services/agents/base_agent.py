@@ -188,6 +188,13 @@ class BaseAgent(ABC):
         user_prompt = self._build_user_prompt(**kwargs)
         messages = self._build_messages(user_prompt)
         
+        logger.debug(
+            f"{ctx_label}{self.__class__.__name__}: Executando com "
+            f"priority={priority.name}, timeout={timeout}, "
+            f"repetition_penalty={getattr(self, 'DEFAULT_REPETITION_PENALTY', 1.0)}, "
+            f"frequency_penalty={getattr(self, 'DEFAULT_FREQUENCY_PENALTY', 0.0)}"
+        )
+        
         # 2. Chamar LLM
         response_content, latency_ms = await self._call_llm(
             messages=messages,
