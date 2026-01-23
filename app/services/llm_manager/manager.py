@@ -314,7 +314,8 @@ class LLMCallManager:
             
             except ProviderDegenerationError as e:
                 # v8.0: Loop de repetição detectado - retry com parâmetros ajustados
-                self.health_monitor.record_failure(selected_provider, FailureType.ERROR)
+                # v8.1: NÃO marcar provider como falho (é problema de resposta específica, não do provider)
+                # self.health_monitor.record_failure(selected_provider, FailureType.ERROR)  # DESABILITADO v8.1
                 logger.warning(
                     f"{ctx_label}LLMCallManager: Degeneração detectada com {selected_provider}: {e}"
                 )
@@ -325,7 +326,10 @@ class LLMCallManager:
                         f"{ctx_label}LLMCallManager: Retry anti-loop {attempt + 1}/{max_retries} "
                         f"(sem delay, parâmetros ajustados)"
                     )
-                continue
+                    continue
+                # Se chegou aqui, esgotou retries - tratar como erro de resposta
+                logger.error(f"{ctx_label}LLMCallManager: Degeneração persistiu após {max_retries} tentativas")
+                raise
             
             except ProviderRateLimitError as e:
                 self.health_monitor.record_failure(selected_provider, FailureType.RATE_LIMIT)

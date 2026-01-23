@@ -33,11 +33,12 @@ def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
     Detecta loops de repetição degenerados no conteúdo da resposta.
     
     v8.0: Loop detector para identificar runaway generation
+    v8.1: Thresholds aumentados para reduzir falsos positivos
     
     Heurísticas:
-    1. Mesmo n-gram (4-6 tokens) repetido > 8 vezes
-    2. Mesma linha/trecho (> 20 chars) repetido > 5 vezes
-    3. Output muito longo sem fechar JSON (> 3000 chars sem '}' no final)
+    1. Mesmo n-gram (4 tokens) repetido > 20 vezes (era 8)
+    2. Mesma linha/trecho (30 chars) repetido > 15 vezes (era 5)
+    3. Output muito longo sem fechar JSON (> 8000 chars sem '}')  (era 3000)
     
     Args:
         content: Conteúdo da resposta do LLM
@@ -51,6 +52,7 @@ def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
     
     # Heurística 1: n-grams repetidos (4-6 palavras)
     # Detectar padrões como "2 RCA + 2 RCA" repetidos muitas vezes
+    # v8.1: Aumentado threshold de 8→20 para reduzir falsos positivos
     import re
     words = re.findall(r'\b\w+\b', content.lower())
     
@@ -61,9 +63,9 @@ def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
             ngram = ' '.join(words[i:i+4])
             ngram_counts[ngram] = ngram_counts.get(ngram, 0) + 1
         
-        # Se algum n-gram aparece > 8 vezes, provável loop
+        # Se algum n-gram aparece > 20 vezes, provável loop (v8.1: era 8)
         max_ngram_count = max(ngram_counts.values()) if ngram_counts else 0
-        if max_ngram_count > 8:
+        if max_ngram_count > 20:
             most_repeated = max(ngram_counts, key=ngram_counts.get)
             logger.warning(
                 f"{ctx_label}LoopDetector: n-gram repetido detectado "
@@ -73,6 +75,7 @@ def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
     
     # Heurística 2: Linhas/trechos repetidos
     # Dividir em trechos de 20-50 chars e contar repetições
+    # v8.1: Aumentado threshold de 5→15 para reduzir falsos positivos
     chunk_size = 30
     chunk_counts = {}
     for i in range(0, len(content) - chunk_size, 10):
@@ -80,9 +83,9 @@ def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
         if len(chunk) >= 20:  # Ignorar trechos muito pequenos
             chunk_counts[chunk] = chunk_counts.get(chunk, 0) + 1
     
-    # Se algum trecho aparece > 5 vezes, provável loop
+    # Se algum trecho aparece > 15 vezes, provável loop (v8.1: era 5)
     max_chunk_count = max(chunk_counts.values()) if chunk_counts else 0
-    if max_chunk_count > 5:
+    if max_chunk_count > 15:
         most_repeated = max(chunk_counts, key=chunk_counts.get)
         logger.warning(
             f"{ctx_label}LoopDetector: Trecho repetido detectado "
@@ -92,7 +95,8 @@ def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
     
     # Heurística 3: Output muito longo sem fechar JSON
     # Indica que o modelo está gerando lista infinita
-    if len(content) > 3000 and not content.rstrip().endswith('}'):
+    # v8.1: Aumentado threshold de 3000→8000 chars para reduzir falsos positivos
+    if len(content) > 8000 and not content.rstrip().endswith('}'):
         logger.warning(
             f"{ctx_label}LoopDetector: JSON não fechado após {len(content)} chars "
             f"(possível runaway generation)"
