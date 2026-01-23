@@ -28,6 +28,80 @@ from app.core.token_utils import estimate_tokens
 logger = logging.getLogger(__name__)
 
 
+def _detect_repetition_loop(content: str, ctx_label: str = "") -> bool:
+    """
+    Detecta loops de repetição degenerados no conteúdo da resposta.
+    
+    v8.0: Loop detector para identificar runaway generation
+    
+    Heurísticas:
+    1. Mesmo n-gram (4-6 tokens) repetido > 8 vezes
+    2. Mesma linha/trecho (> 20 chars) repetido > 5 vezes
+    3. Output muito longo sem fechar JSON (> 3000 chars sem '}' no final)
+    
+    Args:
+        content: Conteúdo da resposta do LLM
+        ctx_label: Label de contexto para logs
+    
+    Returns:
+        True se detectar loop, False caso contrário
+    """
+    if not content or len(content) < 100:
+        return False
+    
+    # Heurística 1: n-grams repetidos (4-6 palavras)
+    # Detectar padrões como "2 RCA + 2 RCA" repetidos muitas vezes
+    import re
+    words = re.findall(r'\b\w+\b', content.lower())
+    
+    # Verificar n-grams de 4 palavras
+    if len(words) >= 4:
+        ngram_counts = {}
+        for i in range(len(words) - 3):
+            ngram = ' '.join(words[i:i+4])
+            ngram_counts[ngram] = ngram_counts.get(ngram, 0) + 1
+        
+        # Se algum n-gram aparece > 8 vezes, provável loop
+        max_ngram_count = max(ngram_counts.values()) if ngram_counts else 0
+        if max_ngram_count > 8:
+            most_repeated = max(ngram_counts, key=ngram_counts.get)
+            logger.warning(
+                f"{ctx_label}LoopDetector: n-gram repetido detectado "
+                f"('{most_repeated}' x{max_ngram_count})"
+            )
+            return True
+    
+    # Heurística 2: Linhas/trechos repetidos
+    # Dividir em trechos de 20-50 chars e contar repetições
+    chunk_size = 30
+    chunk_counts = {}
+    for i in range(0, len(content) - chunk_size, 10):
+        chunk = content[i:i+chunk_size].strip()
+        if len(chunk) >= 20:  # Ignorar trechos muito pequenos
+            chunk_counts[chunk] = chunk_counts.get(chunk, 0) + 1
+    
+    # Se algum trecho aparece > 5 vezes, provável loop
+    max_chunk_count = max(chunk_counts.values()) if chunk_counts else 0
+    if max_chunk_count > 5:
+        most_repeated = max(chunk_counts, key=chunk_counts.get)
+        logger.warning(
+            f"{ctx_label}LoopDetector: Trecho repetido detectado "
+            f"('{most_repeated[:40]}...' x{max_chunk_count})"
+        )
+        return True
+    
+    # Heurística 3: Output muito longo sem fechar JSON
+    # Indica que o modelo está gerando lista infinita
+    if len(content) > 3000 and not content.rstrip().endswith('}'):
+        logger.warning(
+            f"{ctx_label}LoopDetector: JSON não fechado após {len(content)} chars "
+            f"(possível runaway generation)"
+        )
+        return True
+    
+    return False
+
+
 @dataclass
 class ProviderConfig:
     """Configuração de um provider LLM."""
@@ -59,6 +133,11 @@ class ProviderTimeoutError(ProviderError):
 
 class ProviderBadRequestError(ProviderError):
     """Erro de requisição inválida."""
+    pass
+
+
+class ProviderDegenerationError(ProviderError):
+    """Erro de geração degenerada (loop/repetição detectada)."""
     pass
 
 
@@ -385,8 +464,9 @@ class ProviderManager:
         messages: List[dict],
         timeout: float = None,
         temperature: float = 0.0,
-        repetition_penalty: float = 1.0,
-        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.3,
+        frequency_penalty: float = 0.4,
+        seed: int = 42,
         response_format: dict = None,
         ctx_label: str = "",
         priority: LLMPriority = LLMPriority.NORMAL
@@ -394,15 +474,19 @@ class ProviderManager:
         """
         Faz chamada a um provider com controle de rate limiting.
         
-        v3.5: Adicionado suporte a repetition_penalty e frequency_penalty
+        v3.6: Parâmetros OpenAI-compatible (SGLang suporta via endpoint /v1/chat/completions)
+              - presence_penalty: Penaliza tokens já aparecidos
+              - frequency_penalty: Penaliza tokens frequentes
+              - seed: Reprodutibilidade
         
         Args:
             provider: Nome do provider
             messages: Lista de mensagens
             timeout: Timeout opcional
             temperature: Temperatura da geração
-            repetition_penalty: Penalização para repetições (vLLM/SGLang)
-            frequency_penalty: Penalização por frequência (OpenAI/compatível)
+            presence_penalty: Penaliza tokens já aparecidos (-2.0 a 2.0, padrão 0.3)
+            frequency_penalty: Penaliza tokens frequentes (-2.0 a 2.0, padrão 0.4)
+            seed: Seed para reprodutibilidade (padrão 42)
             response_format: Formato de resposta
             ctx_label: Label de contexto para logs
             priority: HIGH (Discovery/LinkSelector) ou NORMAL (Profile)
@@ -462,7 +546,7 @@ class ProviderManager:
             try:
                 return await self._execute_llm_call(
                     client, config, semaphore, messages,
-                    actual_timeout, temperature, repetition_penalty, frequency_penalty,
+                    actual_timeout, temperature, presence_penalty, frequency_penalty, seed,
                     response_format, ctx_label, provider, estimated_tokens
                 )
             finally:
@@ -475,7 +559,7 @@ class ProviderManager:
             
             return await self._execute_llm_call(
                 client, config, semaphore, messages,
-                actual_timeout, temperature, repetition_penalty, frequency_penalty,
+                actual_timeout, temperature, presence_penalty, frequency_penalty, seed,
                 response_format, ctx_label, provider, estimated_tokens
             )
     
@@ -487,8 +571,9 @@ class ProviderManager:
         messages: List[dict],
         timeout: float,
         temperature: float,
-        repetition_penalty: float,
+        presence_penalty: float,
         frequency_penalty: float,
+        seed: int,
         response_format: dict,
         ctx_label: str,
         provider: str,
@@ -497,8 +582,10 @@ class ProviderManager:
         """
         Executa a chamada LLM real com controle de rate limiting.
         
-        v3.5: Adicionado suporte a repetition_penalty e frequency_penalty para
-              evitar repetições, loops e alucinações
+        v3.6: Parâmetros OpenAI-compatible para evitar repetições e loops
+              - presence_penalty: Penaliza tokens já aparecidos
+              - frequency_penalty: Penaliza tokens frequentes  
+              - seed: Reprodutibilidade
         
         v4.0: Suporte a Structured Output via SGLang/XGrammar
               - SGLang suporta json_schema nativo com XGrammar
@@ -529,31 +616,52 @@ class ProviderManager:
                 is_runpod = "runpod" in provider.lower() or "runpod" in config.base_url.lower()
                 is_sglang = is_runpod or "sglang" in config.base_url.lower()
                 
-                # Obter max_output_tokens do provider para garantir valor válido
-                max_output_tokens = self._rate_limiter.get_max_output_tokens(provider)
+                # v8.0: max_tokens ADAPTATIVO baseado no input
+                # Input pequeno/médio → max_tokens menor (reduz risco de runaway)
+                # Input grande → max_tokens maior (permite resposta completa)
+                max_output_tokens_limit = self._rate_limiter.get_max_output_tokens(provider)
+                
+                if estimated_tokens < 3000:
+                    # Input pequeno: limitar output a 1200 tokens (evita runaway)
+                    max_output_tokens = min(1200, max_output_tokens_limit)
+                    logger.debug(
+                        f"{ctx_label}ProviderManager: Input pequeno ({estimated_tokens} tokens), "
+                        f"limitando max_tokens a {max_output_tokens}"
+                    )
+                elif estimated_tokens < 8000:
+                    # Input médio: limitar output a 2000 tokens
+                    max_output_tokens = min(2000, max_output_tokens_limit)
+                    logger.debug(
+                        f"{ctx_label}ProviderManager: Input médio ({estimated_tokens} tokens), "
+                        f"limitando max_tokens a {max_output_tokens}"
+                    )
+                else:
+                    # Input grande: usar limite do provider (aceita risco de runaway)
+                    max_output_tokens = max_output_tokens_limit
+                    logger.debug(
+                        f"{ctx_label}ProviderManager: Input grande ({estimated_tokens} tokens), "
+                        f"usando max_tokens padrão: {max_output_tokens}"
+                    )
+
                 
                 request_params = {
                     "model": config.model,
                     "messages": messages,
                     "temperature": temperature,
-                    "max_tokens": max_output_tokens  # Garantir valor explícito e válido
+                    "max_tokens": max_output_tokens,  # Garantir valor explícito e válido
+                    "presence_penalty": presence_penalty,
+                    "frequency_penalty": frequency_penalty,
+                    "seed": seed
                 }
                 
-                # v3.5: Parâmetros anti-repetição TEMPORARIAMENTE DESABILITADOS
-                # PROBLEMA: API OpenAI-compatible do SGLang NÃO aceita repetition_penalty
-                # via API /v1/chat/completions (é um parâmetro interno do vLLM)
-                # 
-                # SOLUÇÃO TEMPORÁRIA: Desabilitar completamente até encontrar
-                # a forma correta de passar esses parâmetros para o SGLang
-                # 
-                # TODO: Investigar documentação do SGLang para parâmetros corretos
+                # v3.6: Parâmetros anti-repetição HABILITADOS (OpenAI-compatible)
+                # SGLang suporta presence_penalty e frequency_penalty via /v1/chat/completions
+                # Referência: https://www.aidoczh.com/sglang/backend/openai_api_completions.html
                 logger.debug(
-                    f"{ctx_label}ProviderManager: Parâmetros anti-repetição DESABILITADOS "
-                    f"(provider={provider}, repetition_penalty solicitado={repetition_penalty}, "
-                    f"frequency_penalty solicitado={frequency_penalty})"
+                    f"{ctx_label}ProviderManager: Parâmetros anti-repetição habilitados "
+                    f"(provider={provider}, presence_penalty={presence_penalty}, "
+                    f"frequency_penalty={frequency_penalty}, seed={seed})"
                 )
-                # NÃO adicionar repetition_penalty ou frequency_penalty aos request_params
-                # até descobrir a forma correta
                 
                 # v4.0: SGLang com XGrammar suporta json_schema nativo
                 # Habilitar response_format para todos os providers que suportam
@@ -595,8 +703,9 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                 logger.debug(
                     f"{ctx_label}ProviderManager: {provider} chamando com model={request_params.get('model')}, "
                     f"temperature={temperature}, "
-                    f"repetition_penalty={request_params.get('repetition_penalty', 'N/A')}, "
+                    f"presence_penalty={request_params.get('presence_penalty', 'N/A')}, "
                     f"frequency_penalty={request_params.get('frequency_penalty', 'N/A')}, "
+                    f"seed={request_params.get('seed', 'N/A')}, "
                     f"response_format={request_params.get('response_format')}"
                 )
                 
@@ -615,14 +724,14 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                     # Remover parâmetros não suportados e tentar novamente
                     retry_without_params = False
                     
-                    # Se erro com repetition_penalty ou frequency_penalty
-                    if "repetition_penalty" in bad_req_str or "unexpected keyword argument" in bad_req_str:
-                        if "repetition_penalty" in request_params:
+                    # Se erro com presence_penalty, frequency_penalty ou seed
+                    if "presence_penalty" in bad_req_str or "unexpected keyword argument" in bad_req_str:
+                        if "presence_penalty" in request_params:
                             logger.warning(
-                                f"{ctx_label}ProviderManager: {provider} não suporta repetition_penalty, "
+                                f"{ctx_label}ProviderManager: {provider} não suporta presence_penalty, "
                                 f"removendo e tentando novamente"
                             )
-                            request_params.pop("repetition_penalty", None)
+                            request_params.pop("presence_penalty", None)
                             retry_without_params = True
                     
                     if "frequency_penalty" in bad_req_str:
@@ -632,6 +741,15 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                                 f"removendo e tentando novamente"
                             )
                             request_params.pop("frequency_penalty", None)
+                            retry_without_params = True
+                    
+                    if "seed" in bad_req_str:
+                        if "seed" in request_params:
+                            logger.warning(
+                                f"{ctx_label}ProviderManager: {provider} não suporta seed, "
+                                f"removendo e tentando novamente"
+                            )
+                            request_params.pop("seed", None)
                             retry_without_params = True
                     
                     # Se erro com response_format
@@ -686,6 +804,18 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                         f"Message type: {type(message) if message else None}, "
                         f"Content attr exists: {hasattr(message, 'content') if message else False}, "
                         f"Content value: {repr(getattr(message, 'content', None))}"
+                    )
+                
+                # v8.0: LOOP DETECTOR - Detectar geração degenerada
+                # Se detectar loop, lançar exceção para retry seletivo
+                content = message.content
+                if _detect_repetition_loop(content, ctx_label):
+                    logger.warning(
+                        f"{ctx_label}ProviderManager: Loop de repetição detectado "
+                        f"(content_len={len(content)}, latency={latency_ms:.0f}ms)"
+                    )
+                    raise ProviderDegenerationError(
+                        f"Loop de repetição detectado na resposta de {provider}"
                     )
                     raise ProviderError(f"{provider} retornou resposta vazia")
                 

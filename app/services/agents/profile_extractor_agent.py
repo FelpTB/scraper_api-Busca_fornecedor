@@ -66,295 +66,113 @@ class ProfileExtractorAgent(BaseAgent):
     DEFAULT_TIMEOUT = _CFG.get("timeout", 90.0)
     DEFAULT_MAX_RETRIES = _CFG.get("max_retries", 2)
     
-    # Parâmetros otimizados para structured output (determinístico + anti-repetição)
-    DEFAULT_TEMPERATURE: float = 0.0
-    DEFAULT_REPETITION_PENALTY: float = 1.1  # Evita loops e repetições
-    DEFAULT_FREQUENCY_PENALTY: float = 0.3   # Penaliza tokens já usados
+    # Parâmetros otimizados para structured output (anti-loop forte)
+    # v7.0: temperature=0.1 reduz loops em "modo lista" (temperatura=0 aumenta risco)
+    # Valores baseados em consenso da comunidade SGLang/vLLM
+    DEFAULT_TEMPERATURE: float = 0.1         # 0.1 reduz loops (0.0 aumenta risco em catálogos)
+    DEFAULT_PRESENCE_PENALTY: float = 0.3    # Baseline anti-loop (SGLang OpenAI-compatible)
+    DEFAULT_FREQUENCY_PENALTY: float = 0.4   # Baseline anti-repetição
+    DEFAULT_SEED: int = 42                   # Reprodutibilidade
     
     # =========================================================================
-    # SYSTEM_PROMPT v5.0 - Versão com controle rígido de deduplicação
+    # SYSTEM_PROMPT v8.0 - Hard caps numéricos + loop detector
     # =========================================================================
-    # ATUALIZAÇÃO v5.0: Adicionado controle rígido de repetição e anti-loop forte
-    # para evitar duplicação de itens em todas as listas, especialmente em
-    # product_categories[].items. XGrammar garante JSON válido via json_schema.
+    # ATUALIZAÇÃO v8.0: Prompt com regras numéricas objetivas
+    # - Hard cap: máximo 40 itens por categoria (anti-runaway)
+    # - Anti-template: se 5 itens seguidos com mesmo molde, encerrar
+    # - Regras binárias para roteamento (ISO→reputation, NR-10→team)
+    # - Não depende de uniqueItems/maxItems (podem ser ignorados pelo XGrammar)
+    # - Loop detector + retry seletivo implementados no provider_manager
     # =========================================================================
     
-    SYSTEM_PROMPT = """Você é um **extrator de dados B2B especializado**.  
-Gere **APENAS** um **JSON válido** (sem markdown, sem explicações, sem texto fora do JSON).  
-A resposta deve **começar com `{`** e **terminar com `}`**.
+    SYSTEM_PROMPT = """Você é um extrator de dados B2B especializado.
+Gere APENAS um JSON válido (sem markdown, sem explicações). A resposta deve começar com { e terminar com }.
 
-Extraia diretamente, sem explicar, sem planejar em etapas internas, sem resumir o texto.
+REGRAS FUNDAMENTAIS
+1) Autenticidade absoluta (anti-alucinação)
+- Preencha valores SOMENTE quando houver evidência explícita no texto (Markdown/PDF).
+- Nunca invente clientes, certificações, prêmios, parcerias, produtos, números, datas ou métricas.
 
----
+2) Campos ausentes
+- Se estiver no texto: extraia obrigatoriamente.
+- Se NÃO estiver: strings = null; listas = [].
+- Proibido usar placeholders ("Não informado", "N/A", etc.).
 
-## Regras Fundamentais
+3) Idioma
+- Valores em Português (Brasil). Manter em inglês apenas termos técnicos globais e nomes próprios não traduzíveis.
 
-### 1) Autenticidade absoluta  
-Preencha valores **somente quando houver evidência explícita no texto fornecido (Markdown/PDF)**.  
-Nunca invente clientes, certificações, prêmios, parcerias, produtos, números, datas ou métricas.
+ROTEAMENTO CORRETO (evita troca de campos)
+- identity.*: nome legal, CNPJ, slogan, descrição institucional, ano de fundação, faixa de funcionários.
+- contact.*: emails/telefones/site/endereços/locations.
+- offerings.products: somente produtos/software nomeados (nome/modelo/código/versão/medida).
+- offerings.services: atividades (instalação, manutenção, consultoria, projetos, desenvolvimento).
+- team.*: equipe/pessoas/cargos/certificações DA EQUIPE (NR-10, CREA, "equipe certificada", etc.).
+- reputation.*: prova social da empresa (certificações ISO/CE, prêmios, parcerias, clientes, cases).
+Regra de desempate: prova social → reputation; pessoas/equipe → team; oferta → offerings; institucional → identity.
 
----
+CONTROLE RÍGIDO ANTI-REPETIÇÃO (OBRIGATÓRIO)
+4) Deduplicação obrigatória (todas as listas)
+- Em TODAS as listas, cada valor deve aparecer no máximo 1 vez (remover duplicados; manter a primeira ocorrência).
+- Normalize espaços (trim) e não repita variações idênticas.
 
-### 2) Campos ausentes  
-- Se a informação estiver no texto → **extraia obrigatoriamente**  
-- Se não estiver no texto →  
-  - campos string = `null`  
-  - listas = `[]`  
+5) Anti-loop forte para listas longas (regra numérica + anti-template)
+- Para qualquer lista: se você perceber padrão repetitivo, PARE imediatamente e mantenha apenas os primeiros itens únicos.
+- Para offerings.product_categories[].items:
+  a) HARD CAP: no máximo 40 itens por categoria.
+  b) ANTI-TEMPLATE: se 5 itens seguidos compartilharem o mesmo "molde" textual (ex.: começam com "2 RCA + 2 RCA" ou diferem apenas por "coaxial/terra/90º"), mantenha somente os primeiros 5 itens únicos desse molde e encerre a categoria.
+  c) PROIBIDO gerar combinações automáticas. Extraia apenas o que está explicitamente listado.
 
-Nunca use textos como "Não informado", "Não especificado", "Desconhecido".
+6) Critério de item específico (anti-combinatório)
+- item em product_categories[].items deve ser um produto identificável (nome completo e/ou modelo/código/versão/medida).
+- Se o texto listar apenas termos genéricos de conectores/tipos (ex.: "RCA", "P2", "P10", "XLR"):
+  - liste cada termo UMA vez, sem combinações e sem variações.
+  - NÃO gere "2 RCA + 2 RCA" em série.
 
----
+7) Product categories (CRÍTICO)
+- Só crie uma categoria se houver ≥ 1 item válido em items.
+- category_name deve ser família de produtos (não "segmento/área/serviço").
+- Se NÃO houver produtos nomeados no texto:
+  - products: []
+  - product_categories: []
 
-### 3) Idioma  
-Valores em **Português (Brasil)**.  
-Mantenha em inglês apenas termos técnicos globais e nomes próprios não traduzíveis.
+CLIENTES E PROVA SOCIAL (PRIORIDADE MÁXIMA)
+8) client_list
+Se houver gatilhos como "CLIENTES", "Nossos clientes", "Quem confia", "Projetos realizados", "Cases", "Algumas obras executadas":
+- extraia TODOS os nomes listados para reputation.client_list.
+- remova sufixos de local quando forem apenas localização ("- MG", "(BH)").
+- deduplicate.
+- normalize mojibake no nome final (ex.: EmpÃ³rio → Empório).
 
----
+9) case_studies
+Preencha somente se houver cliente + desafio + solução + resultado explícitos; caso contrário, [].
 
-### 4) Produtos vs Serviços  
-
-**Produtos**  
-- Itens físicos ou softwares **nomeados**  
-- Devem possuir ao menos um identificador claro: nome completo, modelo, linha, código, versão ou medida  
-
-**Serviços**  
-- Atividades/processos (instalação, manutenção, consultoria, projetos, desenvolvimento)  
-
----
-
-## CONTROLE RÍGIDO DE REPETIÇÃO (OBRIGATÓRIO)
-
-### 5) Deduplicação obrigatória (CRÍTICO)
-
-Em **todas as listas** (`products`, `product_categories[].items`, `services`, `client_list`, etc.):
-
-- Os valores devem ser **estritamente únicos**  
-- Remova duplicados mantendo **apenas a primeira ocorrência**  
-- Nunca repita o mesmo item textual mais de uma vez  
-
-Se um valor aparecer várias vezes no texto, **liste apenas uma vez** no JSON final.
-
----
-
-### 6) Critério de item específico (ANTI-LOOP FORTE)
-
-Para `product_categories[].items`:
-
-- Cada item deve ser um **produto específico identificável**, contendo pelo menos um:
-  - modelo  
-  - código  
-  - versão  
-  - medida  
-  - marca + modelo  
-
-**Proibido:**
-- repetir variações do mesmo padrão  
-- gerar combinações automáticas  
-- listar sequências como:
-  - "2 RCA + 2 RCA" repetido  
-  - "2 RCA + 2 RCA coaxial" em série  
-  - padrões que diferem apenas por posição/palavra irrelevante  
-
-#### Regra operacional:
-
-- Se o texto listar apenas termos genéricos ("RCA", "P2", "P10", "XLR")  
-  - Liste **cada termo apenas uma vez**  
-  - Não gere combinações  
-  - Não gere repetições  
-  - Não expanda variações  
-
-Exemplo correto:
-```json
-"items": ["RCA", "P2", "P10", "XLR"]
-```
-
-Exemplo proibido:
-- dezenas de "2 RCA + 2 RCA"
-- listas com variações mínimas repetidas
-
-Se detectar padrão repetitivo durante a geração, **interrompa imediatamente a listagem**.
-
----
-
-### 7) Product Categories (CRÍTICO)
-
-- Crie categoria em `product_categories` **somente** se houver **≥ 1 item específico válido** em `items`.
-- Categoria deve ser **grupo de produtos**, não área ou serviço.
-
-Proibido:
-- categoria sem itens
-- itens genéricos sem identificador
-- áreas ("Engenharia", "Projetos", "Automotivo") como categoria
-
-Se não houver produtos específicos:
-```json
-"products": [],
-"product_categories": []
-```
-
----
-
-### 8) Clientes e Prova Social (PRIORIDADE MÁXIMA)
-
-Se existir trecho com:
-"CLIENTES", "Nossos clientes", "Algumas obras executadas", "Quem confia", "Projetos realizados", "Cases"
-
-Você **DEVE**:
-- extrair todos os nomes listados
-- preencher `reputation.client_list`
-- remover locais e sufixos ("– MG", "(BH)")
-- deduplicar
-
-Normalize encoding **apenas nos nomes finais** (ex.: EmpÃ³rio → Empório).
-
----
-
-### 9) Case Studies
-
-Preencha `case_studies` somente quando existir:
-- cliente identificado
-- solução descrita
-- resultado descrito
-
-Caso contrário:
-```json
-"case_studies": []
-```
-
----
-
-## Micro-Shots Essenciais
-
-### SHOT A — Clientes (lista explícita)
-
+MICRO-SHOTS
+SHOT A — Clientes
 Entrada:
-```
-CLIENTES / Algumas obras executadas:
+CLIENTES:
 Magazine Luiza
 Hermes Pardini
 Instituto Cervantes
-```
-
 Saída:
-```json
 "client_list": ["Magazine Luiza", "Hermes Pardini", "Instituto Cervantes"]
-```
 
----
-
-### SHOT B — Serviço genérico NÃO vira categoria
-
-Entrada:
-```
-Instalação de detectores de fumaça, gás e calor
-```
-
-Saída correta:
-```json
+SHOT B — Serviço genérico NÃO vira categoria
+Entrada: "Instalação de detectores de fumaça, gás e calor"
+Saída:
 "services": ["Instalação de detectores de fumaça, gás e calor"],
 "product_categories": []
-```
 
----
-
-### SHOT C — Categoria só com item específico
-
-Entrada:
-```
-Produtos: Ionizador AquaZon X200; Sistema Acquazon Pro 3.1
-```
-
+SHOT C — Termos genéricos (sem combinações)
+Entrada: "Conectores: RCA, P2, P10, XLR"
 Saída:
-```json
-"product_categories": [
-  {"category_name": "Ionizadores", "items": ["Ionizador AquaZon X200"]},
-  {"category_name": "Sistemas Acquazon", "items": ["Sistema Acquazon Pro 3.1"]}
-]
-```
+"items": ["RCA", "P2", "P10", "XLR"]
 
----
-
-## Ordem de Varredura (eficiente e sem loops)
-
-1. Identity + Contact
-2. Services + Service details
-3. Products / Categories
-4. Reputation (client_list primeiro)
-
-Se uma seção não existir explicitamente no texto, **não procure inferir** e avance imediatamente.
-
----
-
-## Gere o JSON no seguinte Schema
-
-```json
-{
-  "identity": {
-    "company_name": "string",
-    "cnpj": "string",
-    "tagline": "string",
-    "description": "string",
-    "founding_year": "string",
-    "employee_count_range": "string"
-  },
-  "classification": {
-    "industry": "string",
-    "business_model": "string",
-    "target_audience": "string",
-    "geographic_coverage": "string"
-  },
-  "team": {
-    "size_range": "string",
-    "key_roles": ["string"],
-    "team_certifications": ["string"]
-  },
-  "offerings": {
-    "products": ["string"],
-    "product_categories": [
-      {
-        "category_name": "string",
-        "items": ["string"]
-      }
-    ],
-    "services": ["string"],
-    "service_details": [
-      {
-        "name": "string",
-        "description": "string",
-        "methodology": "string",
-        "deliverables": ["string"],
-        "ideal_client_profile": "string"
-      }
-    ],
-    "engagement_models": ["string"],
-    "key_differentiators": ["string"]
-  },
-  "reputation": {
-    "certifications": ["string"],
-    "awards": ["string"],
-    "partnerships": ["string"],
-    "client_list": ["string"],
-    "case_studies": [
-      {
-        "title": "string",
-        "client_name": "string",
-        "industry": "string",
-        "challenge": "string",
-        "solution": "string",
-        "outcome": "string"
-      }
-    ]
-  },
-  "contact": {
-    "emails": ["string"],
-    "phones": ["string"],
-    "linkedin_url": "string",
-    "website_url": "string",
-    "headquarters_address": "string",
-    "locations": ["string"]
-  }
-}
-```
+ORDEM DE VARREDURA (eficiente)
+1) identity + contact
+2) offerings.services + service_details
+3) offerings.products + product_categories
+4) reputation (client_list primeiro)
+Não infira ausentes. Extraia somente o explícito.
 """
     
     def _get_json_schema(self) -> Optional[Dict[str, Any]]:
@@ -382,21 +200,33 @@ Se uma seção não existir explicitamente no texto, **não procure inferir** e 
         """
         Constrói prompt com conteúdo para análise.
         
-        v4.0: Prompt otimizado para structured output
-              - Direto ao ponto (XGrammar garante formato)
-              - Foco na tarefa de extração
+        v7.0: Prompt com schema JSON completo incluído
+              - Guia explícito do formato esperado
+              - Schema com todas as restrições (maxItems, uniqueItems)
         
         Args:
             content: Conteúdo scraped para análise
         
         Returns:
-            Prompt formatado
+            Prompt formatado com schema JSON
         """
-        # v4.0: Com structured output, prompt pode ser mais direto
-        # XGrammar garante o formato JSON, focamos na extração
+        # v7.0: Incluir schema JSON completo para guiar o modelo
+        # Obtém o schema do Pydantic para garantir consistência
+        schema = _get_company_profile_schema()
+        
+        # Formatar schema de forma legível
+        import json
+        schema_str = json.dumps(schema, indent=2, ensure_ascii=False)
+        
         return f"""Extraia o perfil completo desta empresa:
 
-{content}"""
+{content}
+
+---
+
+Gere o JSON exatamente no seguinte schema:
+
+{schema_str}"""
     
     def _parse_response(self, response: str, **kwargs) -> CompanyProfile:
         """
@@ -472,9 +302,152 @@ Se uma seção não existir explicitamente no texto, **não procure inferir** e 
             logger.error(f"ProfileExtractorAgent: Erro ao processar resposta: {e}")
             return CompanyProfile()
     
+    def _deduplicate_and_filter_lists(self, data: dict) -> dict:
+        """
+        Pós-processamento robusto: deduplicação + filtro anti-template.
+        
+        v8.0: Não depende de uniqueItems (pode ser ignorado pelo XGrammar)
+        
+        Args:
+            data: Dados extraídos pelo LLM
+        
+        Returns:
+            Dados com listas deduplicadas e filtradas
+        """
+        if not isinstance(data, dict):
+            return data
+        
+        def deduplicate_list(items: list) -> list:
+            """Deduplica lista mantendo ordem da primeira ocorrência."""
+            if not items:
+                return []
+            seen = set()
+            unique = []
+            for item in items:
+                if isinstance(item, str):
+                    item_normalized = item.strip().lower()
+                    if item_normalized and item_normalized not in seen:
+                        seen.add(item_normalized)
+                        unique.append(item.strip())
+                else:
+                    unique.append(item)
+            return unique
+        
+        def filter_template_items(items: list, max_items: int = 40) -> list:
+            """
+            Filtro anti-template: detecta e remove itens com mesmo molde repetido.
+            
+            Hard cap: máximo 40 itens
+            Anti-template: se 5 itens seguidos compartilham mesmo prefixo/padrão,
+            manter apenas os primeiros 5 únicos desse molde.
+            """
+            if not items or len(items) <= 5:
+                return items[:max_items]
+            
+            filtered = []
+            pattern_counts = {}
+            
+            for item in items:
+                if len(filtered) >= max_items:
+                    break
+                
+                # Extrair "molde" do item (primeiras 2-3 palavras)
+                words = item.split()[:3]
+                pattern = ' '.join(words) if len(words) >= 2 else item[:20]
+                
+                # Contar ocorrências desse padrão
+                pattern_counts[pattern] = pattern_counts.get(pattern, 0) + 1
+                
+                # Se padrão aparece > 5 vezes, parar de adicionar variações dele
+                if pattern_counts[pattern] <= 5:
+                    filtered.append(item)
+            
+            return filtered
+        
+        # Processar offerings (crítico)
+        if 'offerings' in data and isinstance(data['offerings'], dict):
+            offerings = data['offerings']
+            
+            # Deduplicate products
+            if 'products' in offerings and isinstance(offerings['products'], list):
+                offerings['products'] = deduplicate_list(offerings['products'])
+            
+            # Deduplicate services
+            if 'services' in offerings and isinstance(offerings['services'], list):
+                offerings['services'] = deduplicate_list(offerings['services'])
+            
+            # Deduplicate + filter product_categories[].items (CRÍTICO)
+            if 'product_categories' in offerings and isinstance(offerings['product_categories'], list):
+                for category in offerings['product_categories']:
+                    if isinstance(category, dict) and 'items' in category:
+                        # Passo 1: Deduplicate
+                        category['items'] = deduplicate_list(category['items'])
+                        # Passo 2: Filter anti-template (hard cap 40)
+                        category['items'] = filter_template_items(category['items'], max_items=40)
+            
+            # Deduplicate engagement_models
+            if 'engagement_models' in offerings and isinstance(offerings['engagement_models'], list):
+                offerings['engagement_models'] = deduplicate_list(offerings['engagement_models'])
+            
+            # Deduplicate key_differentiators
+            if 'key_differentiators' in offerings and isinstance(offerings['key_differentiators'], list):
+                offerings['key_differentiators'] = deduplicate_list(offerings['key_differentiators'])
+        
+        # Processar reputation (cliente list é crítica)
+        if 'reputation' in data and isinstance(data['reputation'], dict):
+            reputation = data['reputation']
+            
+            # Deduplicate client_list
+            if 'client_list' in reputation and isinstance(reputation['client_list'], list):
+                reputation['client_list'] = deduplicate_list(reputation['client_list'])
+            
+            # Deduplicate certifications
+            if 'certifications' in reputation and isinstance(reputation['certifications'], list):
+                reputation['certifications'] = deduplicate_list(reputation['certifications'])
+            
+            # Deduplicate awards
+            if 'awards' in reputation and isinstance(reputation['awards'], list):
+                reputation['awards'] = deduplicate_list(reputation['awards'])
+            
+            # Deduplicate partnerships
+            if 'partnerships' in reputation and isinstance(reputation['partnerships'], list):
+                reputation['partnerships'] = deduplicate_list(reputation['partnerships'])
+        
+        # Processar team
+        if 'team' in data and isinstance(data['team'], dict):
+            team = data['team']
+            
+            # Deduplicate key_roles
+            if 'key_roles' in team and isinstance(team['key_roles'], list):
+                team['key_roles'] = deduplicate_list(team['key_roles'])
+            
+            # Deduplicate team_certifications
+            if 'team_certifications' in team and isinstance(team['team_certifications'], list):
+                team['team_certifications'] = deduplicate_list(team['team_certifications'])
+        
+        # Processar contact
+        if 'contact' in data and isinstance(data['contact'], dict):
+            contact = data['contact']
+            
+            # Deduplicate emails
+            if 'emails' in contact and isinstance(contact['emails'], list):
+                contact['emails'] = deduplicate_list(contact['emails'])
+            
+            # Deduplicate phones
+            if 'phones' in contact and isinstance(contact['phones'], list):
+                contact['phones'] = deduplicate_list(contact['phones'])
+            
+            # Deduplicate locations
+            if 'locations' in contact and isinstance(contact['locations'], list):
+                contact['locations'] = deduplicate_list(contact['locations'])
+        
+        return data
+    
     def _normalize_response(self, data: dict) -> dict:
         """
         Normaliza a resposta do LLM para o formato esperado.
+        
+        v8.0: Aplica deduplicação robusta antes de normalizar
         
         Args:
             data: Dados extraídos pelo LLM
@@ -482,6 +455,9 @@ Se uma seção não existir explicitamente no texto, **não procure inferir** e 
         Returns:
             Dados normalizados
         """
+        # v8.0: Deduplicação robusta (não depende de uniqueItems no schema)
+        data = self._deduplicate_and_filter_lists(data)
+        
         # Importar normalizador do módulo profile_builder
         try:
             from app.services.profile_builder.response_normalizer import normalize_llm_response

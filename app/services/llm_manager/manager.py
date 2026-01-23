@@ -23,7 +23,8 @@ from .provider_manager import (
     ProviderError,
     ProviderRateLimitError,
     ProviderTimeoutError,
-    ProviderBadRequestError
+    ProviderBadRequestError,
+    ProviderDegenerationError
 )
 from .queue_manager import create_queue_manager
 from .health_monitor import health_monitor, FailureType
@@ -122,8 +123,9 @@ class LLMCallManager:
         priority: LLMPriority = LLMPriority.NORMAL,
         timeout: float = None,
         temperature: float = 0.0,
-        repetition_penalty: float = 1.0,
-        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.3,
+        frequency_penalty: float = 0.4,
+        seed: int = 42,
         response_format: dict = None,
         ctx_label: str = "",
         max_retries: int = 3,
@@ -133,8 +135,12 @@ class LLMCallManager:
         """
         Faz chamada LLM com seleção automática de provider.
         
-        v3.5: Adicionado suporte a repetition_penalty e frequency_penalty
-              para evitar repetições e alucinações
+        v3.6: Parâmetros OpenAI-compatible (SGLang)
+              - presence_penalty: Penaliza tokens já aparecidos
+              - frequency_penalty: Penaliza tokens frequentes
+              - seed: Reprodutibilidade
+        
+        v3.5: Adicionado suporte a anti-repetição
         
         v3.4: HIGH bypassa orchestrator (usa rate limiter próprio do Gemini)
               NORMAL usa orchestrator para controle global
@@ -144,8 +150,9 @@ class LLMCallManager:
             priority: Nível de prioridade (HIGH para Discovery/LinkSelector)
             timeout: Timeout em segundos (opcional)
             temperature: Temperatura da geração
-            repetition_penalty: Penalização para repetições (1.0 = sem penalização, 1.1 recomendado)
-            frequency_penalty: Penalização por frequência (-2.0 a 2.0, 0 = sem penalização)
+            presence_penalty: Penaliza tokens já aparecidos (-2.0 a 2.0, padrão 0.3)
+            frequency_penalty: Penaliza tokens frequentes (-2.0 a 2.0, padrão 0.4)
+            seed: Seed para reprodutibilidade (padrão 42)
             response_format: Formato de resposta (ex: {"type": "json_object"})
             ctx_label: Label de contexto para logs
             max_retries: Número máximo de tentativas
@@ -175,8 +182,9 @@ class LLMCallManager:
                 priority=priority,
                 timeout=timeout,
                 temperature=temperature,
-                repetition_penalty=repetition_penalty,
+                presence_penalty=presence_penalty,
                 frequency_penalty=frequency_penalty,
+                seed=seed,
                 response_format=response_format,
                 ctx_label=ctx_label,
                 max_retries=max_retries,
@@ -216,8 +224,9 @@ class LLMCallManager:
         priority: LLMPriority,
         timeout: float,
         temperature: float,
-        repetition_penalty: float,
+        presence_penalty: float,
         frequency_penalty: float,
+        seed: int,
         response_format: dict,
         ctx_label: str,
         max_retries: int,
@@ -257,13 +266,31 @@ class LLMCallManager:
             providers_tried.append(selected_provider)
             
             try:
+                # v8.0: Parâmetros adaptativos para retry seletivo
+                # Se for retry após degeneração, ajustar parâmetros
+                adjusted_temperature = temperature
+                adjusted_presence = presence_penalty
+                adjusted_frequency = frequency_penalty
+                adjusted_max_tokens = None
+                
+                # Se já tentamos e falhou por degeneração, ajustar
+                if attempt > 0 and last_error and isinstance(last_error, ProviderDegenerationError):
+                    adjusted_temperature = 0.2  # Aumentar levemente
+                    adjusted_presence = 0.6     # Penalizar mais
+                    adjusted_frequency = 0.8    # Penalizar mais
+                    logger.info(
+                        f"{ctx_label}LLMCallManager: Retry anti-loop (attempt={attempt+1}): "
+                        f"temp=0.2, presence=0.6, frequency=0.8"
+                    )
+                
                 content, latency_ms = await self.provider_manager.call(
                     provider=selected_provider,
                     messages=messages,
                     timeout=timeout,
-                    temperature=temperature,
-                    repetition_penalty=repetition_penalty,
-                    frequency_penalty=frequency_penalty,
+                    temperature=adjusted_temperature,
+                    presence_penalty=adjusted_presence,
+                    frequency_penalty=adjusted_frequency,
+                    seed=seed,
                     response_format=response_format,
                     ctx_label=ctx_label,
                     priority=priority
@@ -284,6 +311,21 @@ class LLMCallManager:
                 self.health_monitor.record_failure(selected_provider, FailureType.BAD_REQUEST)
                 logger.error(f"{ctx_label}LLMCallManager: BadRequest com {selected_provider}: {e}")
                 raise
+            
+            except ProviderDegenerationError as e:
+                # v8.0: Loop de repetição detectado - retry com parâmetros ajustados
+                self.health_monitor.record_failure(selected_provider, FailureType.ERROR)
+                logger.warning(
+                    f"{ctx_label}LLMCallManager: Degeneração detectada com {selected_provider}: {e}"
+                )
+                last_error = e
+                # Retry imediato (sem backoff) com parâmetros ajustados
+                if attempt < max_retries - 1:
+                    logger.info(
+                        f"{ctx_label}LLMCallManager: Retry anti-loop {attempt + 1}/{max_retries} "
+                        f"(sem delay, parâmetros ajustados)"
+                    )
+                continue
             
             except ProviderRateLimitError as e:
                 self.health_monitor.record_failure(selected_provider, FailureType.RATE_LIMIT)

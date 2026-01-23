@@ -23,6 +23,6 @@
   "use_structured_output_note": "WHAT: habilita json_schema via SGLang/XGrammar. WHY: garante JSON válido sem parsing adicional. HOW: true usa response_format com json_schema.",
   "structured_output_backend": "xgrammar",
   "structured_output_backend_note": "WHAT: backend de gramática do SGLang. WHY: XGrammar tem melhor performance. HOW: xgrammar (default), outlines, ou llguidance.",
-  "recommended_temperature": 0.0,
-  "recommended_temperature_note": "WHAT: temperatura para geração estruturada. WHY: 0.0 = determinístico = JSON mais confiável. HOW: ↑ mais variação; ↓ mais previsível."
+  "recommended_temperature": 0.1,
+  "recommended_temperature_note": "WHAT: temperatura para geração estruturada. WHY: 0.1 reduz loops em catálogos (0.0 aumenta risco). HOW: v8.0 = 0.1 baseline, retry com 0.2 se loop detectado."
 }

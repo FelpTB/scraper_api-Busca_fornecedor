@@ -1,10 +1,11 @@
 """
 Schema do Perfil de Empresa para extração B2B.
 
-v5.0: Descriptions e validadores otimizados para controle de deduplicação
-      - Field descriptions guiam o modelo na extração
-      - Validadores customizados garantem unicidade de valores
-      - Anti-loop forte para product_categories[].items
+v8.0: Deduplicação robusta via pós-processamento
+      - uniqueItems/maxItems/minLength são HINTS para o modelo (podem ser ignorados por XGrammar)
+      - Validadores Pydantic garantem deduplicação básica
+      - Pós-processamento no agente garante deduplicação robusta + anti-template
+      - Hard caps numéricos no PROMPT v8.0 (40 itens por categoria)
 """
 from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
@@ -33,11 +34,15 @@ class TeamProfile(BaseModel):
     size_range: Optional[str] = Field(None, description="Tamanho da equipe")
     key_roles: List[str] = Field(
         default_factory=list, 
-        description="Principais funções/cargos ÚNICOS na equipe (sem duplicatas)"
+        max_length=50,
+        description="Principais funções/cargos ÚNICOS na equipe (sem duplicatas)",
+        json_schema_extra={"uniqueItems": True}  # Hint para o modelo (não garantido por XGrammar)
     )
     team_certifications: List[str] = Field(
         default_factory=list, 
-        description="Certificações ÚNICAS da equipe (sem duplicatas)"
+        max_length=30,
+        description="Certificações ÚNICAS da equipe (sem duplicatas)",
+        json_schema_extra={"uniqueItems": True}  # Hint para o modelo (não garantido por XGrammar)
     )
     
     @field_validator('key_roles', 'team_certifications')
@@ -63,7 +68,9 @@ class ServiceDetail(BaseModel):
     methodology: Optional[str] = Field(None, description="Metodologia utilizada")
     deliverables: List[str] = Field(
         default_factory=list, 
-        description="Entregáveis ÚNICOS do serviço (sem duplicatas)"
+        max_length=30,
+        description="Entregáveis ÚNICOS do serviço (sem duplicatas)",
+        json_schema_extra={"uniqueItems": True}
     )
     ideal_client_profile: Optional[str] = Field(None, description="Perfil ideal de cliente")
     
@@ -88,12 +95,15 @@ class ProductCategory(BaseModel):
     category_name: Optional[str] = Field(None, description="Nome da categoria de produtos")
     items: List[str] = Field(
         default_factory=list, 
+        max_length=200,  # Hint (não garantido por XGrammar), pós-processamento usa hard cap 40
         description=(
             "PRODUTOS ESPECÍFICOS ÚNICOS: nomes, modelos, códigos, versões, medidas. "
             "DEDUPLICAÇÃO OBRIGATÓRIA: cada item deve aparecer APENAS UMA VEZ. "
             "ANTI-LOOP: não repita variações do mesmo padrão. "
-            "Se detectar repetição, interrompa imediatamente."
-        )
+            "Se detectar repetição, interrompa imediatamente. "
+            "HARD CAP: máximo 40 itens por categoria (PROMPT v8.0)."
+        ),
+        json_schema_extra={"uniqueItems": True, "minLength": 2}  # Hints (não garantidos)
     )
     
     @field_validator('items')
@@ -116,27 +126,37 @@ class Offerings(BaseModel):
     """Produtos e serviços oferecidos pela empresa."""
     products: List[str] = Field(
         default_factory=list, 
-        description="Lista ÚNICA de produtos gerais (sem duplicatas)"
+        max_length=200,
+        description="Lista ÚNICA de produtos gerais (sem duplicatas, máx. 200)",
+        json_schema_extra={"uniqueItems": True}
     )
     product_categories: List[ProductCategory] = Field(
         default_factory=list, 
-        description="Categorias de produtos com itens específicos ÚNICOS"
+        max_length=80,
+        description="Categorias de produtos com itens específicos ÚNICOS (máx. 80)"
     )
     services: List[str] = Field(
         default_factory=list, 
-        description="Lista ÚNICA de serviços (sem duplicatas)"
+        max_length=100,
+        description="Lista ÚNICA de serviços (sem duplicatas, máx. 100)",
+        json_schema_extra={"uniqueItems": True}
     )
     service_details: List[ServiceDetail] = Field(
         default_factory=list, 
-        description="Detalhes dos principais serviços"
+        max_length=30,
+        description="Detalhes dos principais serviços (máx. 30)"
     )
     engagement_models: List[str] = Field(
         default_factory=list, 
-        description="Modelos ÚNICOS de contratação (sem duplicatas)"
+        max_length=20,
+        description="Modelos ÚNICOS de contratação (sem duplicatas, máx. 20)",
+        json_schema_extra={"uniqueItems": True}
     )
     key_differentiators: List[str] = Field(
         default_factory=list, 
-        description="Diferenciais ÚNICOS (sem duplicatas)"
+        max_length=30,
+        description="Diferenciais ÚNICOS (sem duplicatas, máx. 30)",
+        json_schema_extra={"uniqueItems": True}
     )
     
     @field_validator('products', 'services', 'engagement_models', 'key_differentiators')
@@ -169,23 +189,32 @@ class Reputation(BaseModel):
     """Reputação e prova social da empresa."""
     certifications: List[str] = Field(
         default_factory=list, 
-        description="Certificações ÚNICAS (ISO, ANVISA, etc.) - sem duplicatas"
+        max_length=50,
+        description="Certificações ÚNICAS (ISO, ANVISA, etc.) - sem duplicatas (máx. 50)",
+        json_schema_extra={"uniqueItems": True}
     )
     awards: List[str] = Field(
         default_factory=list, 
-        description="Prêmios ÚNICOS - sem duplicatas"
+        max_length=50,
+        description="Prêmios ÚNICOS - sem duplicatas (máx. 50)",
+        json_schema_extra={"uniqueItems": True}
     )
     partnerships: List[str] = Field(
         default_factory=list, 
-        description="Parcerias ÚNICAS - sem duplicatas"
+        max_length=100,
+        description="Parcerias ÚNICAS - sem duplicatas (máx. 100)",
+        json_schema_extra={"uniqueItems": True}
     )
     client_list: List[str] = Field(
         default_factory=list, 
-        description="Clientes ÚNICOS de referência (deduplicados, sem locais/sufixos)"
+        max_length=200,
+        description="Clientes ÚNICOS de referência (deduplicados, sem locais/sufixos, máx. 200)",
+        json_schema_extra={"uniqueItems": True}
     )
     case_studies: List[CaseStudy] = Field(
         default_factory=list, 
-        description="Casos de sucesso detalhados"
+        max_length=30,
+        description="Casos de sucesso detalhados (máx. 30)"
     )
     
     @field_validator('certifications', 'awards', 'partnerships', 'client_list')
@@ -208,18 +237,24 @@ class Contact(BaseModel):
     """Informações de contato."""
     emails: List[str] = Field(
         default_factory=list, 
-        description="Emails ÚNICOS de contato (sem duplicatas)"
+        max_length=20,
+        description="Emails ÚNICOS de contato (sem duplicatas, máx. 20)",
+        json_schema_extra={"uniqueItems": True}
     )
     phones: List[str] = Field(
         default_factory=list, 
-        description="Telefones ÚNICOS (sem duplicatas)"
+        max_length=20,
+        description="Telefones ÚNICOS (sem duplicatas, máx. 20)",
+        json_schema_extra={"uniqueItems": True}
     )
     linkedin_url: Optional[str] = Field(None, description="URL do LinkedIn")
     website_url: Optional[str] = Field(None, description="URL do site")
     headquarters_address: Optional[str] = Field(None, description="Endereço da sede")
     locations: List[str] = Field(
         default_factory=list, 
-        description="Localizações ÚNICAS (sem duplicatas)"
+        max_length=50,
+        description="Localizações ÚNICAS (sem duplicatas, máx. 50)",
+        json_schema_extra={"uniqueItems": True}
     )
     
     @field_validator('emails', 'phones', 'locations')
