@@ -474,7 +474,8 @@ class ProviderManager:
         seed: int = 42,
         response_format: dict = None,
         ctx_label: str = "",
-        priority: LLMPriority = LLMPriority.NORMAL
+        priority: LLMPriority = LLMPriority.NORMAL,
+        max_tokens_factor: float = 1.0
     ) -> Tuple[str, float]:
         """
         Faz chamada a um provider com controle de rate limiting.
@@ -555,7 +556,7 @@ class ProviderManager:
                 return await self._execute_llm_call(
                     client, config, semaphore, messages,
                     actual_timeout, temperature, presence_penalty, frequency_penalty, seed,
-                    response_format, ctx_label, provider, estimated_tokens
+                    response_format, ctx_label, provider, estimated_tokens, max_tokens_factor
                 )
             finally:
                 async with self._counter_lock:
@@ -568,7 +569,7 @@ class ProviderManager:
             return await self._execute_llm_call(
                 client, config, semaphore, messages,
                 actual_timeout, temperature, presence_penalty, frequency_penalty, seed,
-                response_format, ctx_label, provider, estimated_tokens
+                response_format, ctx_label, provider, estimated_tokens, max_tokens_factor
             )
     
     async def _execute_llm_call(
@@ -585,7 +586,8 @@ class ProviderManager:
         response_format: dict,
         ctx_label: str,
         provider: str,
-        estimated_tokens: int
+        estimated_tokens: int,
+        max_tokens_factor: float = 1.0
     ) -> Tuple[str, float]:
         """
         Executa a chamada LLM real com controle de rate limiting.
