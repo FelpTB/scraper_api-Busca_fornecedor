@@ -267,76 +267,16 @@ async def chat_completion(
                 http_response.raise_for_status()
                 response_data = http_response.json()
                 
-                # Adicionar atributos de resposta ao span (completos)
+                # Atualizar span com resposta usando função helper nativa do Phoenix
                 if span:
                     try:
-                        content = response_data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                        usage = response_data.get("usage", {})
-                        choice_data = response_data.get("choices", [{}])[0]
-                        
-                        # Resposta completa (sem truncar)
-                        span.set_attribute("gen_ai.response.content", content)
-                        
-                        # Resposta completa como JSON
-                        span.set_attribute("gen_ai.response.raw", json.dumps(response_data, ensure_ascii=False))
-                        
-                        # Tamanho da resposta
-                        span.set_attribute("llm.response.content_length", len(content))
-                        
-                        # Finish reason
-                        span.set_attribute("gen_ai.response.finish_reason", 
-                                          choice_data.get("finish_reason", "unknown"))
-                        
-                        # Métricas de uso de tokens
-                        span.set_attribute("gen_ai.usage.prompt_tokens", usage.get("prompt_tokens", 0))
-                        span.set_attribute("gen_ai.usage.completion_tokens", usage.get("completion_tokens", 0))
-                        span.set_attribute("gen_ai.usage.total_tokens", usage.get("total_tokens", 0))
-                        
-                        # Eficiência de tokens
-                        if usage.get("prompt_tokens", 0) > 0:
-                            tokens_per_char = usage.get("completion_tokens", 0) / max(len(content), 1)
-                            span.set_attribute("llm.response.tokens_per_char", round(tokens_per_char, 4))
-                        
-                        # Modelo usado na resposta
-                        span.set_attribute("gen_ai.response.model", response_data.get("model", ""))
-                        
-                        # ID da resposta
-                        span.set_attribute("gen_ai.response.id", response_data.get("id", ""))
-                        
-                        # Timestamp da resposta
-                        span.set_attribute("gen_ai.response.created", response_data.get("created", 0))
-                        
-                        # Latência (calcular se possível)
-                        if hasattr(span, 'start_time'):
-                            latency_ms = (time.perf_counter() - span.start_time) * 1000
-                            span.set_attribute("llm.response.latency_ms", latency_ms)
-                            
-                            # Tokens por segundo
-                            if latency_ms > 0:
-                                tokens_per_sec = (usage.get("completion_tokens", 0) / latency_ms) * 1000
-                                span.set_attribute("llm.response.tokens_per_second", round(tokens_per_sec, 2))
-                        
-                        # Status HTTP
-                        span.set_attribute("llm.response.status_code", http_response.status_code)
-                        
-                        # Headers da resposta
-                        response_headers_info = {
-                            "content-type": http_response.headers.get("content-type", ""),
-                            "content-length": http_response.headers.get("content-length", ""),
-                        }
-                        span.set_attribute("llm.response.headers", json.dumps(response_headers_info, ensure_ascii=False))
-                        
-                        # Adicionar evento: resposta recebida
-                        span.add_event("llm.response.received", {
-                            "timestamp": time.time(),
-                            "status_code": http_response.status_code,
-                            "finish_reason": choice_data.get("finish_reason", "unknown"),
-                            "tokens": usage.get("total_tokens", 0),
-                            "content_length": len(content)
-                        })
-                            
+                        update_llm_span_response(
+                            span=span,
+                            response_data=response_data,
+                            http_status_code=http_response.status_code
+                        )
                     except Exception as e:
-                        logger.debug(f"vllm_client: Erro ao adicionar atributos ao span: {e}")
+                        logger.debug(f"vllm_client: Erro ao atualizar span com resposta: {e}")
         finally:
             if span and token is not None:
                 try:
