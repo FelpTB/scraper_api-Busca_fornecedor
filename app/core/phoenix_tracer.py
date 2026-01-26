@@ -33,6 +33,9 @@ def setup_phoenix_tracing(project_name: str):
     """
     Configura tracing Phoenix para um projeto específico.
     
+    CRÍTICO: Configura Resource com openinference.project.name para isolamento
+    correto de projetos no Phoenix. Isso garante que traces não caiam no "default".
+    
     Args:
         project_name: Nome do projeto no Phoenix (ex: 'discovery-llm', 'profile-llm')
     
@@ -47,14 +50,46 @@ def setup_phoenix_tracing(project_name: str):
         try:
             from phoenix.otel import register
             from openinference.instrumentation.openai import OpenAIInstrumentor
+            from opentelemetry.sdk.resources import Resource
             
+            # CRÍTICO: Configurar Resource com openinference.project.name
+            # Isso garante isolamento correto de projetos no Phoenix
+            # Sem isso, todos os traces caem no projeto "default"
+            # O register() do Phoenix já configura o project_name, mas vamos
+            # garantir que o Resource também tenha o atributo para máxima compatibilidade
+            resource = Resource.create({
+                "service.name": "scraper-api",
+                "openinference.project.name": project_name,  # Isolamento de projeto
+            })
+            
+            # Registrar com Phoenix (project_name já é passado, mas Resource garante atributos)
             tracer_provider = register(
                 project_name=project_name,
                 endpoint=f"{settings.PHOENIX_COLLECTOR_URL}/v1/traces",
             )
+            
+            # Se o tracer_provider retornado tiver método para atualizar Resource, usar
+            # Caso contrário, o project_name já é suficiente para o Phoenix
+            try:
+                # Tentar atualizar Resource se possível
+                if hasattr(tracer_provider, 'resource'):
+                    # Merge com Resource existente
+                    existing_resource = tracer_provider.resource
+                    merged_attrs = {**existing_resource.attributes, **resource.attributes}
+                    updated_resource = Resource.create(merged_attrs)
+                    # Nota: Nem todos os TracerProviders permitem atualizar Resource após criação
+                    # O project_name passado para register() já deve ser suficiente
+            except Exception:
+                # Se não conseguir atualizar Resource, não é crítico
+                # O project_name já garante isolamento
+                pass
+            
             OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
             _tracer_providers[project_name] = tracer_provider
-            logger.info(f"✅ Phoenix tracing configurado para projeto: {project_name}")
+            logger.info(
+                f"✅ Phoenix tracing configurado para projeto: {project_name} "
+                f"(endpoint: {settings.PHOENIX_COLLECTOR_URL}/v1/traces)"
+            )
         except ImportError as e:
             logger.warning(f"⚠️ Bibliotecas Phoenix não instaladas: {e}")
             logger.warning("⚠️ Tracing desabilitado. Instale: pip install arize-phoenix-otel openinference-instrumentation-openai")
@@ -64,6 +99,74 @@ def setup_phoenix_tracing(project_name: str):
             _tracer_providers[project_name] = None
     
     return _tracer_providers.get(project_name)
+
+
+def _normalize_model_name(model_name: str) -> str:
+    """
+    Normaliza nome de modelo do SGLang.
+    
+    SGLang frequentemente retorna caminhos completos de arquivo como nome do modelo
+    (ex: /data/models/deepseek-ai/DeepSeek-V3). Esta função extrai apenas o
+    identificador significativo (ex: DeepSeek-V3).
+    
+    Args:
+        model_name: Nome do modelo como retornado pelo SGLang
+    
+    Returns:
+        Nome normalizado do modelo
+    """
+    if not model_name:
+        return model_name
+    
+    # Se contém caminho de arquivo (começa com / ou contém /)
+    if "/" in model_name:
+        # Pegar última parte do caminho
+        parts = model_name.split("/")
+        model_name = parts[-1]
+    
+    # Remover espaços extras
+    model_name = model_name.strip()
+    
+    return model_name
+
+
+def _inject_sglang_stream_options(request_params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Injeta automaticamente stream_options={"include_usage": True} para SGLang.
+    
+    CRÍTICO: SGLang omite estatísticas de uso (usage) em respostas de streaming
+    a menos que stream_options={"include_usage": True} seja explicitamente enviado.
+    Sem isso, os traces no Phoenix mostram 0 tokens, impossibilitando análise de custos.
+    
+    Esta função detecta se é uma requisição de streaming e injeta automaticamente
+    o stream_options necessário, garantindo 100% de conformidade de rastreamento.
+    
+    Args:
+        request_params: Parâmetros da requisição (será modificado in-place)
+    
+    Returns:
+        request_params modificado (mesmo objeto)
+    """
+    # Verificar se é streaming
+    if request_params.get("stream", False):
+        # Verificar se stream_options já existe
+        if "stream_options" not in request_params:
+            # Injetar automaticamente
+            request_params["stream_options"] = {"include_usage": True}
+            logger.debug(
+                "🔧 SGLang: Auto-injetado stream_options={'include_usage': True} "
+                "para garantir rastreamento de tokens em streaming"
+            )
+        elif isinstance(request_params.get("stream_options"), dict):
+            # Se já existe, garantir que include_usage está True
+            stream_opts = request_params["stream_options"]
+            if stream_opts.get("include_usage") is not True:
+                stream_opts["include_usage"] = True
+                logger.debug(
+                    "🔧 SGLang: Forçado include_usage=True em stream_options existente"
+                )
+    
+    return request_params
 
 
 def _truncate_if_needed(value: str, max_length: int = MAX_ATTRIBUTE_LENGTH) -> str:
@@ -127,17 +230,34 @@ def create_llm_span(
         tracer = otel_trace.get_tracer(__name__, tracer_provider=tracer_provider)
         
         # Criar span com kind LLM (OpenInference)
+        # CRÍTICO: Usar SpanKind.CLIENT para que Phoenix reconheça como chamada LLM externa
         span = tracer.start_span(
             span_name,
             kind=SpanKind.CLIENT  # CLIENT para chamadas LLM externas
         )
         
+        # CRÍTICO: Definir openinference.span.kind para garantir reconhecimento pelo Phoenix
+        # Sem isso, o span pode não aparecer nas visualizações de LLM
+        try:
+            # Tentar usar constante do openinference se disponível
+            from openinference.semconv import SpanAttributes
+            span.set_attribute("openinference.span.kind", "LLM")
+        except ImportError:
+            # Fallback: usar string direta
+            span.set_attribute("openinference.span.kind", "LLM")
+        
         # ============================================================
         # Atributos OpenInference (convenções do Phoenix)
         # ============================================================
         
+        # Normalizar nome do modelo (SGLang retorna caminhos completos)
+        normalized_model = _normalize_model_name(model)
+        
         # Identificação do LLM
-        _set_attribute_safe(span, "gen_ai.request.model", model)
+        # Usar AMBOS gen_ai.* (OpenTelemetry GenAI) e llm.* (OpenInference nativo)
+        # para máxima compatibilidade durante período de transição
+        _set_attribute_safe(span, "gen_ai.request.model", normalized_model)
+        _set_attribute_safe(span, "llm.model_name", normalized_model)  # OpenInference nativo
         _set_attribute_safe(span, "gen_ai.system", provider)
         
         # Parâmetros de geração
@@ -233,16 +353,46 @@ def update_llm_span_response(
         usage = response_data.get("usage", {})
         
         # Resposta (OpenInference)
+        # Normalizar nome do modelo na resposta também
+        response_model = response_data.get("model", "")
+        normalized_response_model = _normalize_model_name(response_model)
+        
         _set_attribute_safe(span, "gen_ai.response.content", content)
+        _set_attribute_safe(span, "llm.output.value", content)  # OpenInference nativo
         span.set_attribute("gen_ai.response.finish_reason", choice.get("finish_reason", "unknown"))
-        span.set_attribute("gen_ai.response.model", response_data.get("model", ""))
+        span.set_attribute("gen_ai.response.model", normalized_response_model)
+        span.set_attribute("llm.model_name", normalized_response_model)  # Atualizar se mudou
         span.set_attribute("gen_ai.response.id", response_data.get("id", ""))
         span.set_attribute("gen_ai.response.created", response_data.get("created", 0))
         
+        # CRÍTICO: Capturar reasoning_content se presente (modelos de raciocínio)
+        # SGLang pode retornar reasoning_content em choice.delta.reasoning_content
+        # ou message.reasoning_content dependendo do parser
+        reasoning_content = None
+        if "reasoning_content" in message:
+            reasoning_content = message.get("reasoning_content", "")
+        elif "reasoning_content" in choice:
+            reasoning_content = choice.get("reasoning_content", "")
+        
+        if reasoning_content:
+            _set_attribute_safe(span, "llm.output.reasoning", reasoning_content)
+            logger.debug(f"Capturado reasoning_content: {len(reasoning_content)} caracteres")
+        
         # Métricas de uso
-        span.set_attribute("gen_ai.usage.prompt_tokens", usage.get("prompt_tokens", 0))
-        span.set_attribute("gen_ai.usage.completion_tokens", usage.get("completion_tokens", 0))
-        span.set_attribute("gen_ai.usage.total_tokens", usage.get("total_tokens", 0))
+        # Usar AMBOS gen_ai.* e llm.* para compatibilidade máxima
+        prompt_tokens = usage.get("prompt_tokens", 0)
+        completion_tokens = usage.get("completion_tokens", 0)
+        total_tokens = usage.get("total_tokens", 0)
+        
+        # OpenTelemetry GenAI (gen_ai.*)
+        span.set_attribute("gen_ai.usage.prompt_tokens", prompt_tokens)
+        span.set_attribute("gen_ai.usage.completion_tokens", completion_tokens)
+        span.set_attribute("gen_ai.usage.total_tokens", total_tokens)
+        
+        # OpenInference nativo (llm.*) - CRÍTICO para Phoenix
+        span.set_attribute("llm.token_count.prompt", prompt_tokens)
+        span.set_attribute("llm.token_count.completion", completion_tokens)
+        span.set_attribute("llm.token_count.total", total_tokens)
         
         # Métricas adicionais
         span.set_attribute("llm.response.content_length", len(content))

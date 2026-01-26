@@ -678,6 +678,12 @@ class ProviderManager:
                     "top_p": 0.9  # v9.1: Novo parâmetro para constrained decoding
                 }
                 
+                # CRÍTICO: Auto-injetar stream_options para SGLang se streaming
+                # SGLang omite usage stats em streaming a menos que include_usage=True
+                if is_sglang:
+                    from app.core.phoenix_tracer import _inject_sglang_stream_options
+                    request_params = _inject_sglang_stream_options(request_params)
+                
                 # v9.1: Parâmetros de controle (presence/frequency zerados por padrão)
                 # SGLang suporta presence_penalty e frequency_penalty via /v1/chat/completions
                 # v9.1: Controle de repetição via schema (maxItems) + loop detector + retry

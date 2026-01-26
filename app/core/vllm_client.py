@@ -123,6 +123,11 @@ async def chat_completion(
                 f"🎯 Structured output habilitado: type={response_format.get('type')}"
             )
         
+        # CRÍTICO: Auto-injetar stream_options para SGLang se streaming
+        # SGLang omite usage stats em streaming a menos que include_usage=True
+        from app.core.phoenix_tracer import _inject_sglang_stream_options
+        request_params = _inject_sglang_stream_options(request_params)
+        
         # v9.1: SEMPRE usar httpx diretamente para SGLang
         # Autenticação via Authorization: Bearer Token (se VLLM_API_KEY estiver definido)
         request_url = f"{settings.VLLM_BASE_URL}/chat/completions"
