@@ -128,6 +128,11 @@ async def check_vllm_health() -> Dict[str, Any]:
     IMPORTANTE: Apesar do nome "check_vllm_health", verifica SGLang.
     Nome mantido por compatibilidade.
     
+    v9.1: Health check mais robusto
+          - Tenta /health primeiro
+          - Se falhar, faz chamada de teste ao modelo
+          - Retorna mais detalhes sobre erros
+    
     Returns:
         Dict com status e latência
     
@@ -135,58 +140,104 @@ async def check_vllm_health() -> Dict[str, Any]:
         {
             "status": "healthy",
             "latency_ms": 45.2,
-            "model": "mistralai/Ministral-3-3B-Instruct-2512",
-            "endpoint": "https://5u888x525vvzvs-8000.proxy.runpod.net/v1"
+            "model": "Qwen/Qwen3-8B",
+            "endpoint": "https://example.trycloudflare.com/v1"
         }
     """
     start = time.perf_counter()
     
     try:
-        # Tentar fazer uma chamada simples de health check
-        # SGLang pode não ter endpoint /health, então fazemos uma chamada mínima
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as http_client:
             # Tentar endpoint /health primeiro
             health_url = settings.VLLM_BASE_URL.replace('/v1', '') + '/health'
+            
             try:
-                response = await client.get(health_url)
+                response = await http_client.get(health_url)
                 latency_ms = (time.perf_counter() - start) * 1000
                 
-                return {
-                    "status": "healthy" if response.status_code == 200 else "unhealthy",
-                    "latency_ms": round(latency_ms, 2),
-                    "model": settings.VLLM_MODEL,
-                    "endpoint": settings.VLLM_BASE_URL,
-                }
-            except httpx.RequestError:
-                # Se /health não existir, tentar uma chamada mínima ao modelo
-                try:
-                    test_response = await chat_completion(
-                        messages=[{"role": "user", "content": "test"}],
-                        max_tokens=5,
-                        temperature=0.0,
-                    )
-                    latency_ms = (time.perf_counter() - start) * 1000
-                    
+                # SGLang/vLLM retorna 200 quando saudável
+                if response.status_code == 200:
+                    logger.debug(f"✅ SGLang /health endpoint OK: {response.status_code}")
                     return {
                         "status": "healthy",
                         "latency_ms": round(latency_ms, 2),
                         "model": settings.VLLM_MODEL,
                         "endpoint": settings.VLLM_BASE_URL,
+                        "health_endpoint": "OK"
                     }
-                except Exception as e:
-                    latency_ms = (time.perf_counter() - start) * 1000
+                else:
+                    # Status != 200, mas endpoint existe - tentar chamada de teste
+                    logger.warning(
+                        f"⚠️ SGLang /health retornou {response.status_code}, "
+                        f"tentando chamada de teste ao modelo..."
+                    )
+                    raise httpx.RequestError("Health endpoint returned non-200")
+                    
+            except (httpx.RequestError, httpx.HTTPError, Exception) as health_error:
+                # Se /health não existir ou falhar, tentar uma chamada mínima ao modelo
+                logger.debug(
+                    f"ℹ️ Endpoint /health não disponível ({type(health_error).__name__}), "
+                    f"tentando chamada de teste ao modelo..."
+                )
+                
+                try:
+                    # Reset timer para medir latência da chamada ao modelo
+                    model_start = time.perf_counter()
+                    
+                    test_response = await chat_completion(
+                        messages=[{"role": "user", "content": "test"}],
+                        max_tokens=5,
+                        temperature=0.0,
+                    )
+                    
+                    model_latency_ms = (time.perf_counter() - model_start) * 1000
+                    
+                    # Se chegou aqui, modelo está respondendo
+                    logger.info(
+                        f"✅ SGLang modelo respondeu em {model_latency_ms:.0f}ms "
+                        f"(endpoint /health não disponível, mas modelo OK)"
+                    )
+                    
                     return {
-                        "status": "error",
-                        "error": str(e),
-                        "latency_ms": round(latency_ms, 2),
+                        "status": "healthy",
+                        "latency_ms": round(model_latency_ms, 2),
+                        "model": settings.VLLM_MODEL,
+                        "endpoint": settings.VLLM_BASE_URL,
+                        "health_endpoint": "unavailable",
+                        "health_method": "model_test"
+                    }
+                    
+                except Exception as model_error:
+                    # Falhou tanto /health quanto chamada ao modelo
+                    total_latency_ms = (time.perf_counter() - start) * 1000
+                    error_msg = str(model_error)
+                    
+                    logger.error(
+                        f"❌ SGLang não respondeu: {type(model_error).__name__}: {error_msg}"
+                    )
+                    
+                    return {
+                        "status": "unhealthy",
+                        "error": error_msg,
+                        "error_type": type(model_error).__name__,
+                        "latency_ms": round(total_latency_ms, 2),
+                        "model": settings.VLLM_MODEL,
                         "endpoint": settings.VLLM_BASE_URL,
                     }
+                    
     except Exception as e:
+        # Erro geral (ex: timeout no httpx.AsyncClient)
         latency_ms = (time.perf_counter() - start) * 1000
+        error_msg = str(e)
+        
+        logger.error(f"❌ Erro crítico no health check: {type(e).__name__}: {error_msg}")
+        
         return {
             "status": "error",
-            "error": str(e),
+            "error": error_msg,
+            "error_type": type(e).__name__,
             "latency_ms": round(latency_ms, 2),
+            "model": settings.VLLM_MODEL,
             "endpoint": settings.VLLM_BASE_URL,
         }
 
