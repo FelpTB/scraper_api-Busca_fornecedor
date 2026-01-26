@@ -49,10 +49,11 @@ class BaseAgent(ABC):
     SYSTEM_PROMPT: str = ""
     
     # Configurações padrão (fallback)
+    # v9.1: Penalidades zeradas (evita sub-preenchimento)
     DEFAULT_TIMEOUT: float = 60.0
-    DEFAULT_TEMPERATURE: float = 0.0
-    DEFAULT_PRESENCE_PENALTY: float = 0.3    # Anti-loop: penaliza tokens já aparecidos
-    DEFAULT_FREQUENCY_PENALTY: float = 0.4   # Anti-repetição: penaliza tokens frequentes
+    DEFAULT_TEMPERATURE: float = 0.15        # v9.1: Ligeiramente aumentado (era 0.0)
+    DEFAULT_PRESENCE_PENALTY: float = 0.0    # v9.1: Zerado (era 0.3)
+    DEFAULT_FREQUENCY_PENALTY: float = 0.0   # v9.1: Zerado (era 0.4)
     DEFAULT_SEED: int = 42                   # Reprodutibilidade
     DEFAULT_MAX_RETRIES: int = 3
     
