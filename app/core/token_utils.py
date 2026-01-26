@@ -5,7 +5,7 @@ Centraliza a lógica de estimativa de tokens para garantir consistência
 em todo o sistema (chunking, provider_manager, etc).
 
 v3.0: Usa mistral-common tokenizer para contagem precisa de tokens.
-      Compatível com Mistral 3 (V3-Tekken) usado no RunPod.
+      Compatível com modelos Mistral 3 (V3-Tekken).
 """
 
 import logging
@@ -39,8 +39,7 @@ def _get_mistral_tokenizer():
     """
     Retorna tokenizer Mistral com cache.
     
-    Usa o modelo específico Mistral-3-8B-Instruct-2512 que é compatível com o RunPod.
-    O tokenizer_mode mistral no RunPod usa o mesmo tokenizer.
+    Usa o modelo específico Mistral-3-8B-Instruct-2512 para contagem precisa de tokens.
     
     Returns:
         MistralTokenizer ou None se não disponível
@@ -52,8 +51,7 @@ def _get_mistral_tokenizer():
     
     if _mistral_tokenizer_cache is None:
         try:
-            # Usar from_hf_hub para carregar o mesmo modelo usado no RunPod
-            # Isso garante que estamos usando exatamente o mesmo tokenizer
+            # Usar from_hf_hub para carregar o tokenizer do modelo Mistral
             _mistral_tokenizer_cache = MistralTokenizer.from_hf_hub("mistralai/Ministral-3-8B-Instruct-2512")
             logger.info("Mistral tokenizer inicializado com sucesso (Mistral-3-8B-Instruct-2512)")
         except Exception as e:
@@ -173,7 +171,7 @@ def estimate_tokens(content: Union[str, List[Dict[str, str]]], include_overhead:
     Estima/Conta a quantidade de tokens em um conteúdo usando tokenizer Mistral.
     
     v3.0: Usa mistral-common tokenizer (V3-Instruct) para contagem precisa.
-          Compatível com Mistral 3 (V3-Tekken) usado no RunPod.
+          Compatível com modelos Mistral 3 (V3-Tekken).
           Fallback para estimativa manual se mistral-common não estiver disponível.
     
     Função unificada para estimativa de tokens que pode ser usada tanto para:

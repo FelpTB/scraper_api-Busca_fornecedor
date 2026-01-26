@@ -308,12 +308,6 @@ class RateLimiter:
                     "context_window": 131072, "max_output_tokens": 8192
                 }
             },
-            "runpod": {
-                "mistralai/Ministral-3-8B-Instruct-2512": {
-                    "rpm": 30000, "tpm": 5000000, "weight": 50,
-                    "context_window": 131072, "max_output_tokens": 8192
-                }
-            },
             "google": {
                 "gemini-2.0-flash": {
                     "rpm": 10000, "tpm": 10000000, "weight": 29,
@@ -347,7 +341,7 @@ class RateLimiter:
         """
         Detecta qual modelo está configurado na Vast.ai.
         
-        v11.0: Refatorado para Vast.ai (antes era RunPod)
+        v11.1: Apenas Vast.ai suportado
         
         Returns:
             Nome do modelo configurado ou default
@@ -359,11 +353,9 @@ class RateLimiter:
         # Verificar se é Qwen
         if "qwen" in model.lower():
             # Tentar encontrar configuração específica do Qwen
-            # v11.0: Tentar vastai primeiro, fallback para runpod (compatibilidade)
             qwen_config = (
                 self._config.get("vastai", {}).get(model) or
-                self._config.get("vastai", {}).get("Qwen/Qwen3-8B") or
-                self._config.get("runpod", {}).get("Qwen/Qwen2.5-3B-Instruct", {})
+                self._config.get("vastai", {}).get("Qwen/Qwen3-8B", {})
             )
             if qwen_config:
                 logger.info(f"RateLimiter: Vast.ai - Modelo Qwen detectado: {model}")
@@ -375,11 +367,11 @@ class RateLimiter:
     def _init_providers(self):
         """Inicializa rate limiters para cada provider."""
         # Mapear nomes de providers para configurações
-        # v11.0: Refatorado para Vast.ai (antes era RunPod)
+        # v11.1: Apenas Vast.ai habilitado
         vast_model = self._detect_vast_model()
         
-        # v11.0: Tentar vastai primeiro, fallback para runpod (compatibilidade)
-        vast_group = "vastai" if "vastai" in self._config else "runpod"
+        # v11.1: Apenas vastai suportado
+        vast_group = "vastai"
         
         provider_mapping = {
             "Vast.ai": (vast_group, vast_model),

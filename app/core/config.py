@@ -24,13 +24,10 @@ class Settings:
     OPENAI_BASE_URL: str = "https://api.openai.com/v1"
     
     # 4. Vast.ai (Provider Primário - SGLang)
-    # IMPORTANTE: Sistema usa SGLang via Vast.ai
-    # Variáveis legadas mantidas por compatibilidade (deprecated)
-    RUNPOD_API_KEY: str = os.getenv("RUNPOD_API_KEY", "")  # Deprecated: usar MODEL_KEY
-    RUNPOD_MODEL: str = os.getenv("RUNPOD_MODEL", "")  # Deprecated: usar MODEL_NAME
-    RUNPOD_BASE_URL: str = os.getenv("RUNPOD_BASE_URL", "")  # Deprecated: usar URL_MODEL
+    # IMPORTANTE: Sistema usa APENAS SGLang via Vast.ai
+    # Todos os outros providers estão desativados
     
-    # 5. OpenRouter (3 modelos para maior capacidade - Fallback)
+    # 5. OpenRouter (Desativado - não usado)
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-lite-001")
     OPENROUTER_MODEL_2: str = os.getenv("OPENROUTER_MODEL_2", "google/gemini-2.5-flash-lite")
@@ -88,15 +85,12 @@ class Settings:
     # - MODEL_NAME: Nome do modelo carregado no SGLang
     #   Exemplo: "Qwen/Qwen3-8B" ou "Qwen/Qwen2.5-3B-Instruct"
     #
-    # Variáveis legadas (deprecated, mantidas por compatibilidade):
-    # - VLLM_BASE_URL, VLLM_API_KEY, VLLM_MODEL (fallback se novas variáveis não existirem)
-    
-    # Nova configuração (preferencial)
+    # Configuração Vast.ai (obrigatória)
     _url_model_raw = os.getenv("URL_MODEL", "")
     _model_key_raw = os.getenv("MODEL_KEY", "")
     _model_name_raw = os.getenv("MODEL_NAME", "")
     
-    # Fallback para variáveis legadas (compatibilidade)
+    # Fallback interno para variáveis VLLM_* (apenas para compatibilidade de código legado)
     if not _url_model_raw:
         _url_model_raw = os.getenv("VLLM_BASE_URL", "")
     if not _model_key_raw:

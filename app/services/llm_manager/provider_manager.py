@@ -189,13 +189,12 @@ class ProviderManager:
         # Carregar configuração de providers habilitados
         provider_enabled = self._load_provider_enabled_config()
         
-        # Vast.ai (Provider Primário - SGLang) - Detectar modelo configurado
-        # v11.0: Refatorado para usar MODEL_KEY, MODEL_NAME, URL_MODEL
+        # Vast.ai (Provider Único - SGLang) - Detectar modelo configurado
+        # v11.1: Apenas Vast.ai habilitado, todos os outros providers desativados
         vast_model = settings.MODEL_NAME or settings.VLLM_MODEL or ""
         is_qwen_model = "qwen" in vast_model.lower()
         vast_model_key = vast_model if vast_model else "Qwen/Qwen3-8B"
-        # v11.0: Tentar vastai primeiro, fallback para runpod (compatibilidade)
-        vast_config = limits.get("vastai", {}).get(vast_model_key) or limits.get("runpod", {}).get(vast_model_key, {})
+        vast_config = limits.get("vastai", {}).get(vast_model_key, {})
         
         # Log do modelo detectado
         if is_qwen_model:
@@ -203,58 +202,25 @@ class ProviderManager:
         else:
             logger.info(f"ProviderManager: Vast.ai - Modelo detectado: {vast_model}")
         
-        gemini_config = limits.get("google", {}).get("gemini-2.0-flash", {})
-        openai_config = limits.get("openai", {}).get("gpt-4.1-nano", {})
-        openrouter1_config = limits.get("openrouter", {}).get("google/gemini-2.0-flash-lite-001", {})
-        openrouter2_config = limits.get("openrouter", {}).get("google/gemini-2.5-flash-lite", {})
-        openrouter3_config = limits.get("openrouter", {}).get("openai/gpt-4.1-nano", {})
-        
-        runpod_rpm = runpod_config.get("rpm", 30000)
-        gemini_rpm = gemini_config.get("rpm", 10000)
-        openai_rpm = openai_config.get("rpm", 5000)
-        openrouter1_rpm = openrouter1_config.get("rpm", 20000)
-        openrouter2_rpm = openrouter2_config.get("rpm", 15000)
-        openrouter3_rpm = openrouter3_config.get("rpm", 10000)
-        
-        runpod_tpm = runpod_config.get("tpm", 5000000)
-        gemini_tpm = gemini_config.get("tpm", 10000000)
-        openai_tpm = openai_config.get("tpm", 4000000)
-        openrouter1_tpm = openrouter1_config.get("tpm", 10000000)
-        openrouter2_tpm = openrouter2_config.get("tpm", 8000000)
-        openrouter3_tpm = openrouter3_config.get("tpm", 5000000)
-        
-        runpod_weight = runpod_config.get("weight", 50)
-        gemini_weight = gemini_config.get("weight", 29)
-        openai_weight = openai_config.get("weight", 14)
-        openrouter1_weight = openrouter1_config.get("weight", 30)
-        openrouter2_weight = openrouter2_config.get("weight", 25)
-        openrouter3_weight = openrouter3_config.get("weight", 20)
+        vast_rpm = vast_config.get("rpm", 30000)
+        vast_tpm = vast_config.get("tpm", 5000000)
+        vast_weight = vast_config.get("weight", 50)
         
         # Calcular concorrência baseado em RPM (80% de segurança)
         # Fórmula otimizada: (RPM * safety_margin) / 15 (assumindo ~2s por request)
-        # Aumentado para suportar 500+ empresas simultâneas
-        runpod_concurrent = max(800, int(runpod_rpm * safety_margin / 15))
-        gemini_concurrent = max(600, int(gemini_rpm * safety_margin / 15))
-        openai_concurrent = max(150, int(openai_rpm * safety_margin / 30))
-        openrouter1_concurrent = max(300, int(openrouter1_rpm * safety_margin / 30))
-        openrouter2_concurrent = max(250, int(openrouter2_rpm * safety_margin / 30))
-        openrouter3_concurrent = max(200, int(openrouter3_rpm * safety_margin / 30))
+        vast_concurrent = max(800, int(vast_rpm * safety_margin / 15))
         
-        # Verificar se structured output está habilitado para RunPod
-        runpod_structured = runpod_config.get("supports_structured_output", False)
-        runpod_backend = runpod_config.get("structured_output_backend", "none")
+        # Verificar se structured output está habilitado para Vast.ai
+        vast_structured = vast_config.get("supports_structured_output", True)  # SGLang sempre suporta
+        vast_backend = vast_config.get("structured_output_backend", "xgrammar")
         
-        logger.info(f"LLM Limits carregados:")
+        logger.info(f"LLM Limits carregados (apenas Vast.ai habilitado):")
         logger.info(
             f"  Vast.ai {vast_model_key}: RPM={vast_rpm}, TPM={vast_tpm:,}, "
             f"weight={vast_weight}%, structured_output={vast_structured} ({vast_backend})"
         )
-        logger.info(f"  Google Gemini: RPM={gemini_rpm}, TPM={gemini_tpm:,}, weight={gemini_weight}%")
-        logger.info(f"  OpenAI: RPM={openai_rpm}, TPM={openai_tpm:,}, weight={openai_weight}%")
-        logger.info(f"  OpenRouter 1: RPM={openrouter1_rpm}, TPM={openrouter1_tpm:,}, weight={openrouter1_weight}%")
-        logger.info(f"  OpenRouter 2: RPM={openrouter2_rpm}, TPM={openrouter2_tpm:,}, weight={openrouter2_weight}%")
-        logger.info(f"  OpenRouter 3: RPM={openrouter3_rpm}, TPM={openrouter3_tpm:,}, weight={openrouter3_weight}%")
         
+        # v11.1: Apenas Vast.ai habilitado, todos os outros providers desativados
         default_providers = [
             ProviderConfig(
                 name="Vast.ai",
@@ -263,60 +229,11 @@ class ProviderManager:
                 base_url=settings.URL_MODEL or settings.VLLM_BASE_URL or "",
                 model=settings.MODEL_NAME or settings.VLLM_MODEL or "Qwen/Qwen3-8B",
                 max_concurrent=vast_concurrent,
-                priority=90,  # Prioridade mais alta (provider primário)
+                priority=90,  # Prioridade mais alta (provider único)
                 weight=vast_weight,
                 enabled=True  # Vast.ai sempre habilitado se tiver URL e KEY
             ),
-            ProviderConfig(
-                name="Google Gemini",
-                api_key=settings.GOOGLE_API_KEY or "",
-                base_url=settings.GOOGLE_BASE_URL or "https://generativelanguage.googleapis.com/v1beta/openai/",
-                model=settings.GOOGLE_MODEL or "gemini-2.0-flash",
-                max_concurrent=gemini_concurrent,
-                priority=70,
-                weight=gemini_weight,
-                enabled=provider_enabled.get("Google Gemini", False)
-            ),
-            ProviderConfig(
-                name="OpenAI",
-                api_key=settings.OPENAI_API_KEY or "",
-                base_url=settings.OPENAI_BASE_URL or "https://api.openai.com/v1",
-                model=settings.OPENAI_MODEL or "gpt-4.1-nano",
-                max_concurrent=openai_concurrent,
-                priority=60,
-                weight=openai_weight,
-                enabled=provider_enabled.get("OpenAI", False)
-            ),
-            ProviderConfig(
-                name="OpenRouter",
-                api_key=settings.OPENROUTER_API_KEY or "",
-                base_url=settings.OPENROUTER_BASE_URL,
-                model=settings.OPENROUTER_MODEL,
-                max_concurrent=openrouter1_concurrent,
-                priority=80,
-                weight=openrouter1_weight,
-                enabled=provider_enabled.get("OpenRouter", False)
-            ),
-            ProviderConfig(
-                name="OpenRouter2",
-                api_key=settings.OPENROUTER_API_KEY or "",
-                base_url=settings.OPENROUTER_BASE_URL,
-                model=settings.OPENROUTER_MODEL_2,
-                max_concurrent=openrouter2_concurrent,
-                priority=75,
-                weight=openrouter2_weight,
-                enabled=provider_enabled.get("OpenRouter2", False)
-            ),
-            ProviderConfig(
-                name="OpenRouter3",
-                api_key=settings.OPENROUTER_API_KEY or "",
-                base_url=settings.OPENROUTER_BASE_URL,
-                model=settings.OPENROUTER_MODEL_3,
-                max_concurrent=openrouter3_concurrent,
-                priority=72,
-                weight=openrouter3_weight,
-                enabled=provider_enabled.get("OpenRouter3", False)
-            ),
+            # Todos os outros providers desativados (v11.1)
         ]
         
         for config in default_providers:
@@ -369,15 +286,11 @@ class ProviderManager:
             return enabled_providers
         except Exception as e:
             logger.warning(f"ProviderManager: Erro ao carregar llm_providers.json: {e}")
-            # Padrão: apenas Vast.ai habilitado
-            logger.info("ProviderManager: Usando configuração padrão (apenas Vast.ai habilitado)")
+            # Padrão: apenas Vast.ai habilitado (v11.1)
+            logger.info("ProviderManager: Usando configuração padrão (apenas Vast.ai habilitado, todos os outros desativados)")
             return {
                 "Vast.ai": True,
-                "Google Gemini": False,
-                "OpenAI": False,
-                "OpenRouter": False,
-                "OpenRouter2": False,
-                "OpenRouter3": False
+                # Todos os outros providers desativados permanentemente (v11.1)
             }
     
     def add_provider(self, config: ProviderConfig):
@@ -423,7 +336,7 @@ class ProviderManager:
             self._high_priority_providers.remove(name)
         if name in self._normal_priority_providers:
             self._normal_priority_providers.remove(name)
-        # RunPod está em ambas as listas, então remove de ambas se necessário
+        # Vast.ai está em ambas as listas, então remove de ambas se necessário
     
     @property
     def available_providers(self) -> List[str]:
@@ -612,7 +525,7 @@ class ProviderManager:
         
         v4.0: Suporte a Structured Output via SGLang/XGrammar
               - SGLang suporta json_schema nativo com XGrammar
-              - Habilita response_format para RunPod/SGLang
+              - Habilita response_format para Vast.ai/SGLang
         """
         
         # 1. Adquirir permissão do rate limiter (RPM + TPM)
