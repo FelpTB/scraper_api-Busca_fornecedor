@@ -52,37 +52,13 @@ def setup_phoenix_tracing(project_name: str):
             from openinference.instrumentation.openai import OpenAIInstrumentor
             from opentelemetry.sdk.resources import Resource
             
-            # CRÍTICO: Configurar Resource com openinference.project.name
-            # Isso garante isolamento correto de projetos no Phoenix
-            # Sem isso, todos os traces caem no projeto "default"
-            # O register() do Phoenix já configura o project_name, mas vamos
-            # garantir que o Resource também tenha o atributo para máxima compatibilidade
-            resource = Resource.create({
-                "service.name": "scraper-api",
-                "openinference.project.name": project_name,  # Isolamento de projeto
-            })
-            
-            # Registrar com Phoenix (project_name já é passado, mas Resource garante atributos)
+            # CRÍTICO: O register() do Phoenix já configura o project_name corretamente
+            # O project_name passado para register() é usado para criar o Resource internamente
+            # Não precisamos criar Resource manualmente, o Phoenix faz isso automaticamente
             tracer_provider = register(
                 project_name=project_name,
                 endpoint=f"{settings.PHOENIX_COLLECTOR_URL}/v1/traces",
             )
-            
-            # Se o tracer_provider retornado tiver método para atualizar Resource, usar
-            # Caso contrário, o project_name já é suficiente para o Phoenix
-            try:
-                # Tentar atualizar Resource se possível
-                if hasattr(tracer_provider, 'resource'):
-                    # Merge com Resource existente
-                    existing_resource = tracer_provider.resource
-                    merged_attrs = {**existing_resource.attributes, **resource.attributes}
-                    updated_resource = Resource.create(merged_attrs)
-                    # Nota: Nem todos os TracerProviders permitem atualizar Resource após criação
-                    # O project_name passado para register() já deve ser suficiente
-            except Exception:
-                # Se não conseguir atualizar Resource, não é crítico
-                # O project_name já garante isolamento
-                pass
             
             OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
             _tracer_providers[project_name] = tracer_provider
