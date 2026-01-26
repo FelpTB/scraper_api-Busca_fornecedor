@@ -142,6 +142,11 @@ class ProviderBadRequestError(ProviderError):
     pass
 
 
+class LLMEmptyResponseError(ProviderError):
+    """Erro quando o LLM retorna conteúdo vazio (None ou string vazia)."""
+    pass
+
+
 class ProviderDegenerationError(ProviderError):
     """Erro de geração degenerada (loop/repetição detectada)."""
     pass
@@ -857,28 +862,40 @@ class ProviderManager:
                             raise ProviderError(f"{provider} retornou resposta sem choices")
                         
                         message_data = choices_data[0].get("message", {})
-                        # v10.1: Tratar content=None explicitamente (SGLang pode retornar null)
+                        # v11.2: Tratamento robusto de content=None (SGLang pode retornar null quando modelo tenta usar <think>)
                         raw_content = message_data.get("content")
+                        
+                        # Verificar se content é None ANTES de qualquer processamento de string
                         if raw_content is None:
+                            finish_reason = choices_data[0].get("finish_reason", "unknown")
+                            matched_stop = response_data.get("matched_stop", "")
+                            
                             logger.error(
-                                f"{ctx_label}ProviderManager: {provider} retornou content=None no JSON. "
-                                f"Response data: {json.dumps(response_data, ensure_ascii=False)[:500]}"
+                                f"{ctx_label}ProviderManager: {provider} retornou content=None. "
+                                f"Finish reason: {finish_reason}, Matched stop: {matched_stop}. "
+                                f"Possível causa: modelo tentou usar <think> tags e foi interrompido pelo Guided Decoding."
                             )
-                            raise ProviderError(
+                            
+                            # Lançar exceção específica para permitir retry/fallback
+                            raise LLMEmptyResponseError(
                                 f"{provider} retornou content=None. "
-                                f"Possível problema com Guided Decoding ou modelo em modo reasoning."
+                                f"Modelo pode ter tentado usar <think> tags e foi interrompido pelo SGLang Guided Decoding. "
+                                f"Finish reason: {finish_reason}, Matched stop: {matched_stop}"
                             )
                         
                         # Garantir que content é string
                         content = str(raw_content) if raw_content is not None else ""
                         
-                        # v10.1: Se content vazio após conversão, também é erro
+                        # v11.2: Se content vazio após conversão, também é erro
                         if not content or len(content.strip()) == 0:
+                            finish_reason = choices_data[0].get("finish_reason", "unknown")
                             logger.warning(
                                 f"{ctx_label}ProviderManager: {provider} retornou content vazio. "
-                                f"Finish reason: {choices_data[0].get('finish_reason', 'unknown')}"
+                                f"Finish reason: {finish_reason}"
                             )
-                            raise ProviderError(f"{provider} retornou content vazio")
+                            raise LLMEmptyResponseError(
+                                f"{provider} retornou content vazio. Finish reason: {finish_reason}"
+                            )
                         
                         # Criar objeto de resposta compatível com OpenAI
                         response = ChatCompletion(
@@ -990,30 +1007,33 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                 
                 message = response.choices[0].message
                 
-                # v10.1: Verificar se content existe e não é None antes de processar
+                # v11.2: Verificar se content existe e não é None antes de processar
                 if not hasattr(message, 'content') or message.content is None:
                     # Log detalhado para debug
+                    finish_reason = getattr(response.choices[0], 'finish_reason', 'unknown') if response.choices else 'unknown'
                     logger.error(
                         f"{ctx_label}ProviderManager: {provider} retornou resposta vazia (content=None). "
-                        f"Response object: {type(response)}, "
-                        f"Choices count: {len(response.choices) if response.choices else 0}, "
-                        f"Message type: {type(message) if message else None}, "
-                        f"Content attr exists: {hasattr(message, 'content') if message else False}, "
-                        f"Content value: {repr(getattr(message, 'content', None))}"
+                        f"Finish reason: {finish_reason}. "
+                        f"Possível causa: modelo tentou usar <think> tags e foi interrompido pelo Guided Decoding."
                     )
-                    # v10.1: Lançar exceção específica para content None (permite retry)
-                    raise ProviderError(
+                    # v11.2: Lançar exceção específica para content None (permite retry/fallback)
+                    raise LLMEmptyResponseError(
                         f"{provider} retornou resposta com content=None. "
-                        f"Possível problema com Guided Decoding ou modelo em modo reasoning."
+                        f"Modelo pode ter tentado usar <think> tags e foi interrompido pelo SGLang Guided Decoding. "
+                        f"Finish reason: {finish_reason}"
                     )
                 
                 # v10.1: Verificar se content é string vazia
                 if not isinstance(message.content, str) or len(message.content.strip()) == 0:
+                    finish_reason = getattr(response.choices[0], 'finish_reason', 'unknown') if response.choices else 'unknown'
                     logger.warning(
                         f"{ctx_label}ProviderManager: {provider} retornou content vazio ou não-string. "
-                        f"Content type: {type(message.content)}, value: {repr(message.content)}"
+                        f"Content type: {type(message.content)}, value: {repr(message.content)}, "
+                        f"Finish reason: {finish_reason}"
                     )
-                    raise ProviderError(f"{provider} retornou content vazio ou inválido")
+                    raise LLMEmptyResponseError(
+                        f"{provider} retornou content vazio ou inválido. Finish reason: {finish_reason}"
+                    )
                 
                 # v8.0: LOOP DETECTOR - Detectar geração degenerada
                 # Se detectar loop, lançar exceção para retry seletivo

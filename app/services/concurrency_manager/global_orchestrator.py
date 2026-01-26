@@ -73,10 +73,12 @@ class GlobalOrchestrator:
         # Configurações padrão
         # NOTA: O controle de taxa do Serper é feito pelo TokenBucketRateLimiter (190 req/s)
         # Os semáforos aqui controlam RECURSOS (concorrência), não TAXA
+        # v11.2: LLM reduzido para 8 para evitar sobrecarga de VRAM na Vast.ai (SGLang)
+        # Com contextos de 10k+ tokens, GPU precisa de espaço suficiente para KV Cache
         self._default_capacities = {
             ResourceType.SCRAPER: 1000,        # Sites em paralelo
             ResourceType.DISCOVERY: 1000,      # Buscas simultâneas (rate limit pelo TokenBucket)
-            ResourceType.LLM: 900,             # Chamadas LLM
+            ResourceType.LLM: 8,               # Chamadas LLM (v11.2: reduzido de 900 para 8)
             ResourceType.PROXY: 1000,          # Proxies ativos
             ResourceType.HTTP_CONNECTION: 1000, # Conexões HTTP
         }

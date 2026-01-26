@@ -100,8 +100,9 @@ class ProfileExtractorAgent(BaseAgent):
 <task>Extrair informações corporativas precisas do conteúdo fornecido em <raw_content>.</task>
 
 <critical_instruction>
-[IMPORTANT] Do not use <think> tags. Respond immediately with the JSON object starting with {.
-The output must be strictly technical JSON format, no conversational text.
+[IMPORTANT: Respond with JSON only. Do not use <think> tags. Start your response directly with '{'.]
+The output must be strictly technical JSON format, no conversational text, no reasoning tags.
+Begin immediately with the opening brace '{' without any prefix, explanation, or reasoning.
 </critical_instruction>
 
 <extraction_logic>
