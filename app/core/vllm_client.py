@@ -7,8 +7,8 @@ v4.0: Suporte a Structured Output via SGLang/XGrammar
       - Compatível com SGLang (XGrammar) e vLLM
 
 v9.1: Suporte a SGLang sem autenticação
-      - Quando API key for "dummy" ou vazia, usa httpx diretamente
-      - Evita enviar Authorization header que causa 401
+      - SEMPRE usa httpx diretamente (nunca AsyncOpenAI)
+      - NUNCA envia Authorization header (SGLang rejeita qualquer auth)
 """
 import logging
 import time
@@ -31,13 +31,15 @@ def get_vllm_client() -> AsyncOpenAI:
     IMPORTANTE: Apesar do nome "vllm_client", este cliente conecta ao SGLang.
     O nome foi mantido por compatibilidade com código existente.
 
-    Usa AsyncOpenAI que é 100% compatível com a API SGLang OpenAI-compatible.
+    NOTA: Este cliente não é mais usado diretamente. Todas as chamadas ao SGLang
+    usam httpx diretamente (sem Authorization header) na função chat_completion().
+    Este singleton é mantido apenas por compatibilidade com código legado.
     
-    v9.1: Suporte a SGLang sem autenticação (Cloudflare tunnels, self-hosted)
-          - Se VLLM_API_KEY não definido ou "NONE", usa "dummy"
+    v9.1: SGLang SEMPRE usa httpx diretamente (nunca AsyncOpenAI)
+          - NUNCA envia Authorization header (SGLang rejeita qualquer auth)
     
     Returns:
-        AsyncOpenAI: Cliente assíncrono configurado
+        AsyncOpenAI: Cliente assíncrono (não usado para SGLang)
     """
     global _vllm_client
     if _vllm_client is None:
@@ -120,64 +122,57 @@ async def chat_completion(
                 f"🎯 Structured output habilitado: type={response_format.get('type')}"
             )
         
-        # v9.1: Se API key for "dummy" ou vazia, usar httpx diretamente (sem Authorization header)
-        api_key = settings.VLLM_API_KEY or ""
-        use_httpx_direct = api_key in ("", "dummy", "NONE", "none", None)
+        # v9.1: SEMPRE usar httpx diretamente para SGLang (NUNCA enviar Authorization header)
+        # SGLang não requer autenticação e rejeita qualquer Authorization header
+        logger.debug(
+            f"vllm_client: Usando httpx direto para SGLang (sem Authorization header)"
+        )
         
-        if use_httpx_direct:
-            # Usar httpx diretamente SEM Authorization header
-            logger.debug(
-                f"vllm_client: Usando httpx direto (sem Authorization header, api_key={api_key})"
+        async with httpx.AsyncClient(timeout=120.0) as http_client:
+            http_response = await http_client.post(
+                f"{settings.VLLM_BASE_URL}/chat/completions",
+                json=request_params,
+                headers={"Content-Type": "application/json"}
+                # SEM Authorization header - SGLang não requer autenticação
             )
             
-            async with httpx.AsyncClient(timeout=120.0) as http_client:
-                http_response = await http_client.post(
-                    f"{settings.VLLM_BASE_URL}/chat/completions",
-                    json=request_params,
-                    headers={"Content-Type": "application/json"}
-                    # SEM Authorization header
-                )
-                
-                http_response.raise_for_status()
-                response_data = http_response.json()
-                
-                # Converter resposta httpx para formato OpenAI-like
-                from openai.types.chat import ChatCompletion, ChatCompletionMessage, Choice
-                from openai.types.completion_usage import CompletionUsage
-                
-                # Extrair dados da resposta
-                choices_data = response_data.get("choices", [])
-                if not choices_data:
-                    raise ValueError("Resposta sem choices")
-                
-                message_data = choices_data[0].get("message", {})
-                content = message_data.get("content", "")
-                
-                # Criar objeto de resposta compatível com OpenAI
-                response = ChatCompletion(
-                    id=response_data.get("id", "unknown"),
-                    object="chat.completion",
-                    created=response_data.get("created", int(time.time())),
-                    model=response_data.get("model", model or settings.VLLM_MODEL),
-                    choices=[
-                        Choice(
-                            index=0,
-                            message=ChatCompletionMessage(
-                                role=message_data.get("role", "assistant"),
-                                content=content
-                            ),
-                            finish_reason=choices_data[0].get("finish_reason", "stop")
-                        )
-                    ],
-                    usage=CompletionUsage(
-                        prompt_tokens=response_data.get("usage", {}).get("prompt_tokens", 0),
-                        completion_tokens=response_data.get("usage", {}).get("completion_tokens", 0),
-                        total_tokens=response_data.get("usage", {}).get("total_tokens", 0)
-                    ) if "usage" in response_data else None
-                )
-        else:
-            # Usar AsyncOpenAI normalmente (com Authorization header)
-            response = await client.chat.completions.create(**request_params)
+            http_response.raise_for_status()
+            response_data = http_response.json()
+            
+            # Converter resposta httpx para formato OpenAI-like
+            from openai.types.chat import ChatCompletion, ChatCompletionMessage, Choice
+            from openai.types.completion_usage import CompletionUsage
+            
+            # Extrair dados da resposta
+            choices_data = response_data.get("choices", [])
+            if not choices_data:
+                raise ValueError("Resposta sem choices")
+            
+            message_data = choices_data[0].get("message", {})
+            content = message_data.get("content", "")
+            
+            # Criar objeto de resposta compatível com OpenAI
+            response = ChatCompletion(
+                id=response_data.get("id", "unknown"),
+                object="chat.completion",
+                created=response_data.get("created", int(time.time())),
+                model=response_data.get("model", model or settings.VLLM_MODEL),
+                choices=[
+                    Choice(
+                        index=0,
+                        message=ChatCompletionMessage(
+                            role=message_data.get("role", "assistant"),
+                            content=content
+                        ),
+                        finish_reason=choices_data[0].get("finish_reason", "stop")
+                    )
+                ],
+                usage=CompletionUsage(
+                    prompt_tokens=response_data.get("usage", {}).get("prompt_tokens", 0),
+                    completion_tokens=response_data.get("usage", {}).get("completion_tokens", 0),
+                    total_tokens=response_data.get("usage", {}).get("total_tokens", 0)
+                ) if "usage" in response_data else None
+            )
         
         # Log de uso de tokens
         if response.usage:

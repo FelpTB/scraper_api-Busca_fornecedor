@@ -732,17 +732,14 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                     f"response_format={request_params.get('response_format')}"
                 )
                 
-                # v9.1: Se API key for "dummy" ou vazia, usar httpx diretamente (sem Authorization header)
-                # AsyncOpenAI sempre adiciona Authorization header, mesmo com api_key="dummy"
-                # Isso causa 401 em SGLang que não requer autenticação
-                api_key = config.api_key or ""
-                use_httpx_direct = api_key in ("", "dummy", "NONE", "none", None)
-                
-                if use_httpx_direct:
+                # v9.1: SEMPRE usar httpx diretamente para SGLang (NUNCA enviar Authorization header)
+                # SGLang não requer autenticação e rejeita qualquer Authorization header
+                # AsyncOpenAI sempre adiciona Authorization header, causando 401
+                if is_sglang:
                     # Usar httpx diretamente SEM Authorization header
                     logger.debug(
-                        f"{ctx_label}ProviderManager: {provider} usando httpx direto "
-                        f"(sem Authorization header, api_key={api_key})"
+                        f"{ctx_label}ProviderManager: {provider} é SGLang, usando httpx direto "
+                        f"(sem Authorization header)"
                     )
                     
                     async with httpx.AsyncClient(timeout=timeout or config.timeout) as http_client:
@@ -750,7 +747,7 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                             f"{config.base_url}/chat/completions",
                             json=request_params,
                             headers={"Content-Type": "application/json"}
-                            # SEM Authorization header
+                            # SEM Authorization header - SGLang não requer autenticação
                         )
                         
                         http_response.raise_for_status()
@@ -791,7 +788,7 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                             ) if "usage" in response_data else None
                         )
                 else:
-                    # Usar AsyncOpenAI normalmente (com Authorization header)
+                    # Usar AsyncOpenAI normalmente para outros providers (com Authorization header)
                     try:
                         if timeout:
                             response = await asyncio.wait_for(
