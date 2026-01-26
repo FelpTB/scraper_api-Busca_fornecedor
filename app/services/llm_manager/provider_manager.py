@@ -736,29 +736,28 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                 # SGLang não requer autenticação e rejeita qualquer Authorization header
                 # AsyncOpenAI sempre adiciona Authorization header, causando 401
                 if is_sglang:
-                    # Usar httpx diretamente SEM Authorization header
-                    # SGLang usa token via query parameter (?token=XXX) em vez de Authorization header
+                    # Usar httpx diretamente com Authorization Bearer Token
                     request_url = f"{config.base_url}/chat/completions"
                     
-                    # Adicionar token como query parameter se disponível (não é "dummy" ou vazio)
+                    # Preparar headers (com Authorization Bearer se token disponível)
+                    headers = {"Content-Type": "application/json"}
                     if config.api_key and config.api_key not in ("", "dummy", "NONE", "none"):
-                        request_url += f"?token={config.api_key}"
+                        headers["Authorization"] = f"Bearer {config.api_key}"
                         logger.debug(
                             f"{ctx_label}ProviderManager: {provider} é SGLang, usando httpx direto "
-                            f"com token via query parameter"
+                            f"com Authorization Bearer"
                         )
                     else:
                         logger.debug(
                             f"{ctx_label}ProviderManager: {provider} é SGLang, usando httpx direto "
-                            f"(sem token)"
+                            f"(sem autenticação)"
                         )
                     
                     async with httpx.AsyncClient(timeout=timeout or config.timeout) as http_client:
                         http_response = await http_client.post(
                             request_url,
                             json=request_params,
-                            headers={"Content-Type": "application/json"}
-                            # SEM Authorization header - SGLang usa token via query parameter
+                            headers=headers
                         )
                         
                         http_response.raise_for_status()

@@ -6,9 +6,9 @@ v4.0: Suporte a Structured Output via SGLang/XGrammar
       - response_format com json_schema para outputs estruturados
       - Compatível com SGLang (XGrammar) e vLLM
 
-v9.1: Suporte a SGLang sem autenticação
+v9.1: Suporte a SGLang com autenticação Bearer Token
       - SEMPRE usa httpx diretamente (nunca AsyncOpenAI)
-      - NUNCA envia Authorization header (SGLang rejeita qualquer auth)
+      - Usa Authorization: Bearer Token header quando VLLM_API_KEY estiver definido
 """
 import logging
 import time
@@ -32,11 +32,11 @@ def get_vllm_client() -> AsyncOpenAI:
     O nome foi mantido por compatibilidade com código existente.
 
     NOTA: Este cliente não é mais usado diretamente. Todas as chamadas ao SGLang
-    usam httpx diretamente (sem Authorization header) na função chat_completion().
+    usam httpx diretamente (com Authorization Bearer header quando necessário) na função chat_completion().
     Este singleton é mantido apenas por compatibilidade com código legado.
     
     v9.1: SGLang SEMPRE usa httpx diretamente (nunca AsyncOpenAI)
-          - NUNCA envia Authorization header (SGLang rejeita qualquer auth)
+          - Usa Authorization: Bearer Token header quando VLLM_API_KEY estiver definido
     
     Returns:
         AsyncOpenAI: Cliente assíncrono (não usado para SGLang)
@@ -122,31 +122,28 @@ async def chat_completion(
                 f"🎯 Structured output habilitado: type={response_format.get('type')}"
             )
         
-        # v9.1: SEMPRE usar httpx diretamente para SGLang (NUNCA enviar Authorization header)
-        # SGLang usa token via query parameter (?token=XXX) em vez de Authorization header
-        # Construir URL com token se disponível
-        from urllib.parse import urlencode
-        
+        # v9.1: SEMPRE usar httpx diretamente para SGLang
+        # Autenticação via Authorization: Bearer Token (se VLLM_API_KEY estiver definido)
         request_url = f"{settings.VLLM_BASE_URL}/chat/completions"
         
-        # Adicionar token como query parameter se disponível (não é "dummy")
-        if settings.VLLM_API_KEY and settings.VLLM_API_KEY != "dummy":
-            request_url += f"?token={settings.VLLM_API_KEY}"
+        # Preparar headers (com Authorization Bearer se token disponível)
+        headers = {"Content-Type": "application/json"}
+        if settings.VLLM_API_KEY:
+            headers["Authorization"] = f"Bearer {settings.VLLM_API_KEY}"
             logger.debug(
-                f"vllm_client: Usando httpx direto para SGLang com token via query parameter "
+                f"vllm_client: Usando httpx direto para SGLang com Authorization Bearer "
                 f"(token={settings.VLLM_API_KEY[:20]}...)"
             )
         else:
             logger.debug(
-                f"vllm_client: Usando httpx direto para SGLang (sem token)"
+                f"vllm_client: Usando httpx direto para SGLang (sem autenticação)"
             )
         
         async with httpx.AsyncClient(timeout=120.0) as http_client:
             http_response = await http_client.post(
                 request_url,
                 json=request_params,
-                headers={"Content-Type": "application/json"}
-                # SEM Authorization header - SGLang usa token via query parameter
+                headers=headers
             )
             
             http_response.raise_for_status()

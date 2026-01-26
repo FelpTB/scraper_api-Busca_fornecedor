@@ -1,5 +1,4 @@
 import os
-from urllib.parse import urlparse, parse_qs, urlunparse
 from dotenv import load_dotenv
 
 # Carregar variáveis do arquivo .env
@@ -85,57 +84,27 @@ class Settings:
     # Variáveis mantêm nome VLLM_* por compatibilidade com código legado
     # 
     # CONFIGURAÇÃO (Railway/Environment Variables):
-    # - VLLM_BASE_URL: URL da instância SGLang (com ou sem /v1, pode conter ?token=XXX)
+    # - VLLM_BASE_URL: URL da instância SGLang (deve terminar com /v1)
     #   Exemplos: 
-    #     - Vast.ai: "https://xxxxx.vast.ai:8000"
-    #     - RunPod: "https://xxxxx.proxy.runpod.net"
-    #     - Cloudflare: "https://xxxxx.trycloudflare.com/docs?token=XXX"
-    #     - Self-hosted: "http://localhost:8000"
-    # - VLLM_API_KEY: Token para autenticação (usado como query parameter ?token=XXX)
-    #   Se vazio/None/"NONE", tenta extrair da URL ou usa "dummy"
+    #     - "http://80.188.223.202:10154/v1"
+    #     - "https://xxxxx.vast.ai:8000/v1"
+    #     - "https://xxxxx.proxy.runpod.net/v1"
+    #     - "http://localhost:8000/v1"
+    # - VLLM_API_KEY: Token Bearer para autenticação (usado em Authorization header)
+    #   Se vazio/None/"NONE", usa "" (sem autenticação)
     # - VLLM_MODEL: Modelo carregado no SGLang (ex: "Qwen/Qwen2.5-3B-Instruct")
-    _vllm_url_raw = os.getenv("VLLM_BASE_URL", "https://7bwtva7ris0ehj-8000.proxy.runpod.net")
-    
-    # Extrair token da URL se existir (ex: ?token=XXX)
-    parsed_url = urlparse(_vllm_url_raw)
-    query_params = parse_qs(parsed_url.query)
-    token_from_url = query_params.get("token", [None])[0]
-    
-    # Remover token da URL base (limpar query string)
-    # Também remover /docs se existir (ex: Cloudflare tunnel)
-    clean_path = parsed_url.path
-    if clean_path.endswith("/docs"):
-        clean_path = clean_path[:-5]  # Remove "/docs"
-    elif clean_path.endswith("/docs/"):
-        clean_path = clean_path[:-6]  # Remove "/docs/"
-    
-    clean_url = urlunparse((
-        parsed_url.scheme,
-        parsed_url.netloc,
-        clean_path,
-        parsed_url.params,
-        "",  # Query string vazia
-        parsed_url.fragment
-    ))
+    _vllm_url_raw = os.getenv("VLLM_BASE_URL", "http://80.188.223.202:10154/v1")
     
     # Garantir que a URL termine com /v1 para compatibilidade OpenAI API
     VLLM_BASE_URL: str = (
-        clean_url if clean_url.endswith("/v1")
-        else (clean_url + "v1" if clean_url.endswith("/")
-              else clean_url + "/v1")
+        _vllm_url_raw if _vllm_url_raw.endswith("/v1")
+        else (_vllm_url_raw + "v1" if _vllm_url_raw.endswith("/")
+              else _vllm_url_raw + "/v1")
     )
     
-    # VLLM_API_KEY: Prioridade: token da URL > VLLM_API_KEY env > "dummy"
-    _vllm_key_raw = os.getenv("VLLM_API_KEY", "NONE")
-    if token_from_url:
-        # Token encontrado na URL, usar ele
-        VLLM_API_KEY: str = token_from_url
-    elif _vllm_key_raw not in ("", "NONE", "none", None):
-        # Token fornecido via env var
-        VLLM_API_KEY: str = _vllm_key_raw
-    else:
-        # Sem token, usar "dummy" (não será usado, mas mantém compatibilidade)
-        VLLM_API_KEY: str = "dummy"
+    # VLLM_API_KEY: Token Bearer para Authorization header
+    _vllm_key_raw = os.getenv("VLLM_API_KEY", "")
+    VLLM_API_KEY: str = _vllm_key_raw if _vllm_key_raw not in ("", "NONE", "none", None) else ""
     VLLM_MODEL: str = os.getenv(
         "VLLM_MODEL",
         "Qwen/Qwen2.5-3B-Instruct"
