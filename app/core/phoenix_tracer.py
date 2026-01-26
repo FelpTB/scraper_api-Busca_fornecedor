@@ -373,9 +373,23 @@ def update_llm_span_response(
         elif "reasoning_content" in choice:
             reasoning_content = choice.get("reasoning_content", "")
         
+        # v10.1: Extrair reasoning de <think> tags se presente no conteúdo
+        # Qwen3-8B pode gerar <think> tags mesmo com stop tokens
+        if not reasoning_content and "<think>" in content.lower():
+            import re
+            think_pattern = r'<think>(.*?)</think>'
+            think_matches = re.findall(think_pattern, content, re.DOTALL | re.IGNORECASE)
+            if think_matches:
+                reasoning_content = "\n".join(think_matches).strip()
+                logger.debug(f"Phoenix Tracer: Reasoning extraído de <think> tags ({len(reasoning_content)} chars)")
+        
         if reasoning_content:
             _set_attribute_safe(span, "llm.output.reasoning", reasoning_content)
+            _set_attribute_safe(span, "llm.reasoning", reasoning_content)  # Alias para compatibilidade
+            span.set_attribute("llm.has_reasoning", True)
             logger.debug(f"Capturado reasoning_content: {len(reasoning_content)} caracteres")
+        else:
+            span.set_attribute("llm.has_reasoning", False)
         
         # Métricas de uso
         # Usar AMBOS gen_ai.* e llm.* para compatibilidade máxima

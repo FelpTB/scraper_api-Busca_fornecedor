@@ -99,6 +99,11 @@ class ProfileExtractorAgent(BaseAgent):
 
 <task>Extrair informações corporativas precisas do conteúdo fornecido em <raw_content>.</task>
 
+<critical_instruction>
+[IMPORTANT] Do not use <think> tags. Respond immediately with the JSON object starting with {.
+The output must be strictly technical JSON format, no conversational text.
+</critical_instruction>
+
 <extraction_logic>
 1. IDENTIDADE: Extraia o nome comercial e CNPJ (se houver).
 2. CLASSIFICAÇÃO: Determine o setor com base no core business.
@@ -112,14 +117,8 @@ class ProfileExtractorAgent(BaseAgent):
 - Mantenha a terminologia técnica original.
 - Máxima fidelidade às evidências: não invente clientes ou prêmios.
 - Idioma: Português (Brasil), exceto termos técnicos globais.
+- Output format: JSON object only, starting with { and ending with }.
 </constraints>
-
-<reasoning>
-Antes de preencher o JSON, identifique mentalmente:
-1. Seções de Produtos e Serviços no conteúdo
-2. Nomes próprios explícitos (clientes, certificações)
-3. Diferenciação clara entre produtos físicos e serviços intangíveis
-</reasoning>
 """
     
     def _get_json_schema(self) -> Optional[Dict[str, Any]]:
@@ -163,36 +162,103 @@ Antes de preencher o JSON, identifique mentalmente:
 
 <instruction>Extraia o perfil completo desta empresa. Use apenas evidência explícita do conteúdo acima.</instruction>"""
     
+    def _extract_json_from_response(self, raw_response: str) -> tuple[str, str]:
+        """
+        Extrai JSON da resposta, removendo tags <think> se presentes.
+        
+        v10.1: Resiliência ao comportamento de reasoning do Qwen3-8B
+              - Detecta e extrai conteúdo de <think> tags para debug
+              - Retorna apenas o JSON válido para parsing
+              - Procura primeira { e última } para extrair JSON completo
+        
+        Args:
+            raw_response: Resposta bruta do LLM (pode conter <think> tags)
+        
+        Returns:
+            Tuple de (json_content, reasoning_content)
+            - json_content: JSON limpo para parsing
+            - reasoning_content: Conteúdo de <think> tags (vazio se não houver)
+        """
+        content = raw_response.strip()
+        reasoning = ""
+        
+        # v10.1: Detectar e extrair <think> tags (comportamento de reasoning)
+        if "<think>" in content.lower():
+            # Extrair reasoning (conteúdo entre <think> e </think>)
+            import re
+            think_pattern = r'<think>(.*?)</think>'
+            think_matches = re.findall(think_pattern, content, re.DOTALL | re.IGNORECASE)
+            
+            if think_matches:
+                reasoning = "\n".join(think_matches).strip()
+                logger.debug(f"ProfileExtractorAgent: Reasoning detectado ({len(reasoning)} chars)")
+            
+            # Remover todas as tags <think>...</think>
+            content = re.sub(think_pattern, '', content, flags=re.DOTALL | re.IGNORECASE).strip()
+        
+        # v10.1: Extrair JSON robusto (primeira { até última })
+        # Isso garante que mesmo com texto antes/depois, extraímos o JSON completo
+        first_brace = content.find('{')
+        last_brace = content.rfind('}')
+        
+        if first_brace == -1 or last_brace == -1 or first_brace >= last_brace:
+            # Não encontrou JSON válido
+            logger.warning(
+                f"ProfileExtractorAgent: JSON não encontrado na resposta. "
+                f"Primeiros 500 chars: {content[:500]}"
+            )
+            return content, reasoning
+        
+        # Extrair JSON (do primeiro { até o último })
+        json_content = content[first_brace:last_brace + 1]
+        
+        # Log se havia texto antes/depois do JSON
+        if first_brace > 0 or last_brace < len(content) - 1:
+            logger.debug(
+                f"ProfileExtractorAgent: JSON extraído com texto extra "
+                f"(antes: {first_brace} chars, depois: {len(content) - last_brace - 1} chars)"
+            )
+        
+        return json_content, reasoning
+    
     def _parse_response(self, response: str, **kwargs) -> CompanyProfile:
         """
         Processa resposta e cria CompanyProfile.
         
-        v10.0: SGLang Guided Decoding garante JSON válido
-              - Removidas lógicas de fallback de parsing (não são mais necessárias)
-              - Confiança total no Guided Decoding do SGLang
-              - Pós-processamento mínimo (apenas normalização)
+        v10.1: Resiliência ao comportamento de reasoning do Qwen3-8B
+              - Extrai JSON mesmo com <think> tags presentes
+              - Captura reasoning para debug no Phoenix
+              - Fallback robusto para casos extremos
         
         Args:
-            response: Resposta JSON do LLM (garantida válida pelo Guided Decoding)
+            response: Resposta do LLM (pode conter <think> tags)
         
         Returns:
             CompanyProfile com dados extraídos
         """
         try:
-            content = response.strip()
+            # v10.1: Extrair JSON e reasoning separadamente
+            json_content, reasoning = self._extract_json_from_response(response)
             
-            # v10.0: SGLang Guided Decoding garante JSON válido
-            # Parse direto sem fallbacks defensivos
+            # Salvar reasoning para atributo do span (se disponível)
+            if reasoning and 'span' in kwargs and kwargs['span']:
+                try:
+                    kwargs['span'].set_attribute("llm.reasoning", reasoning[:5000])  # Limitar tamanho
+                except Exception:
+                    pass
+            
+            # Parse JSON
             try:
-                data = json.loads(content)
-                logger.debug("ProfileExtractorAgent: JSON parseado (Guided Decoding)")
+                data = json.loads(json_content)
+                logger.debug("ProfileExtractorAgent: JSON parseado com sucesso")
             except json.JSONDecodeError as e:
-                # Isso NÃO deveria acontecer com Guided Decoding
-                # Log crítico para investigação
+                # Log crítico com contexto completo
                 logger.error(
-                    f"ProfileExtractorAgent: JSON inválido apesar de Guided Decoding: {e}. "
-                    f"Primeiros 500 chars: {content[:500]}"
+                    f"ProfileExtractorAgent: JSON inválido após limpeza: {e}. "
+                    f"Primeiros 500 chars do JSON extraído: {json_content[:500]}"
                 )
+                if reasoning:
+                    logger.debug(f"ProfileExtractorAgent: Reasoning capturado ({len(reasoning)} chars)")
                 return CompanyProfile()
             
             # Normalizar estrutura (array → dict)

@@ -709,9 +709,29 @@ class ProviderManager:
                         # repetition_penalty via extra_body (mais efetivo que presence/frequency)
                         request_params["extra_body"]["repetition_penalty"] = 1.05
                         
+                        # v10.1: Supressão de <think> tags (comportamento de reasoning)
+                        # Stop tokens para forçar modelo a pular raciocínio e ir direto ao JSON
+                        request_params["stop"] = ["</think>", "<think>", "\n<think>"]
+                        # Não incluir stop token no output
+                        request_params["include_stop_str_in_output"] = False
+                        
+                        # v10.1: Forçar início com { via regex pattern (se SGLang suportar)
+                        # Isso garante que o modelo comece direto no JSON
+                        try:
+                            # Tentar adicionar regex pattern para forçar início com {
+                            if "extra_body" not in request_params:
+                                request_params["extra_body"] = {}
+                            # SGLang pode suportar regex_accept_pattern para forçar formato
+                            # Pattern: deve começar com { (JSON object)
+                            request_params["extra_body"]["regex_accept_pattern"] = r"^\s*\{"
+                        except Exception:
+                            # Se não suportar, continuar sem regex
+                            pass
+                        
                         logger.debug(
                             f"{ctx_label}ProviderManager: {provider} (Qwen3-8B) - "
-                            f"temp=0.1, top_p=0.95, repetition_penalty=1.05"
+                            f"temp=0.1, top_p=0.95, repetition_penalty=1.05, "
+                            f"stop=['</think>', '<think>'] (anti-reasoning)"
                         )
                     
                     # v10.0: Prefix Caching - Normalizar system_prompt para reutilização de KV Cache
