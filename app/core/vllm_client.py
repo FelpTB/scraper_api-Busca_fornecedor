@@ -150,7 +150,20 @@ async def chat_completion(
             response_data = http_response.json()
             
             # Converter resposta httpx para formato OpenAI-like
-            from openai.types.chat import ChatCompletion, ChatCompletionMessage, Choice
+            # Usar imports compatíveis com diferentes versões do openai
+            try:
+                from openai.types.chat import ChatCompletion, ChatCompletionMessage
+                from openai.types.chat.chat_completion import Choice
+            except ImportError:
+                try:
+                    from openai.types.chat import ChatCompletion, ChatCompletionMessage, Choice
+                except ImportError:
+                    # Fallback: criar classe Choice simples compatível
+                    from openai.types.chat import ChatCompletion, ChatCompletionMessage
+                    from types import SimpleNamespace
+                    def Choice(**kwargs):
+                        return SimpleNamespace(**kwargs)
+            
             from openai.types.completion_usage import CompletionUsage
             
             # Extrair dados da resposta
@@ -162,21 +175,22 @@ async def chat_completion(
             content = message_data.get("content", "")
             
             # Criar objeto de resposta compatível com OpenAI
+            # Criar Choice com atributos corretos
+            choice_obj = Choice(
+                index=0,
+                message=ChatCompletionMessage(
+                    role=message_data.get("role", "assistant"),
+                    content=content
+                ),
+                finish_reason=choices_data[0].get("finish_reason", "stop")
+            )
+            
             response = ChatCompletion(
                 id=response_data.get("id", "unknown"),
                 object="chat.completion",
                 created=response_data.get("created", int(time.time())),
                 model=response_data.get("model", model or settings.VLLM_MODEL),
-                choices=[
-                    Choice(
-                        index=0,
-                        message=ChatCompletionMessage(
-                            role=message_data.get("role", "assistant"),
-                            content=content
-                        ),
-                        finish_reason=choices_data[0].get("finish_reason", "stop")
-                    )
-                ],
+                choices=[choice_obj],
                 usage=CompletionUsage(
                     prompt_tokens=response_data.get("usage", {}).get("prompt_tokens", 0),
                     completion_tokens=response_data.get("usage", {}).get("completion_tokens", 0),

@@ -764,7 +764,20 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                         response_data = http_response.json()
                         
                         # Converter resposta httpx para formato OpenAI-like
-                        from openai.types.chat import ChatCompletion, ChatCompletionMessage, Choice
+                        # Usar imports compatíveis com diferentes versões do openai
+                        try:
+                            from openai.types.chat import ChatCompletion, ChatCompletionMessage
+                            from openai.types.chat.chat_completion import Choice
+                        except ImportError:
+                            try:
+                                from openai.types.chat import ChatCompletion, ChatCompletionMessage, Choice
+                            except ImportError:
+                                # Fallback: criar classe Choice simples compatível
+                                from openai.types.chat import ChatCompletion, ChatCompletionMessage
+                                from types import SimpleNamespace
+                                def Choice(**kwargs):
+                                    return SimpleNamespace(**kwargs)
+                        
                         from openai.types.completion_usage import CompletionUsage
                         
                         # Extrair dados da resposta
