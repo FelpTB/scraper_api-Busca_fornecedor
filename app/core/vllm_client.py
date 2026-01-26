@@ -12,6 +12,7 @@ v9.1: Suporte a SGLang com autenticação Bearer Token
 """
 import logging
 import time
+import json
 from typing import Optional, List, Dict, Any
 import httpx
 from openai import AsyncOpenAI
@@ -147,6 +148,7 @@ async def chat_completion(
         token = None
         if tracer_provider:
             try:
+                import json
                 from opentelemetry import trace as otel_trace
                 from opentelemetry import context as otel_context
                 from opentelemetry.trace import set_span_in_context
@@ -154,22 +156,56 @@ async def chat_completion(
                 tracer = otel_trace.get_tracer(__name__)
                 span = tracer.start_span("vllm_client.chat_completion")
                 
-                # Adicionar atributos do OpenInference
+                # Adicionar atributos do OpenInference (completos)
                 span.set_attribute("gen_ai.request.model", request_params.get("model", ""))
                 span.set_attribute("gen_ai.request.temperature", request_params.get("temperature", 0.0))
                 span.set_attribute("gen_ai.request.max_tokens", request_params.get("max_tokens", 0))
                 span.set_attribute("gen_ai.system", "SGLang")
                 
-                # Adicionar mensagens do prompt
+                # Adicionar todos os parâmetros da requisição
+                if "top_p" in request_params:
+                    span.set_attribute("gen_ai.request.top_p", request_params.get("top_p"))
+                if "presence_penalty" in request_params:
+                    span.set_attribute("gen_ai.request.presence_penalty", request_params.get("presence_penalty"))
+                if "frequency_penalty" in request_params:
+                    span.set_attribute("gen_ai.request.frequency_penalty", request_params.get("frequency_penalty"))
+                if "seed" in request_params:
+                    span.set_attribute("gen_ai.request.seed", request_params.get("seed"))
+                
+                # Adicionar mensagens completas (sem truncar)
                 if messages:
+                    # Mensagens completas como JSON
+                    span.set_attribute("gen_ai.input.messages", json.dumps(messages, ensure_ascii=False))
+                    
+                    # Extrair system e user messages completos
                     system_msg = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
                     user_msg = next((m.get("content", "") for m in messages if m.get("role") == "user"), "")
+                    
                     if system_msg:
-                        span.set_attribute("gen_ai.prompt.system", system_msg[:1000])
+                        # System message completo (sem truncar)
+                        span.set_attribute("gen_ai.prompt.system", system_msg)
+                    
                     if user_msg:
-                        span.set_attribute("gen_ai.prompt.user", user_msg[:2000])
+                        # User message completo (sem truncar)
+                        span.set_attribute("gen_ai.prompt.user", user_msg)
+                    
+                    # Adicionar todas as mensagens individuais
+                    for idx, msg in enumerate(messages):
+                        role = msg.get("role", "unknown")
+                        content = msg.get("content", "")
+                        span.set_attribute(f"gen_ai.prompt.{role}.{idx}", content)
+                
+                # Adicionar response_format se presente
+                if response_format:
+                    span.set_attribute("gen_ai.request.response_format", json.dumps(response_format, ensure_ascii=False))
+                
+                # Adicionar URL para debug
+                span.set_attribute("llm.request.url", request_url)
+                span.set_attribute("llm.request.has_auth", bool(settings.VLLM_API_KEY))
                 
                 token = otel_context.attach(set_span_in_context(span))
+                # Marcar início para cálculo de latência
+                span.start_time = time.perf_counter()
             except Exception as e:
                 logger.debug(f"vllm_client: Erro ao criar span Phoenix: {e}")
                 span = None
@@ -186,18 +222,45 @@ async def chat_completion(
                 http_response.raise_for_status()
                 response_data = http_response.json()
                 
-                # Adicionar atributos de resposta ao span
+                # Adicionar atributos de resposta ao span (completos)
                 if span:
                     try:
                         content = response_data.get("choices", [{}])[0].get("message", {}).get("content", "")
                         usage = response_data.get("usage", {})
+                        choice_data = response_data.get("choices", [{}])[0]
                         
+                        # Resposta completa (sem truncar)
+                        span.set_attribute("gen_ai.response.content", content)
+                        
+                        # Resposta completa como JSON
+                        span.set_attribute("gen_ai.response.raw", json.dumps(response_data, ensure_ascii=False))
+                        
+                        # Finish reason
                         span.set_attribute("gen_ai.response.finish_reason", 
-                                          response_data.get("choices", [{}])[0].get("finish_reason", "unknown"))
+                                          choice_data.get("finish_reason", "unknown"))
+                        
+                        # Métricas de uso de tokens
                         span.set_attribute("gen_ai.usage.prompt_tokens", usage.get("prompt_tokens", 0))
                         span.set_attribute("gen_ai.usage.completion_tokens", usage.get("completion_tokens", 0))
                         span.set_attribute("gen_ai.usage.total_tokens", usage.get("total_tokens", 0))
-                        span.set_attribute("gen_ai.response.content", content[:5000])
+                        
+                        # Modelo usado na resposta
+                        span.set_attribute("gen_ai.response.model", response_data.get("model", ""))
+                        
+                        # ID da resposta
+                        span.set_attribute("gen_ai.response.id", response_data.get("id", ""))
+                        
+                        # Timestamp da resposta
+                        span.set_attribute("gen_ai.response.created", response_data.get("created", 0))
+                        
+                        # Latência (calcular se possível)
+                        if hasattr(span, 'start_time'):
+                            latency_ms = (time.perf_counter() - span.start_time) * 1000
+                            span.set_attribute("llm.response.latency_ms", latency_ms)
+                        
+                        # Status HTTP
+                        span.set_attribute("llm.response.status_code", http_response.status_code)
+                            
                     except Exception as e:
                         logger.debug(f"vllm_client: Erro ao adicionar atributos ao span: {e}")
         finally:
