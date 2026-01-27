@@ -44,11 +44,26 @@ async def call_llm(provider: str, text_content: str) -> CompanyProfile:
     
     start_ts = time.perf_counter()
     
+    # Usar json_schema quando disponível (SGLang), fallback para json_object
+    try:
+        # Gerar JSON Schema do CompanyProfile
+        json_schema = CompanyProfile.model_json_schema()
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "company_profile",
+                "schema": json_schema
+            }
+        }
+    except Exception as e:
+        logger.warning(f"⚠️ Erro ao gerar json_schema, usando json_object: {e}")
+        response_format = {"type": "json_object"}
+    
     try:
         response_content, latency_ms = await provider_manager.call(
             provider=provider,
             messages=messages,
-            response_format={"type": "json_object"}
+            response_format=response_format
         )
         
         health_monitor.record_success(provider, latency_ms)

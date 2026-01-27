@@ -31,95 +31,80 @@ class ProfileExtractorAgent(BaseAgent):
     DEFAULT_TIMEOUT = _CFG.get("timeout", 90.0)
     DEFAULT_MAX_RETRIES = _CFG.get("max_retries", 2)
     
-    SYSTEM_PROMPT = """Você é um extrator de dados B2B especializado. Gere estritamente um JSON válido correspondente ao schema abaixo.
-Extraia dados do texto Markdown e PDF fornecido.
+    SYSTEM_PROMPT = """Você é um extrator de dados B2B especializado. Extraia dados do texto fornecido e retorne em formato JSON válido.
 
 INSTRUÇÕES CRÍTICAS:
-1. IDIOMA DE SAÍDA: PORTUGUÊS (BRASIL). Todo o conteúdo extraído deve estar em Português. Traduza descrições, cargos e categorias. Mantenha em inglês apenas termos técnicos globais (ex: "SaaS", "Big Data", "Machine Learning") ou nomes próprios de produtos não traduzíveis.
-2. PRODUTOS vs SERVIÇOS: Distinga claramente entre produtos físicos e serviços intangíveis.
-3. DETALHES DO SERVIÇO: Para os principais serviços, tente extrair 'metodologia' (como eles fazem) e 'entregáveis' (o que o cliente recebe).
-4. LISTAGEM DE PRODUTOS EXAUSTIVA - CRÍTICO E OBRIGATÓRIO: 
-   - Ao extrair 'product_categories', você DEVE preencher o campo 'items' de CADA categoria com TODOS os produtos individuais encontrados.
-   - NUNCA deixe 'items' vazio ou como array vazio []. Se uma categoria é mencionada, você DEVE encontrar e listar os produtos específicos.
-   - O QUE SÃO ITEMS: Items são PRODUTOS ESPECÍFICOS (nomes de produtos, modelos, referências, SKUs). NÃO são nomes de categorias, NÃO são marcas isoladas, NÃO são descrições genéricas de categorias.
-   - EXEMPLO CORRETO: Se o texto menciona "Fios e Cabos" e lista "Cabo 1KV HEPR", "Cabo 1KV LSZH", "Cabo Flex 750V", então 'items' DEVE ser ["Cabo 1KV HEPR", "Cabo 1KV LSZH", "Cabo Flex 750V"].
-   - EXEMPLO INCORRETO: NÃO faça {"category_name": "Fios e Cabos", "items": ["Fios e Cabos", "Automação"]} - esses são nomes de categorias, não produtos.
-   - EXEMPLO INCORRETO: NÃO faça {"category_name": "Marcas", "items": ["Philips", "Siemens"]} - marcas isoladas não são produtos. Se houver "Luminária Philips XYZ", extraia "Luminária Philips XYZ" como item.
-   - PROCURE no texto: nomes de produtos, modelos, referências, SKUs, códigos de produto, listas de itens, catálogos, especificações técnicas.
-   - Se você criar uma categoria, você DEVE preencher seus items com produtos encontrados no texto. Se não encontrar produtos específicos, NÃO crie a categoria.
-   - NÃO crie categorias genéricas como "Outras Categorias", "Marcas", "Geral" - apenas categorias específicas mencionadas no conteúdo.
-   - Extraia TUDO que encontrar: nomes completos de produtos, modelos, marcas quando parte do nome do produto, referências. NÃO resuma, NÃO filtre por "qualidade".
-5. PROVA SOCIAL: Extraia Estudos de Caso específicos, Nomes de Clientes e Certificações. Estes são de alta prioridade.
-6. ENGAJAMENTO: Procure como eles vendem (Mensalidade? Por Projeto? Alocação de equipe?).
-7. CONSOLIDAÇÃO: Se receber múltiplos fragmentos de conteúdo, consolide as informações sem duplicar. Priorize informações mais detalhadas e completas.
+1. IDIOMA: PORTUGUÊS (BRASIL). Todo conteúdo em Português, exceto termos técnicos globais (ex: "SaaS", "Big Data", "Machine Learning").
+2. PRODUTOS vs SERVIÇOS: Distinga claramente produtos físicos de serviços intangíveis.
+3. LIMITES DE LISTAS - CRÍTICO (NÃO EXCEDER):
+   - Máximo 60 produtos por categoria
+   - Máximo 40 categorias de produtos
+   - Máximo 50 serviços
+   - Máximo 80 clientes na lista_clientes
+   - Máximo 50 parcerias
+   - Máximo 50 certificações
+   - Máximo 30 estudos de caso
+   - PARE quando atingir qualquer limite ou quando não houver mais itens únicos no texto
+4. REGRA DE DEDUPLICAÇÃO:
+   - NÃO gere variações do mesmo item (ex: "RCA" e "Conector RCA" são o mesmo produto)
+   - Use o nome mais completo e específico quando houver variações
+   - Se você já extraiu um item, NÃO o extraia novamente com nome diferente
+   - Dê preferência para itens que são claramente únicos
+5. COMPLETUDE: Extraia TODOS os dados relevantes encontrados no texto, mas respeite os limites acima.
 
-Se um campo não for encontrado, use null ou lista vazia. NÃO gere blocos de código markdown (```json). Gere APENAS a string JSON bruta.
+EXEMPLOS DE COMPORTAMENTO CORRETO:
 
-Schema (Mantenha as chaves em inglês, valores em Português):
+<EXEMPLO_1_PRODUTOS>
+INPUT: "Nossos produtos incluem: Cabo 1KV HEPR, Cabo 1KV LSZH, Cabo Flex 750V, Conector RCA, Conector XLR, Conector P2"
+
+OUTPUT:
 {
-  "identity": { 
-    "company_name": "string", 
-    "cnpj": "string",
-    "tagline": "string", 
-    "description": "string", 
-    "founding_year": "string",
-    "employee_count_range": "string"
-  },
-  "classification": { 
-    "industry": "string", 
-    "business_model": "string", 
-    "target_audience": "string",
-    "geographic_coverage": "string"
-  },
-  "team": {
-    "size_range": "string",
-    "key_roles": ["string"],
-    "team_certifications": ["string"]
-  },
-  "offerings": { 
-    "products": ["string"],
-    "product_categories": [
-        { "category_name": "string", "items": ["string"] }
-    ],
-    "services": ["string"], 
-    "service_details": [
-        { 
-          "name": "string", 
-          "description": "string", 
-          "methodology": "string", 
-          "deliverables": ["string"],
-          "ideal_client_profile": "string"
-        }
-    ],
-    "engagement_models": ["string"],
-    "key_differentiators": ["string"] 
-  },
-  "reputation": {
-    "certifications": ["string"],
-    "awards": ["string"],
-    "partnerships": ["string"],
-    "client_list": ["string"],
-    "case_studies": [
-        {
-          "title": "string",
-          "client_name": "string",
-          "industry": "string",
-          "challenge": "string",
-          "solution": "string",
-          "outcome": "string"
-        }
+  "ofertas": {
+    "produtos": [
+      {
+        "categoria": "Cabos",
+        "produtos": ["Cabo 1KV HEPR", "Cabo 1KV LSZH", "Cabo Flex 750V"]
+      },
+      {
+        "categoria": "Conectores",
+        "produtos": ["Conector RCA", "Conector XLR", "Conector P2"]
+      }
     ]
-  },
-  "contact": { 
-    "emails": ["string"], 
-    "phones": ["string"], 
-    "linkedin_url": "string", 
-    "website_url": "string",
-    "headquarters_address": "string",
-    "locations": ["string"]
   }
 }
+NOTA: Cada produto mencionado uma vez, sem variações.
+</EXEMPLO_1_PRODUTOS>
+
+REGRAS DE PARADA (CRÍTICO):
+1. Se você já extraiu um item, NÃO extraia variações dele
+2. Se atingiu o limite máximo de itens em qualquer lista, PARE imediatamente
+3. Se não há mais itens únicos no texto, PARE
+4. NÃO invente itens que não estão explicitamente no texto
+5. NÃO continue gerando após extrair todos os itens únicos encontrados
+
+Se um campo não for encontrado, use null ou lista vazia.
+Retorne APENAS um objeto JSON válido, sem markdown (```json), sem explicações adicionais.
 """
+    
+    def _get_response_format(self) -> Optional[dict]:
+        """
+        Retorna formato de resposta usando json_schema do SGLang.
+        Usa o schema do CompanyProfile para garantir formato estruturado.
+        
+        Returns:
+            Dict com json_schema format para SGLang
+        """
+        # Gerar JSON Schema do CompanyProfile usando Pydantic
+        json_schema = CompanyProfile.model_json_schema()
+        
+        # Retornar formato compatível com SGLang e OpenAI API
+        return {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "company_profile",
+                "schema": json_schema
+            }
+        }
     
     def _build_user_prompt(self, content: str = "", **kwargs) -> str:
         """

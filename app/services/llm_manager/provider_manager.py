@@ -489,7 +489,7 @@ class ProviderManager:
             start_time = time.perf_counter()
             
             try:
-                # Detectar RunPod (não suporta response_format)
+                # Detectar RunPod (SGLang - suporta json_schema)
                 is_runpod = "runpod" in provider.lower() or "runpod" in config.base_url.lower()
                 
                 # Obter max_output_tokens do provider para garantir valor válido
@@ -502,21 +502,28 @@ class ProviderManager:
                     "max_tokens": max_output_tokens  # Garantir valor explícito e válido
                 }
                 
-                # Para RunPod sem response_format: apenas reforçar no prompt
-                # NÃO usar stop tokens pois podem causar resposta vazia
-                if is_runpod and response_format:
-                    # Reforçar no último message que deve ser JSON puro
-                    if messages and messages[-1].get("role") == "user":
-                        user_msg = messages[-1]["content"]
-                        messages[-1]["content"] = f"""{user_msg}
-
-IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicações.
-A resposta deve começar com {{ e terminar com }}."""
-                    # Não usar stop tokens - confiar no prompt e fazer parsing robusto
-                    logger.debug(f"{ctx_label}ProviderManager: {provider} usando apenas reforço de prompt (sem stop tokens)")
-                elif response_format:
-                    # Outros providers: usar response_format normalmente
-                    request_params["response_format"] = response_format
+                # SGLang (RunPod) suporta json_schema via response_format
+                # Outros providers também podem suportar json_schema ou json_object
+                if response_format:
+                    # Verificar se é json_schema (SGLang structured output)
+                    if response_format.get("type") == "json_schema":
+                        # SGLang suporta json_schema nativamente
+                        request_params["response_format"] = response_format
+                        logger.debug(f"{ctx_label}ProviderManager: {provider} usando json_schema (SGLang structured output)")
+                    elif response_format.get("type") == "json_object":
+                        # Para providers que não suportam json_schema, usar json_object
+                        # RunPod (SGLang) também aceita json_object como fallback
+                        if is_runpod:
+                            # SGLang: preferir json_schema, mas json_object também funciona
+                            # Se não temos json_schema, usar json_object
+                            request_params["response_format"] = response_format
+                            logger.debug(f"{ctx_label}ProviderManager: {provider} usando json_object (fallback)")
+                        else:
+                            # Outros providers: usar response_format normalmente
+                            request_params["response_format"] = response_format
+                    else:
+                        # Outros formatos: usar normalmente
+                        request_params["response_format"] = response_format
                 
                 # Log dos parâmetros da requisição para debug
                 logger.debug(
