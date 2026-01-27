@@ -1,6 +1,10 @@
 """
-Cliente assíncrono para o modelo LLM hospedado no RunPod via vLLM.
+Cliente assíncrono para o modelo LLM hospedado no RunPod via SGLang/vLLM.
 Usa a biblioteca openai com AsyncOpenAI para compatibilidade total.
+
+v4.0: Suporte a Structured Output via SGLang/XGrammar
+      - response_format com json_schema para outputs estruturados
+      - Compatível com SGLang (XGrammar) e vLLM
 """
 import logging
 import time
@@ -31,7 +35,10 @@ def get_vllm_client() -> AsyncOpenAI:
             base_url=settings.VLLM_BASE_URL,
             api_key=settings.VLLM_API_KEY,
         )
-        logger.info(f"✅ Cliente vLLM criado: {settings.VLLM_BASE_URL}")
+        logger.info(
+            f"✅ Cliente vLLM criado: base_url={settings.VLLM_BASE_URL}, "
+            f"model={settings.VLLM_MODEL}, api_key={'***' if settings.VLLM_API_KEY else 'NONE'}"
+        )
     return _vllm_client
 
 
@@ -40,9 +47,14 @@ async def chat_completion(
     temperature: float = 0.7,
     max_tokens: int = 500,
     model: Optional[str] = None,
+    response_format: Optional[Dict[str, Any]] = None,
 ) -> Any:
     """
-    Executa chat completion no modelo vLLM (assíncrono).
+    Executa chat completion no modelo SGLang/vLLM (assíncrono).
+    
+    v4.0: Suporte a Structured Output
+          - response_format com json_schema para outputs estruturados
+          - SGLang usa XGrammar para garantir JSON válido
     
     Args:
         messages: Lista de mensagens no formato OpenAI
@@ -53,6 +65,12 @@ async def chat_completion(
         temperature: Temperatura para geração (0.0 a 1.0)
         max_tokens: Número máximo de tokens na resposta
         model: Modelo a usar (default: VLLM_MODEL do config)
+        response_format: Formato de resposta estruturada (opcional)
+            Exemplo json_schema: {
+                "type": "json_schema",
+                "json_schema": {"name": "output", "schema": {...}}
+            }
+            Exemplo json_object: {"type": "json_object"}
     
     Returns:
         Resposta completa do modelo no formato OpenAI
@@ -67,12 +85,22 @@ async def chat_completion(
     client = get_vllm_client()
     
     try:
-        response = await client.chat.completions.create(
-            model=model or settings.VLLM_MODEL,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
+        # Construir parâmetros da requisição
+        request_params = {
+            "model": model or settings.VLLM_MODEL,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        
+        # Adicionar response_format se fornecido (SGLang/XGrammar suporta)
+        if response_format:
+            request_params["response_format"] = response_format
+            logger.debug(
+                f"🎯 Structured output habilitado: type={response_format.get('type')}"
+            )
+        
+        response = await client.chat.completions.create(**request_params)
         
         # Log de uso de tokens
         if response.usage:
@@ -84,7 +112,7 @@ async def chat_completion(
         
         return response
     except Exception as e:
-        logger.error(f"❌ Erro ao chamar vLLM: {e}")
+        logger.error(f"❌ Erro ao chamar SGLang/vLLM: {e}")
         raise
 
 

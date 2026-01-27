@@ -1,12 +1,12 @@
 {
-  "max_chunk_tokens": 20000,
-  "max_chunk_tokens_note": "WHAT: limite absoluto por chunk. WHY: caber no contexto do RunPod com margem de segurança. HOW: ↑ menos chamadas/mais TPM; ↓ mais cortes/mais seguro. CHANGED: 50k→20k (FASE 1: Redução para 20k tokens para compatibilidade com --max-model-len=32768 no RunPod, garantindo margem de 60% do limite efetivo).",
-  "system_prompt_overhead": 2500,
-  "system_prompt_overhead_note": "WHAT: reserva de tokens para system prompt. WHY: evitar overflow. HOW: ↑ mais folga; ↓ risco de estouro.",
+  "max_chunk_tokens": 12000,
+  "max_chunk_tokens_note": "WHAT: limite absoluto por chunk. WHY: caber no contexto do Qwen2.5-3B (32k) com margem. HOW: ↑ menos chamadas/mais TPM; ↓ mais cortes/mais seguro. CHANGED: 20k→12k para Qwen2.5-3B com context_window=32k.",
+  "system_prompt_overhead": 3000,
+  "system_prompt_overhead_note": "WHAT: reserva de tokens para system prompt + schema JSON. WHY: evitar overflow. HOW: schema do profile é ~2500 tokens. CHANGED: 2500→3000 para comportar json_schema.",
   "chars_per_token": 3,
   "chars_per_token_note": "WHAT: estimativa chars/token. WHY: estimar tokens de texto. HOW: ajustar conforme idioma/distribuição.",
-  "group_target_tokens": 15000,
-  "group_target_tokens_note": "WHAT: alvo de tamanho de chunk. WHY: reduzir chamadas LLM mantendo chunks dentro do limite RunPod. HOW: ↑ chunks maiores; ↓ chunks menores. CHANGED: 25k→15k (FASE 1: Ajuste para 75% do max_chunk_tokens=20k, garantindo margem de segurança e redução no número de chamadas LLM).",
+  "group_target_tokens": 8000,
+  "group_target_tokens_note": "WHAT: alvo de tamanho de chunk. WHY: reduzir chamadas LLM mantendo chunks dentro do limite. HOW: ↑ chunks maiores; ↓ chunks menores. CHANGED: 15k→8k para Qwen2.5-3B (67% do max_chunk_tokens).",
   "min_chunk_chars": 500,
   "min_chunk_chars_note": "WHAT: mínimo de caracteres por chunk. WHY: evitar fragmentos inúteis. HOW: ↑ menos fragmentação; ↓ mais flexível.",
   "retry_attempts": 1,
@@ -18,5 +18,11 @@
   "similarity_threshold": 0.3,
   "similarity_threshold_note": "WHAT: corte de similaridade para deduplicação/score. WHY: qualidade. HOW: ↑ mais rigor; ↓ mais permissivo.",
   "text_score_divisor": 10,
-  "text_score_divisor_note": "WHAT: divisor usado no score de texto. WHY: calibrar peso. HOW: ↑ reduz score; ↓ aumenta score."
+  "text_score_divisor_note": "WHAT: divisor usado no score de texto. WHY: calibrar peso. HOW: ↑ reduz score; ↓ aumenta score.",
+  "use_structured_output": true,
+  "use_structured_output_note": "WHAT: habilita json_schema via SGLang/XGrammar. WHY: garante JSON válido sem parsing adicional. HOW: true usa response_format com json_schema.",
+  "structured_output_backend": "xgrammar",
+  "structured_output_backend_note": "WHAT: backend de gramática do SGLang. WHY: XGrammar tem melhor performance. HOW: xgrammar (default), outlines, ou llguidance.",
+  "recommended_temperature": 0.0,
+  "recommended_temperature_note": "WHAT: temperatura para geração estruturada. WHY: 0.0 = determinístico = JSON mais confiável. HOW: ↑ mais variação; ↓ mais previsível."
 }
