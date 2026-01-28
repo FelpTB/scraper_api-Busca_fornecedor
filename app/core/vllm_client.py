@@ -134,11 +134,10 @@ async def check_vllm_health() -> Dict[str, Any]:
     start = time.perf_counter()
     
     try:
-        # Tentar fazer uma chamada simples de health check
-        # vLLM pode não ter endpoint /health, então fazemos uma chamada mínima
+        # Health: SGLang/vLLM expõe /health na raiz (sem /v1). BASE_V1 = .../v1 → base_sem_v1 + '/health'
         async with httpx.AsyncClient(timeout=10.0) as client:
-            # Tentar endpoint /health primeiro
-            health_url = settings.VLLM_BASE_URL.replace('/v1', '') + '/health'
+            base_sem_v1 = settings.VLLM_BASE_URL.replace("/v1", "").rstrip("/")
+            health_url = base_sem_v1 + "/health"
             try:
                 response = await client.get(health_url)
                 latency_ms = (time.perf_counter() - start) * 1000

@@ -311,7 +311,7 @@ python -m sglang.launch_server \
 **Solução:**
 1. Verificar se o pod está ativo no dashboard RunPod
 2. Verificar URL do proxy (muda após restart)
-3. Atualizar `VLLM_ENDPOINT` no `.env`
+3. Atualizar `LLM_URL` no Railway (variável de ambiente permitida)
 
 ```bash
 # Testar endpoint:
@@ -378,8 +378,8 @@ curl https://SEU-POD-ID.proxy.runpod.net/v1/models
 
 - [ ] Pod SGLang rodando no RunPod
 - [ ] Endpoint testado com `curl /v1/models`
-- [ ] `VLLM_ENDPOINT` configurado no `.env`
-- [ ] `VLLM_MODEL` = `Qwen/Qwen2.5-3B-Instruct`
+- [ ] `LLM_URL` configurado no Railway (URL do servidor SGLang, sem `/v1`)
+- [ ] `MODEL_NAME` = `Qwen/Qwen2.5-3B-Instruct` (ou o modelo servido)
 - [ ] `profile_llm.json` com `use_structured_output: true`
 - [ ] `llm_limits.json` com `supports_structured_output: true`
 - [ ] Temperature = 0.0 para JSON determinístico

@@ -151,12 +151,13 @@ class ProviderManager:
         logger.info(f"  OpenRouter 2: RPM={openrouter2_rpm}, TPM={openrouter2_tpm:,}, weight={openrouter2_weight}%")
         logger.info(f"  OpenRouter 3: RPM={openrouter3_rpm}, TPM={openrouter3_tpm:,}, weight={openrouter3_weight}%")
         
+        # RunPod/SGLang: base_url e model vêm só de config (LLM_URL, MODEL_NAME)
         default_providers = [
             ProviderConfig(
                 name="RunPod",
-                api_key=settings.RUNPOD_API_KEY or "",
-                base_url=settings.RUNPOD_BASE_URL or "https://4noz2ezujocy7q-8000.proxy.runpod.net/v1",
-                model=settings.RUNPOD_MODEL or "mistralai/Ministral-3-8B-Instruct-2512",
+                api_key=settings.RUNPOD_API_KEY or settings.VLLM_API_KEY or "",
+                base_url=settings.RUNPOD_BASE_URL,
+                model=settings.RUNPOD_MODEL,
                 max_concurrent=runpod_concurrent,
                 priority=90,  # Prioridade mais alta (provider primário)
                 weight=runpod_weight,
@@ -215,10 +216,10 @@ class ProviderManager:
         ]
         
         for config in default_providers:
-            # RunPod sempre é adicionado se tiver API key, independente de enabled
+            # RunPod/SGLang: só adiciona se BASE_URL definida (LLM_URL no Railway)
             # Outros providers só são adicionados se tiverem API key E estiverem habilitados
             if config.name == "RunPod":
-                if config.api_key:
+                if config.api_key and config.base_url:
                     self.add_provider(config)
             else:
                 if config.api_key and config.enabled:

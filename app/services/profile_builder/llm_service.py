@@ -476,12 +476,11 @@ class LLMService:
 
             config = settings
 
-            # Fazer uma chamada de teste com max_tokens=1 para obter prompt_tokens
-            # Usar VLLM_* (unificado) com fallback para RUNPOD_* (compatibilidade)
+            # Chamada de teste: POST {BASE_V1}/chat/completions (config já garante BASE_V1)
             api_key = config.VLLM_API_KEY or config.RUNPOD_API_KEY
-            base_url = config.VLLM_BASE_URL or config.RUNPOD_BASE_URL
+            base_v1 = config.VLLM_BASE_URL or config.RUNPOD_BASE_URL
             model = config.VLLM_MODEL or config.RUNPOD_MODEL
-            
+
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}"
@@ -489,7 +488,7 @@ class LLMService:
 
             async with httpx.AsyncClient(timeout=10) as client:
                 response = await client.post(
-                    base_url + "/chat/completions",
+                    base_v1 + "/chat/completions",
                     json={
                         "model": model,
                         "messages": messages,

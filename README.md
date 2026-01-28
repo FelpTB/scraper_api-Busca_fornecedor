@@ -11,20 +11,15 @@ API para construção automática de perfis de empresas B2B brasileiras.
 
 Todos os endpoints retornam imediatamente e processam em background.
 
-## Variáveis de Ambiente
+## Variáveis de Ambiente (whitelist Railway)
 
-### Obrigatórias
-- `DATABASE_URL` - URL de conexão PostgreSQL
-- `VLLM_BASE_URL` - URL base do endpoint vLLM
-- `VLLM_API_KEY` - API key do vLLM
-- `VLLM_MODEL` - Modelo a ser usado
+As únicas variáveis de ambiente lidas pela aplicação são:
+
+- `API_ACCESS_TOKEN` - Token de autenticação da API (opcional; default em código)
+- `DATABASE_URL` - URL de conexão PostgreSQL (obrigatória)
+- `LLM_URL` - URL do servidor SGLang/LLM, sem `/v1` (ex.: `http://IP:PORT`)
+- `MODEL_NAME` - Nome do modelo servido pelo LLM
 - `SERPER_API_KEY` - API key do Serper.dev
-
-### Opcionais
-- `GOOGLE_API_KEY` - API key do Google Gemini (fallback)
-- `OPENAI_API_KEY` - API key da OpenAI (fallback)
-- `API_ACCESS_TOKEN` - Token de autenticação
-- `PHOENIX_COLLECTOR_URL` - URL do Phoenix (observabilidade)
 
 ## Deploy
 
