@@ -3,7 +3,6 @@ Configuração Phoenix para observabilidade de chamadas LLM.
 """
 import logging
 from contextlib import asynccontextmanager
-from typing import Optional
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -62,52 +61,49 @@ def setup_phoenix_tracing(project_name: str):
 async def trace_llm_call(project_name: str, operation_name: str):
     """
     Context manager assíncrono para tracing de chamadas LLM.
-    
+    Cria e encerra o span sem anexar ao contexto (evita set_span_in_context)
+    para não interferir no OpenAIInstrumentor e manter traces visíveis no Phoenix.
+
     Uso:
         async with trace_llm_call("discovery-llm", "find_website") as span:
             result = await llm_call(...)
             if span:
                 span.set_attribute("result", result)
-    
+
     Args:
         project_name: Nome do projeto no Phoenix (ex: 'discovery-llm', 'profile-llm')
         operation_name: Nome da operação sendo rastreada
-    
+
     Yields:
         Span do OpenTelemetry ou None se tracing desabilitado
     """
     if not _tracing_enabled:
         yield None
         return
-    
+
     tracer_provider = setup_phoenix_tracing(project_name)
-    
     if tracer_provider is None:
         yield None
         return
-    
+
+    span = None
     try:
-        from opentelemetry import trace as otel_trace
-        from opentelemetry.trace.propagation import set_span_in_context
-
-        tracer_instance = otel_trace.get_tracer(__name__)
+        tracer_instance = tracer_provider.get_tracer(__name__)
         span = tracer_instance.start_span(operation_name)
+    except Exception as e:
+        logger.warning(f"⚠️ Erro ao criar span Phoenix: {e}")
+        yield None
+        return
 
+    try:
         try:
-            token = otel_trace.context_api.attach(set_span_in_context(span))
-            try:
-                yield span
-            finally:
-                otel_trace.context_api.detach(token)
+            yield span
         except Exception as e:
             if span:
                 span.set_attribute("error", str(e))
                 span.set_attribute("error.type", type(e).__name__)
-            span.end()
             raise
-        else:
+    finally:
+        if span is not None:
             span.end()
-    except Exception as e:
-        logger.warning(f"⚠️ Erro ao criar span Phoenix: {e}")
-        yield None
 

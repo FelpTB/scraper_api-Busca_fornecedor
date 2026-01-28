@@ -30,4 +30,4 @@ Documentação interativa: `/docs`
 ## Padrões e tecnologia
 
 - **Campos em português**: Em toda a API, perfis e banco usam `identidade`, `classificacao`, `contato`, `ofertas`, `reputacao`, `fontes` (e subcampos como `nome_empresa`, `industria`, `localizacoes`, etc.).
-- **Telemetria**: Phoenix/OpenTelemetry para tracing de chamadas LLM; uso de `opentelemetry.trace.propagation.set_span_in_context` para compatibilidade com versões atuais do OTel.
+- **Telemetria**: Phoenix/OpenTelemetry para tracing de chamadas LLM; spans customizados criados via `trace_llm_call` sem anexar ao contexto (evita conflito com OpenAIInstrumentor). Ver `fixes/phoenix-traces-desapareceram-apos-fix-set-span-in-context.md`.
