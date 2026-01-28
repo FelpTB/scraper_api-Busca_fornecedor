@@ -5,6 +5,19 @@ from pathlib import Path
 from datetime import datetime
 from typing import Any, Dict
 
+
+class FlushingStreamHandler(logging.StreamHandler):
+    """
+    StreamHandler que faz flush após cada emit.
+    Garante que logs cheguem imediatamente ao stdout (ex.: Railway/Docker).
+    """
+
+    def emit(self, record: logging.LogRecord) -> None:
+        super().emit(record)
+        if self.stream and hasattr(self.stream, "flush"):
+            self.stream.flush()
+
+
 class JSONFormatter(logging.Formatter):
     """
     Formatter that outputs JSON strings for logs.
@@ -56,8 +69,8 @@ def setup_logging():
     
     formatter = JSONFormatter()
     
-    # Create console handler writing to stdout
-    console_handler = logging.StreamHandler(sys.stdout)
+    # Console: stdout com flush após cada log (Railway/Docker veem logs imediatamente)
+    console_handler = FlushingStreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
     
