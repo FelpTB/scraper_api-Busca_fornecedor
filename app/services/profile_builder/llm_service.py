@@ -21,7 +21,6 @@ from app.services.agents import get_profile_extractor_agent
 
 # Usar novo módulo de chunking v4.0
 from app.core.chunking import process_content as process_content_v4, get_chunking_config
-from .constants import SYSTEM_PROMPT  # Manter apenas SYSTEM_PROMPT
 from .profile_merger import merge_profiles
 from .debug_saver import save_raw_content, save_chunks, analyze_content_quality
 from app.core.token_utils import estimate_tokens
