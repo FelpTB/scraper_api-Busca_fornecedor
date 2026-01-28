@@ -15,9 +15,14 @@ from .base_agent import BaseAgent
 from app.services.llm_manager import LLMPriority
 from app.schemas.profile import CompanyProfile
 from app.services.concurrency_manager.config_loader import get_section as get_config
-from app.services.profile_builder.constants import SYSTEM_PROMPT as PROFILE_EXTRACTOR_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
+
+
+def _get_profile_system_prompt() -> str:
+    """Import lazy para evitar ciclo: agents -> profile_builder -> llm_service -> agents."""
+    from app.services.profile_builder.constants import SYSTEM_PROMPT
+    return SYSTEM_PROMPT
 
 
 class ProfileExtractorAgent(BaseAgent):
@@ -33,8 +38,10 @@ class ProfileExtractorAgent(BaseAgent):
     DEFAULT_TIMEOUT = _CFG.get("timeout", 90.0)
     DEFAULT_MAX_RETRIES = _CFG.get("max_retries", 2)
 
-    # Única fonte do prompt: profile_builder/constants.py (evita duplicação)
-    SYSTEM_PROMPT = PROFILE_EXTRACTOR_SYSTEM_PROMPT
+    @property
+    def SYSTEM_PROMPT(self) -> str:
+        """Prompt único em constants.py; lazy para evitar import circular."""
+        return _get_profile_system_prompt()
     
     def _get_response_format(self) -> Optional[dict]:
         """
