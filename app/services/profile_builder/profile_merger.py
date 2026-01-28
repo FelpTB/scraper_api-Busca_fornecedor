@@ -1,14 +1,17 @@
 """
 Consolidação de múltiplos perfis parciais em um perfil completo.
+Usa campos em português: identidade, classificacao, contato, ofertas, reputacao, fontes.
 """
 
-import json
 import logging
 from typing import List, Optional
 from app.schemas.profile import CompanyProfile
 from .constants import llm_config
 
 logger = logging.getLogger(__name__)
+
+SECOES_SIMPLES = ["identidade", "classificacao", "contato"]
+CAMPOS_CONCATENAVEIS = ["descricao"]
 
 
 def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
@@ -17,45 +20,44 @@ def merge_profiles(profiles: List[CompanyProfile]) -> CompanyProfile:
     Prioriza informações mais completas e remove duplicatas.
     """
     logger.debug(f"🔄 Merge de {len(profiles)} perfis")
-    
+
     valid_profiles = [p for p in profiles if p is not None and isinstance(p, CompanyProfile)]
     invalid_count = len(profiles) - len(valid_profiles)
-    
+
     if invalid_count > 0:
         logger.warning(f"⚠️ {invalid_count} perfis inválidos/None foram filtrados")
-    
+
     if not valid_profiles:
         logger.warning("❌ Nenhum profile válido para mergear")
         return CompanyProfile()
-    
+
     if len(valid_profiles) == 1:
         return valid_profiles[0]
-    
-    # Encontrar perfil mais completo como base
+
     profiles_dicts = [p.model_dump() for p in valid_profiles]
     base_idx = max(range(len(profiles_dicts)), key=lambda i: _score_completeness(profiles_dicts[i]))
     merged = profiles_dicts[base_idx].copy()
     base_score = _score_completeness(merged)
     logger.info(f"📌 Usando perfil {base_idx+1} como base (score: {base_score})")
-    
-    # Mergear outros perfis
+
     for i, profile in enumerate(valid_profiles):
         if i == base_idx:
             continue
-        
         p_dict = profile.model_dump()
         _merge_simple_sections(merged, p_dict)
-        _merge_offerings(merged, p_dict)
-        _merge_reputation(merged, p_dict)
-        _merge_sources(merged, p_dict)
-    
-    # Validação e limpeza final
+        _merge_ofertas(merged, p_dict)
+        _merge_reputacao(merged, p_dict)
+        _merge_fontes(merged, p_dict)
+
     _clean_merged_profile(merged)
-    
-    filled_fields = sum(1 for k, v in merged.items() 
-                       if v and (isinstance(v, dict) and any(v.values()) or isinstance(v, list) and len(v) > 0))
-    logger.info(f"✅ Merge concluído: {filled_fields} campos preenchidos")
-    
+
+    filled = sum(
+        1
+        for k, v in merged.items()
+        if v and (isinstance(v, dict) and any(v.values()) or isinstance(v, list) and len(v) > 0)
+    )
+    logger.info(f"✅ Merge concluído: {filled} campos preenchidos")
+
     try:
         return CompanyProfile(**merged)
     except Exception as e:
@@ -87,22 +89,16 @@ def _are_texts_complementary(text1: str, text2: str) -> bool:
     """Detecta se dois textos são complementares (não duplicados)."""
     if not text1 or not text2:
         return False
-    
-    text1_lower = text1.lower().strip()
-    text2_lower = text2.lower().strip()
-    
-    if text1_lower in text2_lower or text2_lower in text1_lower:
+    t1 = text1.lower().strip()
+    t2 = text2.lower().strip()
+    if t1 in t2 or t2 in t1:
         return False
-    
-    words1 = set(text1_lower.split())
-    words2 = set(text2_lower.split())
-    if len(words1) == 0 or len(words2) == 0:
+    w1 = set(t1.split())
+    w2 = set(t2.split())
+    if not w1 or not w2:
         return False
-    
-    common_words = words1 & words2
-    similarity = len(common_words) / max(len(words1), len(words2))
-    
-    return similarity < llm_config.similarity_threshold
+    sim = len(w1 & w2) / max(len(w1), len(w2))
+    return sim < llm_config.similarity_threshold
 
 
 def _merge_text_fields(current: Optional[str], new: Optional[str], field_name: str) -> str:
@@ -111,191 +107,174 @@ def _merge_text_fields(current: Optional[str], new: Optional[str], field_name: s
         return current or ""
     if not current:
         return new
-    
-    concatenatable_fields = ["description", "methodology", "tagline"]
-    
-    if field_name in concatenatable_fields:
-        if _are_texts_complementary(current, new):
-            return f"{current.strip()}. {new.strip()}"
-        else:
-            return new if len(new) > len(current) else current
-    else:
-        return new if len(new) > len(current) else current
+    if field_name in CAMPOS_CONCATENAVEIS and _are_texts_complementary(current, new):
+        return f"{current.strip()}. {new.strip()}"
+    return new if len(new) > len(current) else current
 
 
 def _merge_simple_sections(merged: dict, p_dict: dict) -> None:
-    """Mergeia seções simples (identity, classification, team, contact)."""
-    for section in ["identity", "classification", "team", "contact"]:
-        if section in merged and section in p_dict:
-            for key, value in p_dict[section].items():
-                if not value:
-                    continue
-                
-                current_value = merged[section].get(key)
-                
-                if isinstance(value, str) and isinstance(current_value, str):
-                    merged[section][key] = _merge_text_fields(current_value, value, key)
-                elif value and not current_value:
-                    merged[section][key] = value
-                elif isinstance(value, str) and len(value) > len(str(current_value or "")):
-                    merged[section][key] = value
+    """Mergeia identidade, classificacao, contato."""
+    for section in SECOES_SIMPLES:
+        if section not in merged or section not in p_dict:
+            continue
+        for key, value in p_dict[section].items():
+            if not value:
+                continue
+            cur = merged[section].get(key)
+            if isinstance(value, str) and isinstance(cur, str):
+                merged[section][key] = _merge_text_fields(cur, value, key)
+            elif value and not cur:
+                merged[section][key] = value
+            elif isinstance(value, str) and len(value) > len(str(cur or "")):
+                merged[section][key] = value
 
 
-def _merge_offerings(merged: dict, p_dict: dict) -> None:
-    """Mergeia seção offerings."""
-    if "offerings" not in merged or "offerings" not in p_dict:
+def _merge_ofertas(merged: dict, p_dict: dict) -> None:
+    """Mergeia ofertas (produtos, servicos)."""
+    if "ofertas" not in merged or "ofertas" not in p_dict:
         return
-    
-    for field in ["products", "services", "engagement_models", "key_differentiators"]:
-        merged["offerings"][field] = list(set(
-            merged["offerings"].get(field, []) + p_dict["offerings"].get(field, [])
-        ))
-    
-    _merge_service_details(merged, p_dict)
-    _merge_product_categories(merged, p_dict)
+    _merge_servicos(merged, p_dict)
+    _merge_produtos(merged, p_dict)
 
 
-def _merge_service_details(merged: dict, p_dict: dict) -> None:
-    """Mergeia service_details."""
-    service_dict = {s["name"]: s for s in merged["offerings"].get("service_details", [])}
-    
-    for service in p_dict["offerings"].get("service_details", []):
-        service_name = service.get("name")
-        if not service_name or not isinstance(service_name, str):
+def _merge_servicos(merged: dict, p_dict: dict) -> None:
+    """Mergeia ofertas.servicos (nome, descricao)."""
+    of = merged.get("ofertas") or {}
+    po = p_dict.get("ofertas") or {}
+    svc_list = of.get("servicos") or []
+    new_list = po.get("servicos") or []
+    svc_dict = {}
+    for s in svc_list:
+        if isinstance(s, dict) and s.get("nome"):
+            svc_dict[s["nome"]] = s.copy()
+        elif hasattr(s, "nome") and s.nome:
+            svc_dict[s.nome] = s.model_dump() if hasattr(s, "model_dump") else {"nome": s.nome, "descricao": getattr(s, "descricao", None)}
+    for s in new_list:
+        nome = s.get("nome") if isinstance(s, dict) else (getattr(s, "nome", None) if s else None)
+        if not nome or not isinstance(nome, str):
             continue
-        
-        if service_name in service_dict:
-            existing = service_dict[service_name]
-            for field in ["description", "methodology", "ideal_client_profile"]:
-                existing[field] = _merge_text_fields(
-                    existing.get(field), service.get(field), field
-                )
-            existing_deliverables = set(existing.get("deliverables", []))
-            new_deliverables = set(service.get("deliverables", []))
-            existing["deliverables"] = list(existing_deliverables | new_deliverables)
+        if nome in svc_dict:
+            ex = svc_dict[nome]
+            for f in ["descricao"]:
+                cur = ex.get(f)
+                nv = s.get(f) if isinstance(s, dict) else getattr(s, f, None)
+                if nv:
+                    ex[f] = _merge_text_fields(cur, nv, f)
         else:
-            service_dict[service_name] = service.copy()
-    
-    merged["offerings"]["service_details"] = list(service_dict.values())
+            svc_dict[nome] = s.copy() if isinstance(s, dict) else (s.model_dump() if hasattr(s, "model_dump") else {"nome": nome, "descricao": getattr(s, "descricao", None)})
+    merged.setdefault("ofertas", {})["servicos"] = list(svc_dict.values())
 
 
-def _merge_product_categories(merged: dict, p_dict: dict) -> None:
-    """Mergeia product_categories."""
-    cat_dict = {c["category_name"]: c for c in merged["offerings"].get("product_categories", [])}
-    
-    for cat in p_dict["offerings"].get("product_categories", []):
-        cat_name = cat.get("category_name")
-        if not cat_name or not isinstance(cat_name, str):
+def _merge_produtos(merged: dict, p_dict: dict) -> None:
+    """Mergeia ofertas.produtos (categoria, produtos)."""
+    of = merged.get("ofertas") or {}
+    po = p_dict.get("ofertas") or {}
+    cat_list = of.get("produtos") or []
+    new_list = po.get("produtos") or []
+    cat_dict = {}
+    for c in cat_list:
+        if isinstance(c, dict) and c.get("categoria"):
+            cat_dict[c["categoria"]] = c.copy()
+        elif hasattr(c, "categoria") and c.categoria:
+            cat_dict[c.categoria] = c.model_dump() if hasattr(c, "model_dump") else {"categoria": c.categoria, "produtos": getattr(c, "produtos", [])}
+    for c in new_list:
+        cat = c.get("categoria") if isinstance(c, dict) else (getattr(c, "categoria", None) if c else None)
+        if not cat or not isinstance(cat, str):
             continue
-        
-        if cat_name in cat_dict:
-            existing_items = set(cat_dict[cat_name].get("items", []))
-            new_items = set(cat.get("items", []))
-            cat_dict[cat_name]["items"] = list(existing_items | new_items)
+        prods = c.get("produtos") if isinstance(c, dict) else (getattr(c, "produtos", []) if c else [])
+        prods = [x for x in (prods or []) if isinstance(x, str) and x.strip()]
+        if cat in cat_dict:
+            ex_prods = set(cat_dict[cat].get("produtos") or [])
+            ex_prods |= set(prods)
+            cat_dict[cat]["produtos"] = list(ex_prods)
         else:
-            cat_dict[cat_name] = cat.copy()
-    
-    merged["offerings"]["product_categories"] = list(cat_dict.values())
+            cat_dict[cat] = {"categoria": cat, "produtos": prods} if isinstance(c, dict) else (c.model_dump() if hasattr(c, "model_dump") else {"categoria": cat, "produtos": prods})
+    merged.setdefault("ofertas", {})["produtos"] = list(cat_dict.values())
 
 
-def _merge_reputation(merged: dict, p_dict: dict) -> None:
-    """Mergeia seção reputation."""
-    if "reputation" not in merged or "reputation" not in p_dict:
+def _merge_reputacao(merged: dict, p_dict: dict) -> None:
+    """Mergeia reputacao (certificacoes, premios, parcerias, lista_clientes, estudos_caso)."""
+    if "reputacao" not in merged or "reputacao" not in p_dict:
         return
-    
-    for field in ["certifications", "awards", "partnerships", "client_list"]:
-        merged["reputation"][field] = list(set(
-            merged["reputation"].get(field, []) + p_dict["reputation"].get(field, [])
-        ))
-    
-    _merge_case_studies(merged, p_dict)
+    rep = merged["reputacao"]
+    pre = p_dict["reputacao"]
+    for field in ["certificacoes", "premios", "parcerias", "lista_clientes"]:
+        rep[field] = list(set((rep.get(field) or []) + (pre.get(field) or [])))
+    _merge_estudos_caso(merged, p_dict)
 
 
-def _merge_case_studies(merged: dict, p_dict: dict) -> None:
-    """Mergeia case_studies."""
-    case_dict = {cs["title"]: cs for cs in merged["reputation"].get("case_studies", [])}
-    
-    for case in p_dict["reputation"].get("case_studies", []):
-        case_title = case.get("title")
-        if not case_title or not isinstance(case_title, str):
+def _merge_estudos_caso(merged: dict, p_dict: dict) -> None:
+    """Mergeia reputacao.estudos_caso (titulo, nome_cliente, etc.)."""
+    rep = merged.get("reputacao") or {}
+    pre = p_dict.get("reputacao") or {}
+    cases = rep.get("estudos_caso") or []
+    new_cases = pre.get("estudos_caso") or []
+    case_dict = {}
+    for cs in cases:
+        t = cs.get("titulo") if isinstance(cs, dict) else (getattr(cs, "titulo", None) if cs else None)
+        if t and isinstance(t, str):
+            case_dict[t] = cs.copy() if isinstance(cs, dict) else (cs.model_dump() if hasattr(cs, "model_dump") else {})
+    for cs in new_cases:
+        t = cs.get("titulo") if isinstance(cs, dict) else (getattr(cs, "titulo", None) if cs else None)
+        if not t or not isinstance(t, str):
             continue
-        
-        if case_title in case_dict:
-            existing = case_dict[case_title]
-            for field in ["challenge", "solution", "outcome"]:
-                if case.get(field):
-                    existing[field] = _merge_text_fields(
-                        existing.get(field), case.get(field), field
-                    )
-            for field in ["client_name", "industry"]:
-                if case.get(field) and (not existing.get(field) or len(str(case[field])) > len(str(existing.get(field, "")))):
-                    existing[field] = case[field]
+        if t in case_dict:
+            ex = case_dict[t]
+            for f in ["desafio", "solucao", "resultado"]:
+                nv = cs.get(f) if isinstance(cs, dict) else getattr(cs, f, None)
+                if nv:
+                    ex[f] = _merge_text_fields(ex.get(f), nv, f)
+            for f in ["nome_cliente", "industria"]:
+                nv = cs.get(f) if isinstance(cs, dict) else getattr(cs, f, None)
+                if nv and (not ex.get(f) or len(str(nv)) > len(str(ex.get(f, "")))):
+                    ex[f] = nv
         else:
-            case_dict[case_title] = case.copy()
-    
-    merged["reputation"]["case_studies"] = list(case_dict.values())
+            case_dict[t] = cs.copy() if isinstance(cs, dict) else (cs.model_dump() if hasattr(cs, "model_dump") else {})
+    rep["estudos_caso"] = list(case_dict.values())
 
 
-def _merge_sources(merged: dict, p_dict: dict) -> None:
-    """Mergeia sources."""
-    if "sources" in merged and "sources" in p_dict:
-        existing_sources = set(merged.get("sources", []))
-        merged["sources"] = list(merged.get("sources", [])) + [
-            s for s in p_dict.get("sources", []) if s not in existing_sources
-        ]
+def _merge_fontes(merged: dict, p_dict: dict) -> None:
+    """Mergeia fontes."""
+    existing = set(merged.get("fontes") or [])
+    merged["fontes"] = list(merged.get("fontes") or []) + [
+        s for s in (p_dict.get("fontes") or []) if s not in existing and isinstance(s, str) and s.strip()
+    ]
 
 
 def _clean_merged_profile(merged: dict) -> None:
     """Limpa e valida o perfil mergeado."""
-    if "offerings" in merged and isinstance(merged["offerings"], dict):
-        offerings = merged["offerings"]
-        
-        for field in ["products", "services", "engagement_models", "key_differentiators"]:
-            if isinstance(offerings.get(field), list):
-                offerings[field] = [item for item in offerings[field] if isinstance(item, str) and item.strip()]
-        
-        # Limpar categorias inválidas
-        invalid_names = {"outras categorias", "outras", "marcas", "marca", "geral", "diversos", "outros", "categorias", "categoria", "produtos", "produto"}
-        if isinstance(offerings.get("product_categories"), list):
-            valid_cats = []
-            for cat in offerings["product_categories"]:
-                if not isinstance(cat, dict) or not cat.get("category_name"):
+    of = merged.get("ofertas")
+    if isinstance(of, dict):
+        invalid = {"outras categorias", "outras", "marcas", "marca", "geral", "diversos", "outros", "categorias", "categoria", "produtos", "produto"}
+        if isinstance(of.get("produtos"), list):
+            valid = []
+            for cat in of["produtos"]:
+                if not isinstance(cat, dict) or not cat.get("categoria"):
                     continue
-                if cat.get("category_name", "").strip().lower() in invalid_names:
+                if (cat.get("categoria") or "").strip().lower() in invalid:
                     continue
-                if not isinstance(cat.get("items"), list):
-                    cat["items"] = []
+                if not isinstance(cat.get("produtos"), list):
+                    cat["produtos"] = []
                 else:
-                    cat["items"] = [item for item in cat["items"] if isinstance(item, str) and item.strip()]
-                valid_cats.append(cat)
-            offerings["product_categories"] = valid_cats
-        
-        if isinstance(offerings.get("service_details"), list):
-            valid_services = []
-            for service in offerings["service_details"]:
-                if isinstance(service, dict) and service.get("name"):
-                    if isinstance(service.get("deliverables"), list):
-                        service["deliverables"] = [d for d in service["deliverables"] if isinstance(d, str) and d.strip()]
-                    valid_services.append(service)
-            offerings["service_details"] = valid_services
-    
-    # Limpar reputation
-    if "reputation" in merged and isinstance(merged["reputation"], dict):
-        reputation = merged["reputation"]
-        for field in ["certifications", "awards", "partnerships", "client_list"]:
-            if isinstance(reputation.get(field), list):
-                reputation[field] = [item for item in reputation[field] if isinstance(item, str) and item.strip()]
-        
-        if isinstance(reputation.get("case_studies"), list):
-            reputation["case_studies"] = [case for case in reputation["case_studies"] if isinstance(case, dict) and case.get("title")]
-    
-    # Limpar contact
-    if "contact" in merged and isinstance(merged["contact"], dict):
-        for field in ["emails", "phones", "locations"]:
-            if isinstance(merged["contact"].get(field), list):
-                merged["contact"][field] = [item for item in merged["contact"][field] if isinstance(item, str) and item.strip()]
-    
-    # Limpar sources
-    if isinstance(merged.get("sources"), list):
-        merged["sources"] = [s for s in merged["sources"] if isinstance(s, str) and s.strip()]
+                    cat["produtos"] = [x for x in cat["produtos"] if isinstance(x, str) and x.strip()]
+                valid.append(cat)
+            of["produtos"] = valid
+        if isinstance(of.get("servicos"), list):
+            of["servicos"] = [s for s in of["servicos"] if isinstance(s, dict) and s.get("nome")]
 
+    rep = merged.get("reputacao")
+    if isinstance(rep, dict):
+        for f in ["certificacoes", "premios", "parcerias", "lista_clientes"]:
+            if isinstance(rep.get(f), list):
+                rep[f] = [x for x in rep[f] if isinstance(x, str) and x.strip()]
+        if isinstance(rep.get("estudos_caso"), list):
+            rep["estudos_caso"] = [c for c in rep["estudos_caso"] if isinstance(c, dict) and c.get("titulo")]
+
+    cont = merged.get("contato")
+    if isinstance(cont, dict):
+        for f in ["emails", "telefones", "localizacoes"]:
+            if isinstance(cont.get(f), list):
+                cont[f] = [x for x in cont[f] if isinstance(x, str) and x.strip()]
+
+    if isinstance(merged.get("fontes"), list):
+        merged["fontes"] = [s for s in merged["fontes"] if isinstance(s, str) and s.strip()]

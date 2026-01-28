@@ -84,7 +84,9 @@ async def _process_profile_background(request: ProfileRequest):
                     valid_profiles.append(profile_result)
                 elif not hasattr(profile_result, 'is_empty'):
                     profile_dict = profile_result.model_dump() if hasattr(profile_result, 'model_dump') else {}
-                    if profile_dict.get('identity', {}).get('company_name') or profile_dict.get('classification', {}).get('industry'):
+                    ide = profile_dict.get('identidade') or {}
+                    cla = profile_dict.get('classificacao') or {}
+                    if ide.get('nome_empresa') or cla.get('industria'):
                         valid_profiles.append(profile_result)
         
         chunks_processed = len(valid_profiles)

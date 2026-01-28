@@ -196,9 +196,9 @@ async def monta_perfil(request: CompanyRequest):
         
         # Add discovery source metadata if discovered
         if not request.url and url_str:
-            if not result.sources:
-                result.sources = []
-            result.sources.insert(0, f"Discovered via Google Search: {url_str}")
+            if not result.fontes:
+                result.fontes = []
+            result.fontes.insert(0, f"Discovered via Google Search: {url_str}")
             
         # Track completion (assíncrono, não bloqueante)
         total = time.perf_counter() - start_ts
@@ -257,9 +257,9 @@ async def process_analysis(url: str, ctx_label: str = "", request_id: str = "") 
         company_name=extracted_name
     )
     
-    # 4. Add Sources
-    profile.sources = list(set(scraped_urls))
-    
+    # 4. Adicionar fontes (URLs raspadas)
+    profile.fontes = list(set(scraped_urls))
+
     return profile
 
 

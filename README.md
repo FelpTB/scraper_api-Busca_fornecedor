@@ -26,3 +26,8 @@ As únicas variáveis de ambiente lidas pela aplicação são:
 A API está configurada para deploy no Railway via Dockerfile ou Procfile.
 
 Documentação interativa: `/docs`
+
+## Padrões e tecnologia
+
+- **Campos em português**: Em toda a API, perfis e banco usam `identidade`, `classificacao`, `contato`, `ofertas`, `reputacao`, `fontes` (e subcampos como `nome_empresa`, `industria`, `localizacoes`, etc.).
+- **Telemetria**: Phoenix/OpenTelemetry para tracing de chamadas LLM; uso de `opentelemetry.trace.propagation.set_span_in_context` para compatibilidade com versões atuais do OTel.

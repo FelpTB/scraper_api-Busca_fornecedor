@@ -88,12 +88,13 @@ async def trace_llm_call(project_name: str, operation_name: str):
     
     try:
         from opentelemetry import trace as otel_trace
-        
+        from opentelemetry.trace.propagation import set_span_in_context
+
         tracer_instance = otel_trace.get_tracer(__name__)
         span = tracer_instance.start_span(operation_name)
-        
+
         try:
-            token = otel_trace.context_api.attach(otel_trace.context_api.set_span_in_context(span))
+            token = otel_trace.context_api.attach(set_span_in_context(span))
             try:
                 yield span
             finally:
