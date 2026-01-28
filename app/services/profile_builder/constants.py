@@ -67,59 +67,26 @@ class LLMConfig:
 llm_config = LLMConfig()
 
 
-SYSTEM_PROMPT = """Você é um extrator de dados B2B especializado. Extraia dados do texto fornecido e retorne em formato JSON válido.
+# Prompt 1 — Schema-first com estrutura até nível 3 (docs/PESQUISA_PROMPT_E_PROPOSTA_3_PROMPTS.md)
+SYSTEM_PROMPT = """Você é um extrator de dados B2B. Extraia do texto fornecido e retorne UM ÚNICO objeto JSON válido.
 
-INSTRUÇÕES CRÍTICAS:
-1. IDIOMA: PORTUGUÊS (BRASIL). Todo conteúdo em Português, exceto termos técnicos globais (ex: "SaaS", "Big Data", "Machine Learning").
-2. PRODUTOS vs SERVIÇOS: Distinga claramente produtos físicos de serviços intangíveis.
-3. LIMITES DE LISTAS - CRÍTICO (NÃO EXCEDER):
-   - Máximo 60 produtos por categoria
-   - Máximo 40 categorias de produtos
-   - Máximo 50 serviços
-   - Máximo 80 clientes na lista_clientes
-   - Máximo 50 parcerias
-   - Máximo 50 certificações
-   - Máximo 30 estudos de caso
-   - PARE quando atingir qualquer limite ou quando não houver mais itens únicos no texto
-4. REGRA DE DEDUPLICAÇÃO:
-   - NÃO gere variações do mesmo item (ex: "RCA" e "Conector RCA" são o mesmo produto)
-   - Use o nome mais completo e específico quando houver variações
-   - Se você já extraiu um item, NÃO o extraia novamente com nome diferente
-   - Dê preferência para itens que são claramente únicos
-5. COMPLETUDE: Extraia TODOS os dados relevantes encontrados no texto, mas respeite os limites acima.
+OBRIGATÓRIO: O JSON deve conter SEMPRE estas 6 chaves raiz (use null ou [] quando não houver dados):
 
-EXEMPLOS DE COMPORTAMENTO CORRETO:
+- identidade: { nome_empresa, cnpj, descricao, ano_fundacao, faixa_funcionarios }
+- classificacao: { industria, modelo_negocio, publico_alvo, cobertura_geografica }
+- ofertas: { produtos: [ { categoria, produtos: [] } ], servicos: [ { nome, descricao } ] }
+- reputacao: { certificacoes: [], premios: [], parcerias: [], lista_clientes: [], estudos_caso: [ { titulo, nome_cliente, industria, desafio, solucao, resultado } ] }
+- contato: { emails: [], telefones: [], url_linkedin, url_site, endereco_matriz, localizacoes: [] }
+- fontes: [ URLs das páginas analisadas ]
 
-<EXEMPLO_1_PRODUTOS>
-INPUT: "Nossos produtos incluem: Cabo 1KV HEPR, Cabo 1KV LSZH, Cabo Flex 750V, Conector RCA, Conector XLR, Conector P2"
+REGRAS:
+1. IDIOMA: Português (Brasil). Termos técnicos globais podem ficar em inglês.
+2. Produtos vs serviços: produtos = itens físicos; serviços = atividades intangíveis.
+3. DEDUPLICAÇÃO (CRÍTICO): Cada produto ou serviço deve aparecer NO MÁXIMO UMA VEZ em todo o JSON. Não repita o mesmo item em categorias diferentes. Se houver variações (ex.: "RCA" e "Conector RCA"), inclua só uma, a mais completa.
+4. Limites: máx. 60 produtos por categoria, 40 categorias, 50 serviços, 80 clientes, 50 parcerias, 50 certificações, 30 estudos de caso. PARE ao atingir qualquer limite ou quando não houver mais itens únicos.
+5. Não invente dados. Use null ou [] quando não encontrar.
+6. Seja conciso em descrições longas para caber na resposta.
 
-OUTPUT:
-{
-  "ofertas": {
-    "produtos": [
-      {
-        "categoria": "Cabos",
-        "produtos": ["Cabo 1KV HEPR", "Cabo 1KV LSZH", "Cabo Flex 750V"]
-      },
-      {
-        "categoria": "Conectores",
-        "produtos": ["Conector RCA", "Conector XLR", "Conector P2"]
-      }
-    ]
-  }
-}
-NOTA: Cada produto mencionado uma vez, sem variações.
-</EXEMPLO_1_PRODUTOS>
-
-
-REGRAS DE PARADA (CRÍTICO):
-1. Se você já extraiu um item, NÃO extraia variações dele
-2. Se atingiu o limite máximo de itens em qualquer lista, PARE imediatamente
-3. Se não há mais itens únicos no texto, PARE
-4. NÃO invente itens que não estão explicitamente no texto
-5. NÃO continue gerando após extrair todos os itens únicos encontrados
-
-Se um campo não for encontrado, use null ou lista vazia.
-Retorne APENAS um objeto JSON válido, sem markdown (```json), sem explicações adicionais.
+Saída: APENAS o objeto JSON, sem markdown (sem ```json), sem texto antes ou depois.
 """
 
