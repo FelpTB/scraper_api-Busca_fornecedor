@@ -9,7 +9,7 @@ import json
 import logging
 from typing import Optional, Any
 
-import json_repair
+import json_repair  # type: ignore[import-untyped]
 
 from .base_agent import BaseAgent
 from app.services.llm_manager import LLMPriority
