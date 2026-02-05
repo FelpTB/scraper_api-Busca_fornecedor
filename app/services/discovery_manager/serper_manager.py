@@ -254,7 +254,7 @@ class SerperManager:
         request_id: str = ""
     ) -> Tuple[List[Dict[str, str]], int]:
         """Executa busca com retry logic via API Serpshot (POST /api/search/google)."""
-        url = "https://www.serpshot.com/api/search/google"
+        url = "https://api.serpshot.com/api/search/google"
         # Serpshot: queries é array (até 100); location US, IN, JP, BR, GB, DE, CA, FR, ID, MX, SG
         country_code = (country or "br").lower()
         location = country_code.upper() if len(country_code) == 2 else "BR"
