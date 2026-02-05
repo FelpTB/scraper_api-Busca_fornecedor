@@ -7,6 +7,7 @@ from . import encontrar_site
 from . import scrape
 from . import montagem_perfil
 from . import queue_profile
+from . import queue_discovery
 
 __all__ = [
     'serper',
@@ -14,4 +15,5 @@ __all__ = [
     'scrape',
     'montagem_perfil',
     'queue_profile',
+    'queue_discovery',
 ]

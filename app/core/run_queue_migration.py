@@ -49,9 +49,38 @@ CREATE TRIGGER update_queue_profile_updated_at
     EXECUTE PROCEDURE {SCHEMA}.update_updated_at_column();
 """
 
+# Tabela e índices da fila de discovery (encontrar_site)
+SQL_TABLE_DISCOVERY = f"""
+CREATE TABLE IF NOT EXISTS {SCHEMA}.queue_discovery (
+    id BIGSERIAL PRIMARY KEY,
+    cnpj_basico TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    attempts INT NOT NULL DEFAULT 0,
+    max_attempts INT NOT NULL DEFAULT 5,
+    available_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    locked_at TIMESTAMPTZ,
+    locked_by TEXT,
+    last_error TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS queue_discovery_unique_active
+ON {SCHEMA}.queue_discovery (cnpj_basico) WHERE status IN ('queued', 'processing');
+CREATE INDEX IF NOT EXISTS queue_discovery_claim_idx
+ON {SCHEMA}.queue_discovery (status, available_at, id);
+"""
+
+SQL_TRIGGER_DISCOVERY = f"""
+DROP TRIGGER IF EXISTS update_queue_discovery_updated_at ON {SCHEMA}.queue_discovery;
+CREATE TRIGGER update_queue_discovery_updated_at
+    BEFORE UPDATE ON {SCHEMA}.queue_discovery
+    FOR EACH ROW
+    EXECUTE PROCEDURE {SCHEMA}.update_updated_at_column();
+"""
+
 
 async def run_queue_migration():
-    """Cria schema (se não existir), tabela queue_profile, índices e trigger. Idempotente."""
+    """Cria schema (se não existir), tabelas queue_profile e queue_discovery, índices e triggers. Idempotente."""
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
@@ -59,6 +88,8 @@ async def run_queue_migration():
             await conn.execute(SQL_FUNCTION)
             await conn.execute(SQL_TABLE_AND_INDEXES)
             await conn.execute(SQL_TRIGGER)
-        logger.info("Migração queue_profile aplicada (ou já existente).")
+            await conn.execute(SQL_TABLE_DISCOVERY)
+            await conn.execute(SQL_TRIGGER_DISCOVERY)
+        logger.info("Migração queue_profile e queue_discovery aplicada (ou já existente).")
     except Exception as e:
-        logger.warning("Migração queue_profile: %s (tabela pode já existir)", e)
+        logger.warning("Migração queue: %s (tabelas podem já existir)", e)

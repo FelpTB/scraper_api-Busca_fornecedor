@@ -2,17 +2,23 @@
 
 API para construção automática de perfis de empresas B2B brasileiras.
 
-## Endpoints
+## Endpoints (4 processos + filas)
 
-- `POST /v2/serper` - Busca no Google
-- `POST /v2/encontrar_site` - Identifica site oficial
-- `POST /v2/scrape` - Extrai conteúdo do site
-- `POST /v2/montagem_perfil` - Enfileira montagem de perfil (processado pelo worker)
-- `POST /v2/queue_profile/enqueue` - Enfileira um CNPJ para perfil
-- `POST /v2/queue_profile/enqueue_batch` - Enfileira em lote (ou elegíveis)
-- `GET /v2/queue_profile/metrics` - Métricas da fila
+Cada processo pode ser chamado individualmente; a ordem e dependências ficam a cargo do cliente (ex.: n8n).
 
-Todos os endpoints de processamento retornam imediatamente; o trabalho pesado roda em background (worker).
+| Processo | Endpoint | Fila | Descrição |
+|----------|----------|------|-----------|
+| 1 | `POST /v2/serper` | — | Busca no Google (Serpshot) |
+| 2 | `POST /v2/encontrar_site` | queue_discovery | Enfileira descoberta de site (LLM); worker processa |
+| 3 | `POST /v2/scrape` | — | Extrai conteúdo do site |
+| 4 | `POST /v2/montagem_perfil` | queue_profile | Enfileira montagem de perfil (LLM); worker processa |
+
+Filas (enfileiramento em unidade; batches no n8n por repetição de chamadas):
+
+- **Discovery:** `POST /v2/queue_discovery/enqueue`, `POST /v2/queue_discovery/enqueue_batch`, `GET /v2/queue_discovery/metrics`
+- **Perfil:** `POST /v2/queue_profile/enqueue`, `POST /v2/queue_profile/enqueue_batch`, `GET /v2/queue_profile/metrics`
+
+Processos com LLM (encontrar_site e montagem_perfil) são enfileirados e processados por workers dedicados, mantendo os workers ocupados.
 
 ## Variáveis de Ambiente (Railway)
 
@@ -31,15 +37,19 @@ As mesmas variáveis usadas antes; nenhuma nova obrigatória:
    - Conecte o repositório ao Railway.  
    - Use o **Dockerfile** (ou Nixpacks com Procfile).  
    - Comando padrão: `hypercorn app.main:app --bind [::]:$PORT` (já definido no Dockerfile).  
-   - A tabela `queue_profile` é criada automaticamente no **startup** da API (migração idempotente).
+   - As tabelas `queue_profile` e `queue_discovery` são criadas automaticamente no **startup** (migração idempotente).
 
-2. **Serviço Worker (fila de perfil)**  
-   - Crie um **segundo serviço** no mesmo projeto Railway, apontando para o mesmo repositório.  
-   - Use a **mesma imagem** (mesmo Dockerfile) ou o mesmo build.  
-   - Defina o **Start Command**: `python -m app.workers.profile_worker`.  
-   - Configure as **mesmas variáveis de ambiente** do serviço web (`DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, etc.).
+2. **Serviço Discovery Worker (fila encontrar_site)**  
+   - Crie um serviço no mesmo projeto, mesma imagem.  
+   - **Start Command:** `python -m app.workers.discovery_worker`.  
+   - Mesmas variáveis de ambiente do web (`DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, etc.).
 
-3. **Variáveis**  
+3. **Serviço Profile Worker (fila montagem_perfil)**  
+   - Outro serviço, mesma imagem.  
+   - **Start Command:** `python -m app.workers.profile_worker`.  
+   - Mesmas variáveis de ambiente.
+
+4. **Variáveis**  
    - Defina no projeto ou em cada serviço: `DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, `SERPSHOT_KEY`, e opcionalmente `API_ACCESS_TOKEN` e `WORKER_ID`.
 
 Documentação interativa: `/docs`
