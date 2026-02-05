@@ -237,6 +237,23 @@ CREATE INDEX IF NOT EXISTS idx_scraped_chunks_cnpj_basico ON busca_fornecedor.sc
 CREATE INDEX IF NOT EXISTS idx_scraped_chunks_discovery_id ON busca_fornecedor.scraped_chunks(discovery_id);
 CREATE INDEX IF NOT EXISTS idx_scraped_chunks_chunk_index ON busca_fornecedor.scraped_chunks(cnpj_basico, chunk_index);
 
+-- Queue Profile (fila durável para processamento de perfil: 1 job = 1 empresa = todos os chunks)
+CREATE TABLE IF NOT EXISTS busca_fornecedor.queue_profile (
+    id BIGSERIAL PRIMARY KEY,
+    cnpj_basico TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    attempts INT NOT NULL DEFAULT 0,
+    max_attempts INT NOT NULL DEFAULT 5,
+    available_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    locked_at TIMESTAMPTZ,
+    locked_by TEXT,
+    last_error TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS queue_profile_unique_active ON busca_fornecedor.queue_profile (cnpj_basico) WHERE status IN ('queued', 'processing');
+CREATE INDEX IF NOT EXISTS queue_profile_claim_idx ON busca_fornecedor.queue_profile (status, available_at, id);
+
 -- ============================================================================
 -- TRIGGERS
 -- ============================================================================
@@ -257,6 +274,11 @@ CREATE TRIGGER update_company_profile_updated_at
 
 CREATE TRIGGER update_website_discovery_updated_at
     BEFORE UPDATE ON busca_fornecedor.website_discovery
+    FOR EACH ROW
+    EXECUTE FUNCTION busca_fornecedor.update_updated_at_column();
+
+CREATE TRIGGER update_queue_profile_updated_at
+    BEFORE UPDATE ON busca_fornecedor.queue_profile
     FOR EACH ROW
     EXECUTE FUNCTION busca_fornecedor.update_updated_at_column();
 

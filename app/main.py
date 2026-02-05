@@ -33,6 +33,7 @@ from app.core.security import get_api_key
 from app.core.logging_utils import setup_logging
 from app.services.llm_manager import start_health_monitor
 from app.core.database import get_pool, close_pool, test_connection
+from app.core.run_queue_migration import run_queue_migration
 from app.core.vllm_client import check_vllm_health
 from app.api.v2.router import router as v2_router
 
@@ -52,11 +53,11 @@ async def startup_event():
     # Inicializar pool de conexões do banco de dados
     try:
         await get_pool()
-        # Testar conexão
         if await test_connection():
             logger.info("✅ Conexão com banco de dados estabelecida")
         else:
             logger.warning("⚠️ Falha ao testar conexão com banco de dados")
+        await run_queue_migration()
     except Exception as e:
         logger.error(f"❌ Erro ao inicializar banco de dados: {e}")
     

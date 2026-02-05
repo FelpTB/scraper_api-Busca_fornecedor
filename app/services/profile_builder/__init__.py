@@ -20,6 +20,7 @@ from .llm_service import analyze_content, get_llm_service, LLMService
 # Use: from app.core.chunking import process_content
 #      from app.core.token_utils import estimate_tokens
 from .profile_merger import merge_profiles
+from .run_profile_job import run_profile_job
 from .response_normalizer import normalize_llm_response
 
 # Configuração local
@@ -45,7 +46,8 @@ __all__ = [
     
     # Merge
     'merge_profiles',
-    
+    'run_profile_job',
+
     # Normalização
     'normalize_llm_response',
     

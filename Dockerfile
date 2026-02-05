@@ -40,6 +40,7 @@ RUN mkdir -p results && chmod 777 results
 # Expor a porta (Railway injeta a porta na var $PORT)
 EXPOSE 8000
 
-# Comando de inicialização usando a variável de ambiente PORT (padrão 8000 se não definida)
+# Comando padrão: serviço web. Para o worker, no Railway use um segundo serviço
+# com Start Command: python -m app.workers.profile_worker
 CMD sh -c "hypercorn app.main:app --bind [::]:${PORT:-8000}"
 
