@@ -6,6 +6,7 @@ Baseado em Postgres: enqueue, claim, ack, fail, métricas.
 import logging
 from typing import Optional, Tuple, Dict, Any
 
+import asyncpg
 from app.core.database import get_pool
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,6 @@ class QueueProfileService:
         """
         pool = await get_pool()
         async with pool.acquire() as conn:
-            # Verificar se já existe job ativo (queued ou processing)
             check = await conn.fetchrow(
                 f"""
                 SELECT id FROM "{SCHEMA}".queue_profile
@@ -35,15 +35,19 @@ class QueueProfileService:
             if check:
                 logger.debug(f"Queue: job ativo já existe para cnpj_basico={cnpj_basico}")
                 return False
-            await conn.execute(
-                f"""
-                INSERT INTO "{SCHEMA}".queue_profile (cnpj_basico)
-                VALUES ($1)
-                """,
-                cnpj_basico,
-            )
-            logger.info(f"Queue: enqueued cnpj_basico={cnpj_basico}")
-            return True
+            try:
+                await conn.execute(
+                    f"""
+                    INSERT INTO "{SCHEMA}".queue_profile (cnpj_basico)
+                    VALUES ($1)
+                    """,
+                    cnpj_basico,
+                )
+                logger.info(f"Queue: enqueued cnpj_basico={cnpj_basico}")
+                return True
+            except asyncpg.UniqueViolationError:
+                logger.debug(f"Queue: duplicate (race) cnpj_basico={cnpj_basico}")
+                return False
 
     async def claim(self, worker_id: str) -> Optional[Tuple[int, str]]:
         """

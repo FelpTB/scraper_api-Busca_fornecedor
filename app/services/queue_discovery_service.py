@@ -5,6 +5,7 @@ Serviço de fila durável para descoberta de site (queue_discovery).
 import logging
 from typing import Optional, Tuple, Dict, Any
 
+import asyncpg
 from app.core.database import get_pool
 
 logger = logging.getLogger(__name__)
@@ -30,15 +31,20 @@ class QueueDiscoveryService:
             if check:
                 logger.debug(f"Queue discovery: job ativo já existe cnpj_basico={cnpj_basico}")
                 return False
-            await conn.execute(
-                f"""
-                INSERT INTO "{SCHEMA}".queue_discovery (cnpj_basico)
-                VALUES ($1)
-                """,
-                cnpj_basico,
-            )
-            logger.info(f"Queue discovery: enqueued cnpj_basico={cnpj_basico}")
-            return True
+            try:
+                await conn.execute(
+                    f"""
+                    INSERT INTO "{SCHEMA}".queue_discovery (cnpj_basico)
+                    VALUES ($1)
+                    """,
+                    cnpj_basico,
+                )
+                logger.info(f"Queue discovery: enqueued cnpj_basico={cnpj_basico}")
+                return True
+            except asyncpg.UniqueViolationError:
+                # Concorrência: outro request inseriu o mesmo cnpj entre o SELECT e o INSERT
+                logger.debug(f"Queue discovery: duplicate (race) cnpj_basico={cnpj_basico}")
+                return False
 
     async def claim(self, worker_id: str) -> Optional[Tuple[int, str]]:
         """Reserva um job queued. Retorna (id, cnpj_basico) ou None."""

@@ -33,21 +33,26 @@ As mesmas variáveis usadas antes; nenhuma nova obrigatória:
 
 ## Deploy no Railway
 
+**Importante:** Os logs que aparecem no console do serviço web são só da **API**. Quem processa as filas são processos **separados** (workers). Se você tiver apenas o serviço web, os jobs ficam em `queued` e nunca são processados. É obrigatório ter ao menos um serviço rodando o discovery worker e um rodando o profile worker.
+
 1. **Serviço Web (API)**  
    - Conecte o repositório ao Railway.  
    - Use o **Dockerfile** (ou Nixpacks com Procfile).  
    - Comando padrão: `hypercorn app.main:app --bind [::]:$PORT` (já definido no Dockerfile).  
-   - As tabelas `queue_profile` e `queue_discovery` são criadas automaticamente no **startup** (migração idempotente).
+   - As tabelas `queue_profile` e `queue_discovery` são criadas automaticamente no **startup** (migração idempotente).  
+   - Nos logs do web você verá "Running on http://...", "Requisição Discovery recebida", "Queue discovery: enqueued" — **nunca** "Discovery worker started".
 
 2. **Serviço Discovery Worker (fila encontrar_site)**  
-   - Crie um serviço no mesmo projeto, mesma imagem.  
+   - Crie um **novo serviço** no mesmo projeto Railway (duplicar serviço ou add service from repo), mesma imagem/build.  
    - **Start Command:** `python -m app.workers.discovery_worker`.  
-   - Mesmas variáveis de ambiente do web (`DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, etc.).
+   - Mesmas variáveis de ambiente do web (`DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, etc.).  
+   - Nos logs deste serviço deve aparecer `Discovery worker started, worker_id=...`; é este processo que consome a fila.
 
 3. **Serviço Profile Worker (fila montagem_perfil)**  
    - Outro serviço, mesma imagem.  
    - **Start Command:** `python -m app.workers.profile_worker`.  
-   - Mesmas variáveis de ambiente.
+   - Mesmas variáveis de ambiente.  
+   - Logs: `Profile worker started, worker_id=...`.
 
 4. **Variáveis**  
    - Defina no projeto ou em cada serviço: `DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, `SERPSHOT_KEY`, e opcionalmente `API_ACCESS_TOKEN` e `WORKER_ID`.
