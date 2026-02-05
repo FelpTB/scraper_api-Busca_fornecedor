@@ -29,6 +29,30 @@ from .rate_limiter import TokenBucketRateLimiter
 logger = logging.getLogger(__name__)
 
 
+def _parse_serpshot_results(data: Any) -> List[Any]:
+    """
+    Extrai lista de resultados da resposta da API Serpshot.
+    Suporta: data como dict (uma query) ou como lista (batch, uma entrada por query).
+    Ref: https://www.serpshot.com/docs
+    """
+    if not isinstance(data, dict):
+        return []
+    inner = data.get("data")
+    if inner is None:
+        return []
+    # Batch: data é lista de conjuntos de resultados (um por query)
+    if isinstance(inner, list):
+        if not inner:
+            return []
+        inner = inner[0]
+    if not isinstance(inner, dict):
+        return []
+    raw = inner.get("results")
+    if not isinstance(raw, list):
+        return []
+    return raw
+
+
 class SerperManager:
     """
     Gerenciador centralizado da API Serpshot (Google SERP).
@@ -336,15 +360,16 @@ class SerperManager:
                     return [], retries_count
                 
                 data = response.json()
-                # Serpshot: { "code": 200, "data": { "results": [ { "title", "link", "snippet", "position" } ] } }
-                inner = data.get("data") or {}
-                raw_results = inner.get("results") or []
+                # Serpshot: { "code": 200, "data": { "results": [...] } } ou data como lista (batch)
+                raw_results = _parse_serpshot_results(data)
                 results = []
                 for item in raw_results:
+                    if not isinstance(item, dict):
+                        continue
                     results.append({
-                        "title": item.get("title") or "",
-                        "link": item.get("link") or "",
-                        "snippet": item.get("snippet", "")
+                        "title": (item.get("title") or "").strip(),
+                        "link": (item.get("link") or "").strip(),
+                        "snippet": (item.get("snippet") or "").strip(),
                     })
                 
                 self._successful_requests += 1
