@@ -19,7 +19,7 @@ As únicas variáveis de ambiente lidas pela aplicação são:
 - `DATABASE_URL` - URL de conexão PostgreSQL (obrigatória)
 - `LLM_URL` - URL do servidor SGLang/LLM, sem `/v1` (ex.: `http://IP:PORT`)
 - `MODEL_NAME` - Nome do modelo servido pelo LLM
-- `SERPER_API_KEY` - API key do Serper.dev
+- `SERPSHOT_KEY` - API key do Serpshot (busca Google SERP; ver [documentação](https://www.serpshot.com/docs))
 
 ## Deploy
 

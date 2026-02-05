@@ -1,15 +1,14 @@
 """
-Serper Manager - Gerenciamento centralizado da API Serper.
+Search API Manager - Gerenciamento centralizado da API Serpshot (Google SERP).
 
+Utiliza a API Serpshot (https://www.serpshot.com/docs) para buscas no Google.
 Controla:
 - Cliente HTTP com connection pooling
-- Rate limiting por token bucket (200 req/s)
+- Rate limiting por token bucket
 - Retry logic com backoff exponencial
 - Métricas de uso da API
 
-IMPORTANTE: A API Serper tem limite de 200 req/SEGUNDO, não 200 concurrent.
-Usamos TokenBucketRateLimiter para controlar a taxa de requisições,
-permitindo alta concorrência enquanto respeitamos o limite de taxa.
+Variável de ambiente: SERPSHOT_KEY (ex.: no Railway).
 """
 
 import asyncio
@@ -32,19 +31,15 @@ logger = logging.getLogger(__name__)
 
 class SerperManager:
     """
-    Gerenciador centralizado da API Serper.
+    Gerenciador centralizado da API Serpshot (Google SERP).
     
     Features:
     - Connection pooling com HTTP/2
-    - Rate limiting por Token Bucket (200 req/s)
-    - Alta concorrência (1000+ requisições simultâneas)
+    - Rate limiting por Token Bucket
+    - Alta concorrência
     - Retry automático com backoff exponencial
     - Tratamento de rate limiting (429)
     - Métricas de uso
-    
-    MUDANÇA v2: Removido semáforo de concorrência. Agora usa TokenBucketRateLimiter
-    para controlar taxa de requisições, permitindo muito mais requisições
-    simultâneas enquanto respeita o limite de 200 req/s da API.
     """
     
     def __init__(
@@ -86,7 +81,7 @@ class SerperManager:
         self._rate_limiter = TokenBucketRateLimiter(
             rate_per_second=self._rate_per_second,
             max_burst=self._max_burst,
-            name="serper"
+            name="serpshot"
         )
         
         # Semáforo para limitar conexões HTTP (recurso, não taxa)
@@ -105,7 +100,7 @@ class SerperManager:
         self._total_latency_ms = 0
         
         logger.info(
-            f"SerperManager v2: rate={self._rate_per_second}/s, burst={self._max_burst}, "
+            f"SerpshotManager: rate={self._rate_per_second}/s, burst={self._max_burst}, "
             f"max_concurrent={self._max_concurrent}, timeout={self._request_timeout}s"
         )
     
@@ -135,7 +130,7 @@ class SerperManager:
                     http2=True
                 )
                 logger.info(
-                    f"🌐 Serper: Cliente HTTP criado "
+                    f"🌐 Serpshot: Cliente HTTP criado "
                     f"(pool={self._max_concurrent}, http2=True)"
                 )
         return self._client
@@ -146,7 +141,7 @@ class SerperManager:
             if self._client and not self._client.is_closed:
                 await self._client.aclose()
                 self._client = None
-                logger.info("🌐 Serper: Cliente HTTP fechado")
+                logger.info("🌐 Serpshot: Cliente HTTP fechado")
     
     async def search(
         self,
@@ -157,7 +152,7 @@ class SerperManager:
         request_id: str = ""
     ) -> Tuple[List[Dict[str, str]], int]:
         """
-        Realiza busca no Google usando API Serper.
+        Realiza busca no Google usando API Serpshot.
         
         O fluxo agora é:
         1. Adquirir token do rate limiter (controla taxa de envio)
@@ -177,8 +172,8 @@ class SerperManager:
         Returns:
             Tuple de (lista de resultados, número de retries)
         """
-        if not settings.SERPER_API_KEY:
-            logger.warning("⚠️ SERPER_API_KEY não configurada")
+        if not settings.SERPSHOT_KEY:
+            logger.warning("⚠️ SERPSHOT_KEY não configurada")
             return [], 0
         
         import time as time_module
@@ -196,7 +191,7 @@ class SerperManager:
         # Se esperou mais que 10ms, considerar como fila
         
         if not rate_limit_acquired:
-            logger.error(f"❌ Serper: Rate limit timeout para query: {query[:50]}...")
+            logger.error(f"❌ Serpshot: Rate limit timeout para query: {query[:50]}...")
             return [], 0
         
         # 2. Adquirir slot de conexão HTTP (controla RECURSOS)
@@ -216,7 +211,7 @@ class SerperManager:
             available = connection_semaphore._value
             used = self._max_concurrent - available
             logger.error(
-                f"❌ Serper: Timeout aguardando slot de conexão após {conn_wait_ms:.0f}ms "
+                f"❌ Serpshot: Timeout aguardando slot de conexão após {conn_wait_ms:.0f}ms "
                 f"(timeout={self._connection_semaphore_timeout}s) | "
                 f"Vagas: {used}/{self._max_concurrent} usadas, {available} disponíveis"
             )
@@ -238,7 +233,7 @@ class SerperManager:
                 available = connection_semaphore._value
                 used = self._max_concurrent - available
                 logger.warning(
-                    f"⚠️ Serper: Requisição demorou {req_duration:.0f}ms "
+                    f"⚠️ Serpshot: Requisição demorou {req_duration:.0f}ms "
                     f"(timeout configurado: {self._request_timeout * 1000:.0f}ms) | "
                     f"Vagas: {used}/{self._max_concurrent} usadas"
                 )
@@ -258,17 +253,33 @@ class SerperManager:
         language: str,
         request_id: str = ""
     ) -> Tuple[List[Dict[str, str]], int]:
-        """Executa busca com retry logic."""
-        url = "https://google.serper.dev/search"
+        """Executa busca com retry logic via API Serpshot (POST /api/search/google)."""
+        url = "https://www.serpshot.com/api/search/google"
+        # Serpshot: queries é array (até 100); location US, IN, JP, BR, GB, DE, CA, FR, ID, MX, SG
+        country_code = (country or "br").lower()
+        location = country_code.upper() if len(country_code) == 2 else "BR"
+        if location == "BR":
+            lr = "pt-BR"
+            hl = "pt-BR"
+            gl = "br"
+        else:
+            lr = (language or "en").replace("_", "-") if language else "en"
+            hl = lr
+            gl = country_code
+        num = min(100, max(1, num_results))
         payload = json.dumps({
-            "q": query,
-            "num": num_results,
-            "gl": country,
-            "hl": language
+            "queries": [query],
+            "type": "search",
+            "num": num,
+            "page": 1,
+            "location": location,
+            "lr": lr,
+            "gl": gl,
+            "hl": hl
         })
         headers = {
-            'X-API-KEY': settings.SERPER_API_KEY,
-            'Content-Type': 'application/json'
+            "X-API-Key": settings.SERPSHOT_KEY,
+            "Content-Type": "application/json"
         }
         
         client = await self._get_client()
@@ -278,7 +289,6 @@ class SerperManager:
         
         for attempt in range(self._max_retries):
             try:
-                # Delay para retry (exceto primeira tentativa)
                 if attempt > 0:
                     retries_count += 1
                     delay = min(
@@ -286,16 +296,12 @@ class SerperManager:
                         self._retry_max_delay
                     )
                     logger.warning(
-                        f"🔄 Serper retry {attempt + 1}/{self._max_retries} "
+                        f"🔄 Serpshot retry {attempt + 1}/{self._max_retries} "
                         f"após {delay:.1f}s (reason={last_error_type})"
                     )
-                    
-                    
                     await asyncio.sleep(delay)
-                    
-                    # Re-adquirir rate limit para retry (timeout configurável)
                     if not await self._rate_limiter.acquire(timeout=self._rate_limiter_retry_timeout):
-                        logger.warning("⚠️ Serper: Rate limit timeout no retry")
+                        logger.warning("⚠️ Serpshot: Rate limit timeout no retry")
                         continue
                 
                 start_time = time.perf_counter()
@@ -305,11 +311,10 @@ class SerperManager:
                 self._total_requests += 1
                 self._total_latency_ms += latency_ms
                 
-                # Tratamento de códigos de status
                 if response.status_code == 429:
                     self._rate_limited_requests += 1
                     logger.warning(
-                        f"⚠️ Serper rate limit (429), "
+                        f"⚠️ Serpshot rate limit (429), "
                         f"tentativa {attempt + 1}/{self._max_retries}"
                     )
                     last_error = "Rate limit (429)"
@@ -318,7 +323,7 @@ class SerperManager:
                 
                 if response.status_code >= 500:
                     logger.warning(
-                        f"⚠️ Serper server error ({response.status_code}), "
+                        f"⚠️ Serpshot server error ({response.status_code}), "
                         f"tentativa {attempt + 1}/{self._max_retries}"
                     )
                     last_error = f"Server error ({response.status_code})"
@@ -327,30 +332,30 @@ class SerperManager:
                 
                 if response.status_code >= 400:
                     self._failed_requests += 1
-                    logger.error(f"❌ Serper client error: {response.status_code}")
+                    logger.error(f"❌ Serpshot client error: {response.status_code}")
                     return [], retries_count
                 
-                # Sucesso
                 data = response.json()
-                organic_results = data.get("organic", [])
-                
+                # Serpshot: { "code": 200, "data": { "results": [ { "title", "link", "snippet", "position" } ] } }
+                inner = data.get("data") or {}
+                raw_results = inner.get("results") or []
                 results = []
-                for item in organic_results:
+                for item in raw_results:
                     results.append({
-                        "title": item.get("title"),
-                        "link": item.get("link"),
+                        "title": item.get("title") or "",
+                        "link": item.get("link") or "",
                         "snippet": item.get("snippet", "")
                     })
                 
                 self._successful_requests += 1
-                logger.info(f"✅ Serper: {len(results)} resultados retornados de {num_results} solicitados ({latency_ms:.0f}ms)")
+                logger.info(f"✅ Serpshot: {len(results)} resultados retornados de {num} solicitados ({latency_ms:.0f}ms)")
                 return results, retries_count
                 
             except httpx.TimeoutException:
                 last_error_type = "timeout"
                 last_error = f"timeout após {self._request_timeout}s"
                 logger.warning(
-                    f"⚠️ Serper {last_error_type}: {last_error}, "
+                    f"⚠️ Serpshot {last_error_type}: {last_error}, "
                     f"tentativa {attempt + 1}/{self._max_retries}"
                 )
                 
@@ -358,7 +363,7 @@ class SerperManager:
                 last_error_type = "error"
                 last_error = str(e) if str(e) else "falha ao conectar"
                 logger.warning(
-                    f"⚠️ Serper ConnectError: {last_error}, "
+                    f"⚠️ Serpshot ConnectError: {last_error}, "
                     f"tentativa {attempt + 1}/{self._max_retries}"
                 )
                 
@@ -366,7 +371,7 @@ class SerperManager:
                 last_error_type = "timeout"
                 last_error = "pool de conexões esgotado"
                 logger.warning(
-                    f"⚠️ Serper PoolTimeout: {last_error}, "
+                    f"⚠️ Serpshot PoolTimeout: {last_error}, "
                     f"tentativa {attempt + 1}/{self._max_retries}"
                 )
                 
@@ -374,13 +379,13 @@ class SerperManager:
                 last_error_type = "error"
                 last_error = str(e) if str(e) else "erro desconhecido"
                 logger.warning(
-                    f"⚠️ Serper {type(e).__name__}: {last_error}, "
+                    f"⚠️ Serpshot {type(e).__name__}: {last_error}, "
                     f"tentativa {attempt + 1}/{self._max_retries}"
                 )
         
         self._failed_requests += 1
         logger.error(
-            f"❌ Serper falhou após {self._max_retries} tentativas: "
+            f"❌ Serpshot falhou após {self._max_retries} tentativas: "
             f"[{last_error_type}] {last_error}"
         )
         return [], retries_count
@@ -413,7 +418,7 @@ class SerperManager:
             self._max_retries = max_retries
         
         logger.info(
-            f"SerperManager: Configuração atualizada - "
+            f"SerpshotManager: Configuração atualizada - "
             f"rate={self._rate_per_second}/s, concurrent={self._max_concurrent}, "
             f"timeout={self._request_timeout}s"
         )
@@ -476,7 +481,7 @@ class SerperManager:
         self._rate_limited_requests = 0
         self._total_latency_ms = 0
         self._rate_limiter.reset_metrics()
-        logger.info("SerperManager: Métricas resetadas")
+        logger.info("SerpshotManager: Métricas resetadas")
 
 
 # Instância singleton
@@ -488,6 +493,6 @@ async def search_serper(
     query: str,
     num_results: int = 100
 ) -> List[Dict[str, str]]:
-    """Busca usando Serper API (função de conveniência)."""
+    """Busca usando Serpshot API (função de conveniência)."""
     results, _ = await serper_manager.search(query, num_results)
     return results

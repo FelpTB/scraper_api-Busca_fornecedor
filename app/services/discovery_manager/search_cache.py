@@ -1,7 +1,7 @@
 """
 Search Cache - Cache de resultados de busca.
 
-Evita chamadas repetidas à API Serper para queries idênticas,
+Evita chamadas repetidas à API Serpshot para queries idênticas,
 melhorando performance e reduzindo custos.
 """
 

@@ -2,9 +2,9 @@
 Discovery Manager - Controle de APIs externas de busca.
 
 Este módulo centraliza todo o controle de infraestrutura para discovery:
-- Gerenciamento da API Serper (rate limiting por token bucket)
+- Gerenciamento da API Serpshot (rate limiting por token bucket)
 - Cache de buscas recentes
-- Rate limiting (200 req/s para Serper)
+- Rate limiting para Serpshot
 
 A lógica de negócio de discovery permanece em app/services/discovery/
 """

@@ -1,5 +1,5 @@
 """
-Endpoint Serper v2 - Busca assíncrona no Google via Serper API.
+Endpoint Serper v2 - Busca assíncrona no Google via API Serpshot.
 Processamento em background - retorna imediatamente após aceitar requisição.
 """
 import logging
@@ -74,9 +74,9 @@ async def _process_serper_background(request: SerperRequest):
             municipio=request.municipio
         )
         
-        logger.info(f"🔍 [BACKGROUND] Serper busca: cnpj={request.cnpj_basico}, query='{query}'")
+        logger.info(f"🔍 [BACKGROUND] Serpshot busca: cnpj={request.cnpj_basico}, query='{query}'")
         
-        # 2. Executar busca assíncrona via Serper
+        # 2. Executar busca assíncrona via Serpshot
         results, retries = await serper_manager.search(
             query=query,
             num_results=10,
@@ -97,20 +97,20 @@ async def _process_serper_background(request: SerperRequest):
         )
         
         logger.info(
-            f"✅ [BACKGROUND] Serper busca concluída: cnpj={request.cnpj_basico}, "
+            f"✅ [BACKGROUND] Serpshot busca concluída: cnpj={request.cnpj_basico}, "
             f"results={len(results) if results else 0}, serper_id={serper_id}"
         )
     except Exception as e:
-        logger.error(f"❌ [BACKGROUND] Erro ao processar Serper: {e}", exc_info=True)
+        logger.error(f"❌ [BACKGROUND] Erro ao processar busca Serpshot: {e}", exc_info=True)
 
 
 @router.post("/serper", response_model=SerperResponse)
 async def buscar_serper(request: SerperRequest) -> SerperResponse:
     """
-    Busca informações da empresa no Google via Serper API.
+    Busca informações da empresa no Google via API Serpshot.
     
     Processamento assíncrono: retorna imediatamente após aceitar a requisição.
-    O processamento (busca Serper e salvamento) ocorre em background.
+    O processamento (busca Serpshot e salvamento) ocorre em background.
     
     Args:
         request: Dados da empresa para busca (cnpj_basico, razao_social, nome_fantasia, municipio)
@@ -122,7 +122,7 @@ async def buscar_serper(request: SerperRequest) -> SerperResponse:
         HTTPException: Em caso de erro ao aceitar requisição
     """
     try:
-        logger.info(f"📥 Requisição Serper recebida: cnpj={request.cnpj_basico}")
+        logger.info(f"📥 Requisição busca (Serpshot) recebida: cnpj={request.cnpj_basico}")
         
         # Iniciar processamento em background
         asyncio.create_task(_process_serper_background(request))
@@ -130,13 +130,13 @@ async def buscar_serper(request: SerperRequest) -> SerperResponse:
         # Retornar confirmação imediata
         return SerperResponse(
             success=True,
-            message=f"Requisição de busca Serper aceita para CNPJ {request.cnpj_basico}. Processamento em background.",
+            message=f"Requisição de busca aceita para CNPJ {request.cnpj_basico}. Processamento em background.",
             cnpj_basico=request.cnpj_basico,
             status="accepted"
         )
     
     except Exception as e:
-        logger.error(f"❌ Erro ao aceitar requisição Serper: {e}", exc_info=True)
+        logger.error(f"❌ Erro ao aceitar requisição de busca: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Erro ao aceitar requisição: {str(e)}"

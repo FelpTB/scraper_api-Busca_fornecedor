@@ -1,6 +1,6 @@
 """
 Configuração central. Variáveis de ambiente permitidas (whitelist Railway):
-API_ACCESS_TOKEN, DATABASE_URL, LLM_URL, MODEL_NAME, SERPER_API_KEY.
+API_ACCESS_TOKEN, DATABASE_URL, LLM_URL, MODEL_NAME, SERPSHOT_KEY.
 Todas as demais configurações são derivadas ou valores padrão em código.
 """
 import os
@@ -26,7 +26,7 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     LLM_URL: str = os.getenv("LLM_URL", "")
     MODEL_NAME: str = os.getenv("MODEL_NAME", "")
-    SERPER_API_KEY: str = os.getenv("SERPER_API_KEY", "")
+    SERPSHOT_KEY: str = os.getenv("SERPSHOT_KEY", "")
 
     # --- Validação obrigatória ---
     if not DATABASE_URL:

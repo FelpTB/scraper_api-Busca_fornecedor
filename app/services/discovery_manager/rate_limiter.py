@@ -4,7 +4,7 @@ Rate Limiter para Discovery - Controle de taxa de requisições.
 Implementa Token Bucket para controlar requisições por segundo,
 diferente de semáforo que controla concorrência.
 
-O Serper API tem limite de 200 req/s, não 200 concurrent.
+O Serpshot (e APIs SERP em geral) usa limite por req/s.
 Este rate limiter permite todas as requisições passarem respeitando
 o limite de taxa, sem bloquear por tempo de resposta.
 """
@@ -47,7 +47,7 @@ class TokenBucketRateLimiter:
     - Semáforo: Limita quantas requisições ESTÃO em andamento simultaneamente
     - Token Bucket: Limita quantas requisições PODEM SER INICIADAS por segundo
     
-    Para o Serper com limite de 200 req/s:
+    Para APIs SERP (ex.: Serpshot) com limite por req/s:
     - Com semáforo de 200: Se cada req demora 2s, throughput = 100 req/s ❌
     - Com Token Bucket de 200/s: Throughput = 200 req/s ✅
     
@@ -235,7 +235,7 @@ class TokenBucketRateLimiter:
 
 _SERPER_CFG = get_concurrency_section("discovery/serper", {})
 
-# Instância singleton para uso no SerperManager
+# Instância singleton para uso no manager de busca (Serpshot)
 serper_rate_limiter = TokenBucketRateLimiter(
     rate_per_second=_SERPER_CFG.get("rate_per_second", 190.0),  # margem de segurança
     max_burst=_SERPER_CFG.get("max_burst", 200),

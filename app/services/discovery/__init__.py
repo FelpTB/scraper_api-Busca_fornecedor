@@ -2,10 +2,10 @@
 Módulo de Discovery v4.1
 
 Responsável por encontrar o site oficial de uma empresa
-usando busca no Google via API Serper e análise por LLM.
+usando busca no Google via API Serpshot e análise por LLM.
 
 Infraestrutura movida para discovery_manager:
-- SerperManager: Rate limiting, retry, connection pooling
+- serper_manager (Serpshot): Rate limiting, retry, connection pooling
 - SearchCache: Cache de buscas recentes
 """
 

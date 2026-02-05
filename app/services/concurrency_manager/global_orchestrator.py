@@ -71,7 +71,7 @@ class GlobalOrchestrator:
         self._lock = asyncio.Lock()
         
         # Configurações padrão
-        # NOTA: O controle de taxa do Serper é feito pelo TokenBucketRateLimiter (190 req/s)
+        # NOTA: O controle de taxa da busca (Serpshot) é feito pelo TokenBucketRateLimiter
         # Os semáforos aqui controlam RECURSOS (concorrência), não TAXA
         self._default_capacities = {
             ResourceType.SCRAPER: 1000,        # Sites em paralelo

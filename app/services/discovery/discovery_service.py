@@ -1,10 +1,10 @@
 """
 Serviço de Discovery v4.1 - Descoberta de sites oficiais de empresas.
 
-Usa exclusivamente a API Serper para buscas no Google.
+Usa a API Serpshot para buscas no Google (https://www.serpshot.com/docs).
 
 Managers de infraestrutura:
-- SerperManager: Rate limiting, retry, connection pooling
+- serper_manager (Serpshot): Rate limiting, retry, connection pooling
 - SearchCache: Cache de buscas recentes
 
 A lógica de negócio permanece neste arquivo.
@@ -84,9 +84,9 @@ def is_blacklisted_domain(url: str) -> bool:
 
 async def search_google_serper(query: str, num_results: int = 100, request_id: str = "") -> Tuple[List[Dict[str, str]], int]:
     """
-    Realiza busca no Google usando API Serper.
+    Realiza busca no Google usando API Serpshot.
     
-    Features via SerperManager:
+    Features via serper_manager (Serpshot):
     - Cache de resultados (evita chamadas repetidas)
     - Rate limiting (controla concorrência)
     - Retry automático com backoff exponencial
@@ -103,10 +103,10 @@ async def search_google_serper(query: str, num_results: int = 100, request_id: s
     # 1. Verificar cache
     cached_results = await search_cache.get(query, num_results)
     if cached_results is not None:
-        logger.debug(f"🔍 Serper (cache hit): {query[:30]}...")
+        logger.debug(f"🔍 Serpshot (cache hit): {query[:30]}...")
         return cached_results, 0  # Cache hit = 0 retries
     
-    # 2. Buscar via Serper API
+    # 2. Buscar via Serpshot API
     results, retries = await serper_manager.search(query, num_results, request_id=request_id)
     
     # 3. Armazenar em cache se houve resultados
