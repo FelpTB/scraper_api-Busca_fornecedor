@@ -33,9 +33,11 @@ As mesmas variáveis usadas antes; nenhuma nova obrigatória:
 
 ## Deploy no Railway
 
-**Importante:** Os logs que aparecem no console do serviço web são só da **API**. Quem processa as filas são processos **separados** (workers). Se você tiver apenas o serviço web, os jobs ficam em `queued` e nunca são processados. É obrigatório ter ao menos um serviço rodando o discovery worker e um rodando o profile worker.
+**Um único container:** O Dockerfile padrão sobe **API + discovery_worker + profile_worker** no mesmo container (workers em background, API em foreground). Basta fazer deploy de um serviço no Railway; não é preciso criar serviços separados. Ver [docs/RAILWAY_WORKERS.md](docs/RAILWAY_WORKERS.md).
 
-1. **Serviço Web (API)**  
+**Ou vários serviços:** Se preferir um container por processo, crie 3 serviços (web, discovery_worker, profile_worker) com Start Commands diferentes — mesmo repositório e variáveis.
+
+1. **Serviço Web (API)** — ou o único serviço que roda API + workers  
    - Conecte o repositório ao Railway.  
    - Use o **Dockerfile** (ou Nixpacks com Procfile).  
    - Comando padrão: `hypercorn app.main:app --bind [::]:$PORT` (já definido no Dockerfile).  
@@ -56,6 +58,8 @@ As mesmas variáveis usadas antes; nenhuma nova obrigatória:
 
 4. **Variáveis**  
    - Defina no projeto ou em cada serviço: `DATABASE_URL`, `LLM_URL`, `MODEL_NAME`, `SERPSHOT_KEY`, e opcionalmente `API_ACCESS_TOKEN` e `WORKER_ID`.
+
+**Se os workers não processam a fila:** confira [docs/RAILWAY_WORKERS.md](docs/RAILWAY_WORKERS.md) — passo a passo para criar os serviços de worker no Railway e o que ver nos logs de cada um.
 
 Documentação interativa: `/docs`
 
