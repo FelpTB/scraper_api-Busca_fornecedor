@@ -131,9 +131,9 @@ class QueueProfileService:
             row = await conn.fetchrow(
                 f"""
                 SELECT
-                    SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END)::int AS queued_count,
-                    SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END)::int AS processing_count,
-                    SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)::int AS failed_count,
+                    COALESCE(SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END), 0)::int AS queued_count,
+                    COALESCE(SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END), 0)::int AS processing_count,
+                    COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0)::int AS failed_count,
                     EXTRACT(EPOCH FROM (now() - MIN(CASE WHEN status = 'queued' THEN created_at END))) AS oldest_job_age_seconds
                 FROM "{SCHEMA}".queue_profile
                 """
