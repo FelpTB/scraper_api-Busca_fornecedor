@@ -131,10 +131,10 @@ class QueueProfileService:
             row = await conn.fetchrow(
                 f"""
                 SELECT
-                    COUNT(*) FILTER (WHERE status = 'queued') AS queued_count,
-                    COUNT(*) FILTER (WHERE status = 'processing') AS processing_count,
-                    COUNT(*) FILTER (WHERE status = 'failed') AS failed_count,
-                    EXTRACT(EPOCH FROM (now() - MIN(created_at))) FILTER (WHERE status = 'queued') AS oldest_job_age_seconds
+                    SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END)::int AS queued_count,
+                    SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END)::int AS processing_count,
+                    SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)::int AS failed_count,
+                    EXTRACT(EPOCH FROM (now() - MIN(CASE WHEN status = 'queued' THEN created_at END))) AS oldest_job_age_seconds
                 FROM "{SCHEMA}".queue_profile
                 """
             )
