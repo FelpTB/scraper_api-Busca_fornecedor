@@ -5,6 +5,7 @@ Reutilizado pelo endpoint v2 montagem_perfil (in-process) e pelo worker (queue).
 """
 import logging
 import asyncio
+from typing import Optional, List, Dict, Any
 
 from app.schemas.profile import CompanyProfile
 from app.services.database_service import get_db_service
@@ -15,15 +16,21 @@ from app.core.phoenix_tracer import trace_llm_call
 logger = logging.getLogger(__name__)
 
 
-async def run_profile_job(cnpj_basico: str) -> None:
+async def run_profile_job(
+    cnpj_basico: str,
+    chunks_data: Optional[List[Dict[str, Any]]] = None,
+) -> None:
     """
     Processa todos os chunks do cnpj_basico: extrai perfil por chunk em paralelo,
     merge e salva em company_profile. Não levanta exceção em caso de sem chunks
     ou sem perfis válidos (apenas return). Levanta exceção em falha de merge/save
     para o worker fazer fail(job_id).
+
+    Se chunks_data for passado (ex.: do get_chunks_batch no worker), não busca no DB.
     """
     db_service = get_db_service()
-    chunks_data = await db_service.get_chunks(cnpj_basico)
+    if chunks_data is None:
+        chunks_data = await db_service.get_chunks(cnpj_basico)
 
     if not chunks_data:
         logger.warning(f"[run_profile_job] Nenhum chunk encontrado para cnpj={cnpj_basico}")

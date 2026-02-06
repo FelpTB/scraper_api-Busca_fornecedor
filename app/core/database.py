@@ -49,13 +49,15 @@ async def get_pool() -> asyncpg.Pool:
             
             _pool = await asyncpg.create_pool(
                 settings.DATABASE_URL,
-                min_size=5,
-                max_size=20,
+                min_size=settings.DATABASE_POOL_MIN_SIZE,
+                max_size=settings.DATABASE_POOL_MAX_SIZE,
                 command_timeout=60,
-                # Configurar init para definir search_path em cada conexão
                 init=init_connection,
             )
-            logger.info(f"✅ Pool asyncpg criado (min=5, max=20, schema={DB_SCHEMA})")
+            logger.info(
+                f"✅ Pool asyncpg criado (min={settings.DATABASE_POOL_MIN_SIZE}, "
+                f"max={settings.DATABASE_POOL_MAX_SIZE}, schema={DB_SCHEMA})"
+            )
         except Exception as e:
             logger.error(f"❌ Erro ao criar pool asyncpg: {e}")
             raise

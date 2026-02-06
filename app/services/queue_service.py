@@ -4,7 +4,7 @@ Baseado em Postgres: enqueue, claim, ack, fail, métricas.
 1 job = 1 empresa = todos os chunks = 1 perfil.
 """
 import logging
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
 
 import asyncpg
 from app.core.database import get_pool
@@ -49,21 +49,23 @@ class QueueProfileService:
                 logger.debug(f"Queue: duplicate (race) cnpj_basico={cnpj_basico}")
                 return False
 
-    async def claim(self, worker_id: str) -> Optional[Tuple[int, str]]:
+    async def claim(self, worker_id: str, limit: int = 1) -> List[Tuple[int, str]]:
         """
-        Reserva um job queued com available_at <= now().
-        Retorna (id, cnpj_basico) ou None. Usa FOR UPDATE SKIP LOCKED.
+        Reserva até `limit` jobs queued com available_at <= now().
+        Retorna lista de (id, cnpj_basico). Usa FOR UPDATE SKIP LOCKED.
         """
+        if limit < 1:
+            return []
         pool = await get_pool()
         async with pool.acquire() as conn:
             async with conn.transaction():
-                row = await conn.fetchrow(
+                rows = await conn.fetch(
                     f"""
                     WITH picked AS (
                         SELECT id FROM "{SCHEMA}".queue_profile
                         WHERE status = 'queued' AND available_at <= now()
                         ORDER BY id
-                        LIMIT 1
+                        LIMIT $2
                         FOR UPDATE SKIP LOCKED
                     )
                     UPDATE "{SCHEMA}".queue_profile q
@@ -76,10 +78,9 @@ class QueueProfileService:
                     RETURNING q.id, q.cnpj_basico
                     """,
                     worker_id,
+                    limit,
                 )
-                if row:
-                    return (row["id"], row["cnpj_basico"])
-                return None
+                return [(r["id"], r["cnpj_basico"]) for r in rows]
 
     async def ack(self, job_id: int) -> None:
         """Marca job como concluído com sucesso."""

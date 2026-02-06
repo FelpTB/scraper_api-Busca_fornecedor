@@ -21,12 +21,19 @@ def _build_base_v1(url: str) -> str:
 
 
 class Settings:
-    # --- Whitelist: únicas variáveis de ambiente lidas do Railway ---
+    # --- Whitelist: variáveis de ambiente (Railway / workers) ---
     API_ACCESS_TOKEN: str = os.getenv("API_ACCESS_TOKEN", "my-secret-token-dev")
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     LLM_URL: str = os.getenv("LLM_URL", "")
     MODEL_NAME: str = os.getenv("MODEL_NAME", "")
     SERPSHOT_KEY: str = os.getenv("SERPSHOT_KEY", "")
+
+    # --- Workers e performance ---
+    N_WORKERS: int = int(os.getenv("N_WORKERS", "2"))
+    CLAIM_BATCH_SIZE: int = int(os.getenv("CLAIM_BATCH_SIZE", "10"))
+    DATABASE_POOL_MIN_SIZE: int = int(os.getenv("DATABASE_POOL_MIN_SIZE", "5"))
+    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "20"))
+    LLM_CONCURRENCY_HARD_CAP: int = int(os.getenv("LLM_CONCURRENCY_HARD_CAP", "32"))
 
     # --- Validação obrigatória ---
     if not DATABASE_URL:

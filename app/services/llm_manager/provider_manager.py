@@ -134,14 +134,17 @@ class ProviderManager:
         openrouter3_weight = openrouter3_config.get("weight", 20)
         
         # Calcular concorrência baseado em RPM (80% de segurança)
-        # Fórmula otimizada: (RPM * safety_margin) / 15 (assumindo ~2s por request)
-        # Aumentado para suportar 500+ empresas simultâneas
-        runpod_concurrent = max(800, int(runpod_rpm * safety_margin / 15))
-        gemini_concurrent = max(600, int(gemini_rpm * safety_margin / 15))
-        openai_concurrent = max(150, int(openai_rpm * safety_margin / 30))
-        openrouter1_concurrent = max(300, int(openrouter1_rpm * safety_margin / 30))
-        openrouter2_concurrent = max(250, int(openrouter2_rpm * safety_margin / 30))
-        openrouter3_concurrent = max(200, int(openrouter3_rpm * safety_margin / 30))
+        # Hard cap evita oversubscription (degradação TTFT/latência, timeouts, retries)
+        hard_cap = getattr(settings, "LLM_CONCURRENCY_HARD_CAP", 32)
+        runpod_concurrent = min(
+            hard_cap,
+            max(800, int(runpod_rpm * safety_margin / 15)),
+        )
+        gemini_concurrent = min(hard_cap, max(600, int(gemini_rpm * safety_margin / 15)))
+        openai_concurrent = min(hard_cap, max(150, int(openai_rpm * safety_margin / 30)))
+        openrouter1_concurrent = min(hard_cap, max(300, int(openrouter1_rpm * safety_margin / 30)))
+        openrouter2_concurrent = min(hard_cap, max(250, int(openrouter2_rpm * safety_margin / 30)))
+        openrouter3_concurrent = min(hard_cap, max(200, int(openrouter3_rpm * safety_margin / 30)))
         
         logger.info(f"LLM Limits carregados:")
         logger.info(f"  SGLang: RPM={runpod_rpm}, TPM={runpod_tpm:,}, weight={runpod_weight}%")

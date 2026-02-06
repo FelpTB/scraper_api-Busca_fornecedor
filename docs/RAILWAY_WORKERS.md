@@ -8,19 +8,22 @@ Há duas formas de rodar os workers: **um único container** (API + workers junt
 
 O **Dockerfile** está configurado para subir, no mesmo container:
 
-1. **N Discovery workers** (em background; padrão: 2)
-2. **M Profile workers** (em background; padrão: 2)
+1. **N Discovery workers** (em background)
+2. **N Profile workers** (em background)
 3. **API** (em foreground, expondo a porta)
 
 **Variáveis de ambiente (opcionais):**
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `DISCOVERY_WORKERS` | 2 | Número de processos discovery_worker |
-| `PROFILE_WORKERS` | 2 | Número de processos profile_worker |
+| `N_WORKERS` | 2 | Número de processos de cada tipo (discovery + profile). Ex.: 16 = 16 discovery + 16 profile. |
 | `PORT` | 8000 | Porta da API |
+| `CLAIM_BATCH_SIZE` | 10 | Quantos jobs o profile worker pega por claim (reduz round-trips ao Postgres). |
+| `DATABASE_POOL_MIN_SIZE` | 5 | Conexões mínimas do pool asyncpg (por processo). |
+| `DATABASE_POOL_MAX_SIZE` | 20 | Conexões máximas. Em muitos workers use 2–3 por processo para não saturar o DB. |
+| `LLM_CONCURRENCY_HARD_CAP` | 32 | Teto de chamadas LLM simultâneas por provider (evita oversubscription/timeouts). |
 
-Para usar ao máximo a placa (LLM), aumente `PROFILE_WORKERS` (ex.: 4). Para mais descoberta em paralelo, aumente `DISCOVERY_WORKERS`. Ajuste conforme CPU/memória do container.
+Para usar ao máximo a placa (LLM), aumente `N_WORKERS` (ex.: 16). Em deploy com muitos workers, defina `DATABASE_POOL_MAX_SIZE=2` ou `3` para não saturar o Postgres.
 
 Você **não precisa fazer nada no Railway**: use o deploy padrão (um serviço, um container). O comando de início do container é `/app/scripts/start_web_and_workers.sh`, que sobe os workers e depois a API.
 

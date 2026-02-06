@@ -296,6 +296,30 @@ class DatabaseService:
                 cnpj_basico
             )
             return [dict(row) for row in rows]
+
+    async def get_chunks_batch(self, cnpj_list: List[str]) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Busca chunks de várias empresas em uma única query.
+        Retorna dict: cnpj_basico -> lista de chunks ordenados por chunk_index.
+        """
+        if not cnpj_list:
+            return {}
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            query = f"""
+                SELECT * FROM "{SCHEMA}".scraped_chunks
+                WHERE cnpj_basico = ANY($1::text[])
+                ORDER BY cnpj_basico, chunk_index ASC
+                """
+            rows = await conn.fetch(query, cnpj_list)
+        by_cnpj: Dict[str, List[Dict[str, Any]]] = {}
+        for row in rows:
+            cnpj = row["cnpj_basico"]
+            if cnpj not in by_cnpj:
+                by_cnpj[cnpj] = []
+            by_cnpj[cnpj].append(dict(row))
+        logger.debug(f"🔍 [SCHEMA={SCHEMA}] get_chunks_batch: {len(cnpj_list)} CNPJs -> {sum(len(v) for v in by_cnpj.values())} chunks")
+        return by_cnpj
     
     # ========== COMPANY PROFILE ==========
     
