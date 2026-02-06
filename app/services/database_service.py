@@ -14,6 +14,25 @@ logger = logging.getLogger(__name__)
 # Usar aspas duplas para garantir que o PostgreSQL use o schema correto
 SCHEMA = "busca_fornecedor"
 
+# Limites do schema (VARCHAR) para truncar valores do LLM e evitar "value too long for type character varying(N)"
+_MAX_LEN_INDUSTRIA = 200
+_MAX_LEN_PUBLICO_COBERTURA = 200
+_MAX_LEN_MODELO_NEGOCIO = 100
+_MAX_LEN_CATEGORIA_PRODUTO = 200
+
+
+def _truncate(value: Optional[str], max_len: int) -> Optional[str]:
+    """Trunca string para caber em VARCHAR(max_len); evita erro no Postgres."""
+    if value is None:
+        return None
+    s = (value.strip() if isinstance(value, str) else str(value)) or None
+    if s is None:
+        return None
+    if len(s) <= max_len:
+        return s
+    logger.debug("Truncando campo de %d para %d caracteres", len(s), max_len)
+    return s[:max_len]
+
 
 class DatabaseService:
     """Serviço de CRUD assíncrono para todas as tabelas."""
@@ -356,10 +375,10 @@ class DatabaseService:
                 ano_fundacao = (ide.ano_fundacao if ide else None) or None
                 faixa_funcionarios = (ide.faixa_funcionarios if ide else None) or None
 
-                industria = (cla.industria if cla else None) or None
-                modelo_negocio = (cla.modelo_negocio if cla else None) or None
-                publico_alvo = (cla.publico_alvo if cla else None) or None
-                cobertura_geografica = (cla.cobertura_geografica if cla else None) or None
+                industria = _truncate((cla.industria if cla else None) or None, _MAX_LEN_INDUSTRIA)
+                modelo_negocio = _truncate((cla.modelo_negocio if cla else None) or None, _MAX_LEN_MODELO_NEGOCIO)
+                publico_alvo = _truncate((cla.publico_alvo if cla else None) or None, _MAX_LEN_PUBLICO_COBERTURA)
+                cobertura_geografica = _truncate((cla.cobertura_geografica if cla else None) or None, _MAX_LEN_PUBLICO_COBERTURA)
 
                 emails = list(cont.emails) if cont and cont.emails else []
                 telefones = list(cont.telefones) if cont and cont.telefones else []
@@ -499,14 +518,17 @@ class DatabaseService:
             query_delete = f'DELETE FROM "{SCHEMA}".company_product_category WHERE company_id = $1'
             await conn.execute(query_delete, company_id)
             for cat in produtos_cats:
-                categoria = (cat.categoria if hasattr(cat, "categoria") else (cat.get("categoria") if isinstance(cat, dict) else None)) or ""
-                if not categoria or not isinstance(categoria, str) or not categoria.strip():
+                categoria_raw = (cat.categoria if hasattr(cat, "categoria") else (cat.get("categoria") if isinstance(cat, dict) else None)) or ""
+                if not categoria_raw or not isinstance(categoria_raw, str) or not categoria_raw.strip():
+                    continue
+                categoria = _truncate(categoria_raw.strip(), _MAX_LEN_CATEGORIA_PRODUTO) or ""
+                if not categoria:
                     continue
                 prods = cat.produtos if hasattr(cat, "produtos") else (cat.get("produtos") if isinstance(cat, dict) else []) or []
                 prods = [p for p in prods if isinstance(p, str) and p.strip()]
                 prods_json = json.dumps(prods, ensure_ascii=False)
                 q = f'INSERT INTO "{SCHEMA}".company_product_category (company_id, categoria, produtos) VALUES ($1, $2, $3::jsonb)'
-                await conn.execute(q, company_id, categoria.strip(), prods_json)
+                await conn.execute(q, company_id, categoria, prods_json)
 
         # 4. Certificações (reputacao.certificacoes)
         certs = list(rep.certificacoes) if rep and rep.certificacoes else []
