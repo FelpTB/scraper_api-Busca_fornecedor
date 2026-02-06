@@ -95,3 +95,13 @@ Cada um é um **serviço separado** no mesmo projeto, mesmo repositório, mesma 
 - Se não houver **nenhuma** linha: o processo do worker não está subindo (serviço errado, comando errado ou deploy falhou).  
 - Se houver `Discovery worker crashed: ...`: a exceção mostra a causa (banco, tabela, env, etc.).  
 - Se houver `Discovery worker alive, queue empty (queued=X, processing=Y)` com `queued > 0`: o worker está rodando mas não está pegando jobs do mesmo banco (ex.: outro schema, outra `DATABASE_URL`). Confira se todos os serviços usam a mesma `DATABASE_URL`.
+
+---
+
+## 502 "Application failed to respond" – como diagnosticar
+
+- **GET /healthz** – Health check mínimo (não acessa DB). Use para distinguir causa do 502:
+  - Se **/healthz também retorna 502** enquanto o scrape/processamento pesado roda → processo travado (event loop bloqueado ou saturação).
+  - Se **/healthz retorna 200** e só a rota de trabalho (ex.: scrape, montagem) dá 502 → provável **timeout** do gateway ou do cliente (n8n) esperando resposta além do limite.
+- **POST /v2/scrape** e **POST /v2/montagem_perfil** passaram a retornar **202 Accepted** imediatamente (sem esperar o trabalho terminar). O n8n deve tratar 202 e fazer polling (ex.: GET /v2/queue_profile/metrics ou GET /jobs/:id) em vez de esperar a conclusão na mesma requisição.
+- Em caso de **rate limit de logs** no Railway (ex.: "500 logs/sec reached"), reduza verbosidade (menos logs por item, usar nível `debug` para detalhes) para não perder mensagens e facilitar o diagnóstico.

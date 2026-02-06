@@ -114,7 +114,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     if exc.status_code == 405:
         response_content["suggestion"] = "Verifique se está usando o método HTTP correto. Endpoints v2 requerem POST."
         response_content["available_endpoints"] = {
-            "GET": ["/", "/health", "/v2", "/docs", "/redoc"],
+            "GET": ["/", "/health", "/healthz", "/v2", "/docs", "/redoc"],
             "POST": ["/v2/serper", "/v2/encontrar_site", "/v2/scrape", "/v2/montagem_perfil"]
         }
     
@@ -280,18 +280,26 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint (pode incluir DB)."""
     try:
-        # Testar conexão com banco
         pool = await get_pool()
         async with pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
         db_status = "ok"
     except Exception as e:
         db_status = f"error: {str(e)}"
-    
+
     return {
         "status": "ok",
         "database": db_status,
         "service": "B2B Flash Profiler"
     }
+
+
+@app.get("/healthz")
+async def healthz():
+    """
+    Health check mínimo para gateway/load balancer.
+    Retorna 200 sem acessar DB; use para confirmar se 502 é por timeout (rota pesada) ou bloqueio do processo.
+    """
+    return {"status": "ok"}

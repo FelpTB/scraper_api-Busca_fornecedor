@@ -7,6 +7,7 @@ import time
 import asyncio
 from typing import List
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from app.schemas.v2.scrape import ScrapeRequest, ScrapeResponse
 from app.services.scraper import scrape_all_subpages
 from app.services.scraper.models import ScrapedPage
@@ -102,37 +103,23 @@ async def _process_scrape_background(request: ScrapeRequest):
 
 
 @router.post("/scrape", response_model=ScrapeResponse)
-async def scrape_website(request: ScrapeRequest) -> ScrapeResponse:
+async def scrape_website(request: ScrapeRequest) -> JSONResponse:
     """
-    Faz scraping do site oficial da empresa e salva chunks no banco de dados.
-    
-    Processamento assíncrono: retorna imediatamente após aceitar a requisição.
+    Aceita scraping do site e processa em background.
+    Retorna 202 Accepted imediatamente para evitar timeout no gateway/n8n.
     O processamento (scraping, chunking e salvamento) ocorre em background.
-    
-    Args:
-        request: CNPJ básico e URL do site
-    
-    Returns:
-        ScrapeResponse com confirmação de recebimento da requisição
-    
-    Raises:
-        HTTPException: Em caso de erro ao aceitar requisição
     """
     try:
         logger.info(f"📥 Requisição Scrape recebida: cnpj={request.cnpj_basico}, url={request.website_url}")
-        
-        # Iniciar processamento em background
         asyncio.create_task(_process_scrape_background(request))
-        
-        # Retornar confirmação imediata
-        return ScrapeResponse(
+        payload = ScrapeResponse(
             success=True,
             message=f"Requisição de scraping aceita para CNPJ {request.cnpj_basico}. Processamento em background.",
             cnpj_basico=request.cnpj_basico,
             website_url=request.website_url,
             status="accepted"
         )
-    
+        return JSONResponse(status_code=202, content=payload.model_dump())
     except Exception as e:
         logger.error(f"❌ Erro ao aceitar requisição Scrape: {e}", exc_info=True)
         raise HTTPException(

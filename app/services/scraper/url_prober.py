@@ -159,18 +159,22 @@ class URLProber:
                 err_type, err_msg = _classify_probe_error(result, url)
                 collected_errors.append((url, err_type, err_msg))
                 continue
-            if result is not None:
-                resp_result, error_info = result
-                if resp_result:
-                    response_time, status = resp_result
-                if status < 400:
-                    successful.append((url, response_time, status))
-                elif status >= 500:
-                    collected_errors.append((url, ProbeErrorType.SERVER_ERROR, f"Servidor retornou erro {status}"))
-                elif status == 403:
-                    collected_errors.append((url, ProbeErrorType.BLOCKED, f"Acesso bloqueado (403)"))
+            if result is None:
+                continue
+            resp_result, error_info = result
+            if not resp_result:
                 if error_info:
                     collected_errors.append((url, error_info[0], error_info[1]))
+                continue
+            response_time, status = resp_result
+            if status < 400:
+                successful.append((url, response_time, status))
+            elif status >= 500:
+                collected_errors.append((url, ProbeErrorType.SERVER_ERROR, f"Servidor retornou erro {status}"))
+            elif status == 403:
+                collected_errors.append((url, ProbeErrorType.BLOCKED, f"Acesso bloqueado (403)"))
+            if error_info:
+                collected_errors.append((url, error_info[0], error_info[1]))
         
         if not successful:
             error_type, error_msg = self._get_best_error_diagnosis(collected_errors, base_url)
