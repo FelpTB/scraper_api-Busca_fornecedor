@@ -1,5 +1,10 @@
 """
 Conexão assíncrona com PostgreSQL via asyncpg.
+
+Uso: sempre usar `async with pool.acquire() as conn:` para operações.
+Ao sair do bloco (fim do job ou exceção), a conexão é devolvida ao pool
+e não fica aberta. No shutdown do processo, chamar close_pool() para
+fechar todas as conexões.
 """
 import asyncpg
 from typing import Optional
@@ -66,13 +71,18 @@ async def get_pool() -> asyncpg.Pool:
 
 async def close_pool():
     """
-    Fecha pool de conexões (chamar no shutdown).
+    Fecha o pool de conexões (chamar no shutdown do worker/processo).
+    Todas as conexões são encerradas; não levanta exceção.
     """
     global _pool
     if _pool:
-        await _pool.close()
-        _pool = None
-        logger.info("🔌 Pool asyncpg fechado")
+        try:
+            await _pool.close()
+            logger.info("🔌 Pool asyncpg fechado")
+        except Exception as e:
+            logger.warning("Erro ao fechar pool asyncpg: %s", e)
+        finally:
+            _pool = None
 
 
 async def test_connection() -> bool:

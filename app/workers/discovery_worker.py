@@ -62,6 +62,10 @@ async def run_worker():
         except Exception as e:
             logger.exception("Discovery job %s (cnpj=%s) failed: %s", job_id, cnpj_basico, e)
             await queue.fail(job_id, str(e))
+        finally:
+            # Conexões usadas em run_discovery_job e queue.ack/fail são liberadas
+            # ao sair de cada async with pool.acquire(); nada a manter aqui.
+            pass
 
 
 def main():
@@ -97,7 +101,10 @@ def main():
         logger.exception("Discovery worker crashed: %s", e)
         raise
     finally:
-        loop.run_until_complete(close_pool())
+        try:
+            loop.run_until_complete(close_pool())
+        except Exception as e:
+            logger.warning("Erro ao fechar pool no shutdown: %s", e)
         loop.close()
         logger.info("Discovery worker stopped.")
 
