@@ -39,6 +39,7 @@ class Settings:
     VLLM_BASE_URL: str = _build_base_v1(_llm_url_raw) if _llm_url_raw else ""
     VLLM_MODEL: str = MODEL_NAME or "Qwen/Qwen2.5-3B-Instruct"
     VLLM_API_KEY: str = "buscafornecedor"  # Padrão em código; SGLang frequentemente não exige key
+    # SGLang (LLM_URL + MODEL_NAME) — alias para compatibilidade com provider_manager
     RUNPOD_BASE_URL: str = VLLM_BASE_URL
     RUNPOD_MODEL: str = VLLM_MODEL
     RUNPOD_API_KEY: str = "buscafornecedor"

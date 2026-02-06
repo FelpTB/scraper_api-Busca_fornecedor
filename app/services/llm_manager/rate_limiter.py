@@ -337,38 +337,33 @@ class RateLimiter:
             "config": {"safety_margin": 0.8}
         }
     
-    def _detect_runpod_model(self) -> str:
+    def _detect_sglang_model(self) -> str:
         """
-        Detecta qual modelo está configurado no RunPod.
-        
-        v4.0: Suporte a múltiplos modelos (Qwen, Mistral, etc.)
-        
-        Returns:
-            Nome do modelo configurado ou default
+        Detecta qual modelo está configurado no SGLang (LLM_URL + MODEL_NAME).
+        Usa o nome real de MODEL_NAME; se não houver entrada em llm_limits, usa fallback por família.
         """
         from app.core.config import settings
         
-        model = settings.VLLM_MODEL or settings.RUNPOD_MODEL or ""
-        
-        # Verificar se é Qwen
+        model = (settings.VLLM_MODEL or settings.RUNPOD_MODEL or "").strip()
+        if not model:
+            return "mistralai/Ministral-3-8B-Instruct-2512"
+        runpod_config = self._config.get("runpod", {})
+        if runpod_config.get(model):
+            logger.info(f"RateLimiter: SGLang modelo configurado: {model}")
+            return model
         if "qwen" in model.lower():
-            # Tentar encontrar configuração específica do Qwen
-            qwen_config = self._config.get("runpod", {}).get("Qwen/Qwen2.5-3B-Instruct", {})
-            if qwen_config:
-                logger.info(f"RateLimiter: Detectado modelo Qwen: {model}")
-                return "Qwen/Qwen2.5-3B-Instruct"
-        
-        # Default: Mistral
+            fallback = "Qwen/Qwen2.5-14B-Instruct" if "14b" in model.lower() else "Qwen/Qwen2.5-3B-Instruct"
+            if runpod_config.get(fallback):
+                logger.info(f"RateLimiter: SGLang modelo {model} usando limites de {fallback}")
+                return fallback
         return "mistralai/Ministral-3-8B-Instruct-2512"
     
     def _init_providers(self):
         """Inicializa rate limiters para cada provider."""
-        # Mapear nomes de providers para configurações
-        # v4.0: Adicionado mapeamento dinâmico para Qwen2.5-3B-Instruct (SGLang)
-        runpod_model = self._detect_runpod_model()
+        sglang_model = self._detect_sglang_model()
         
         provider_mapping = {
-            "RunPod": ("runpod", runpod_model),
+            "SGLang": ("runpod", sglang_model),  # limites em llm_limits.json sob "runpod"
             "Google Gemini": ("google", "gemini-2.0-flash"),
             "OpenAI": ("openai", "gpt-4.1-nano"),
             "OpenRouter": ("openrouter", "google/gemini-2.0-flash-lite-001"),

@@ -104,7 +104,7 @@ class ProviderManager:
         # Carregar configuração de providers habilitados
         provider_enabled = self._load_provider_enabled_config()
         
-        # RunPod (Provider Primário)
+        # SGLang (Provider primário: LLM_URL + MODEL_NAME)
         runpod_config = limits.get("runpod", {}).get("mistralai/Ministral-3-8B-Instruct-2512", {})
         gemini_config = limits.get("google", {}).get("gemini-2.0-flash", {})
         openai_config = limits.get("openai", {}).get("gpt-4.1-nano", {})
@@ -144,24 +144,24 @@ class ProviderManager:
         openrouter3_concurrent = max(200, int(openrouter3_rpm * safety_margin / 30))
         
         logger.info(f"LLM Limits carregados:")
-        logger.info(f"  RunPod Mistral: RPM={runpod_rpm}, TPM={runpod_tpm:,}, weight={runpod_weight}%")
+        logger.info(f"  SGLang: RPM={runpod_rpm}, TPM={runpod_tpm:,}, weight={runpod_weight}%")
         logger.info(f"  Google Gemini: RPM={gemini_rpm}, TPM={gemini_tpm:,}, weight={gemini_weight}%")
         logger.info(f"  OpenAI: RPM={openai_rpm}, TPM={openai_tpm:,}, weight={openai_weight}%")
         logger.info(f"  OpenRouter 1: RPM={openrouter1_rpm}, TPM={openrouter1_tpm:,}, weight={openrouter1_weight}%")
         logger.info(f"  OpenRouter 2: RPM={openrouter2_rpm}, TPM={openrouter2_tpm:,}, weight={openrouter2_weight}%")
         logger.info(f"  OpenRouter 3: RPM={openrouter3_rpm}, TPM={openrouter3_tpm:,}, weight={openrouter3_weight}%")
         
-        # RunPod/SGLang: base_url e model vêm só de config (LLM_URL, MODEL_NAME)
+        # SGLang: base_url e model vêm de LLM_URL e MODEL_NAME (variáveis de ambiente)
         default_providers = [
             ProviderConfig(
-                name="RunPod",
+                name="SGLang",
                 api_key=settings.RUNPOD_API_KEY or settings.VLLM_API_KEY or "",
                 base_url=settings.RUNPOD_BASE_URL,
                 model=settings.RUNPOD_MODEL,
                 max_concurrent=runpod_concurrent,
                 priority=90,  # Prioridade mais alta (provider primário)
                 weight=runpod_weight,
-                enabled=True  # RunPod sempre habilitado
+                enabled=True  # SGLang sempre habilitado quando LLM_URL definida
             ),
             ProviderConfig(
                 name="Google Gemini",
@@ -216,9 +216,9 @@ class ProviderManager:
         ]
         
         for config in default_providers:
-            # RunPod/SGLang: só adiciona se BASE_URL definida (LLM_URL no Railway)
+            # SGLang: só adiciona se BASE_URL definida (LLM_URL no Railway)
             # Outros providers só são adicionados se tiverem API key E estiverem habilitados
-            if config.name == "RunPod":
+            if config.name == "SGLang":
                 if config.api_key and config.base_url:
                     self.add_provider(config)
             else:
@@ -254,10 +254,10 @@ class ProviderManager:
             return enabled_providers
         except Exception as e:
             logger.warning(f"ProviderManager: Erro ao carregar llm_providers.json: {e}")
-            # Padrão: apenas RunPod habilitado
-            logger.info("ProviderManager: Usando configuração padrão (apenas RunPod habilitado)")
+            # Padrão: apenas SGLang habilitado
+            logger.info("ProviderManager: Usando configuração padrão (apenas SGLang habilitado)")
             return {
-                "RunPod": True,
+                "SGLang": True,
                 "Google Gemini": False,
                 "OpenAI": False,
                 "OpenRouter": False,
@@ -280,11 +280,11 @@ class ProviderManager:
         self._semaphores[config.name] = asyncio.Semaphore(config.max_concurrent)
         
         # v3.4: Categorizar provider por prioridade
-        # RunPod → HIGH e NORMAL (provider primário para todas as chamadas)
+        # SGLang → HIGH e NORMAL (provider primário para todas as chamadas)
         # Google Gemini (direto) → HIGH priority (Discovery/LinkSelector) - Fallback
         # Outros → NORMAL priority (Profile Building) - Fallback
-        if config.name == "RunPod":
-            # RunPod disponível para ambas as prioridades (primário)
+        if config.name == "SGLang":
+            # SGLang disponível para ambas as prioridades (primário)
             self._high_priority_providers.append(config.name)
             self._normal_priority_providers.append(config.name)
             priority_label = "HIGH+NORMAL"
@@ -308,7 +308,7 @@ class ProviderManager:
             self._high_priority_providers.remove(name)
         if name in self._normal_priority_providers:
             self._normal_priority_providers.remove(name)
-        # RunPod está em ambas as listas, então remove de ambas se necessário
+        # SGLang está em ambas as listas, então remove de ambas se necessário
     
     @property
     def available_providers(self) -> List[str]:
@@ -408,13 +408,9 @@ class ProviderManager:
         safe_input_tokens = self._rate_limiter.get_safe_input_tokens(provider)
         context_window = self._rate_limiter.get_context_window(provider)
 
-        # CORREÇÃO CRÍTICA: Validação mais conservadora para RunPod
-        # O vLLM calcula internamente: max_tokens = context_window - prompt_tokens - safety_margin
-        # Quando prompt_tokens > context_window, max_tokens fica negativo causando "max_tokens must be at least 1, got -XXXX"
-        is_runpod = "runpod" in provider.lower() or "runpod" in config.base_url.lower()
-        if is_runpod:
-            # Para RunPod, ser ainda mais conservador: usar apenas 80% do context window
-            # Isso deixa margem para system prompts internos e formatação do vLLM
+        # Validação conservadora para SGLang/vLLM: usar 80% do context window
+        is_sglang = "sglang" in provider.lower()
+        if is_sglang:
             safe_input_tokens = int(context_window * 0.8)  # 80% do context window
 
         if estimated_tokens > safe_input_tokens:
@@ -423,7 +419,7 @@ class ProviderManager:
                 f"Estimado: {estimated_tokens:,} tokens, "
                 f"Limite seguro: {safe_input_tokens:,} tokens, "
                 f"Context window: {context_window:,} tokens"
-                f"{' (RunPod: usando 80% do context window)' if is_runpod else ''}"
+                f"{' (SGLang: usando 80% do context window)' if is_sglang else ''}"
             )
             raise ProviderBadRequestError(
                 f"Conteúdo excede context window do {provider}. "
@@ -490,8 +486,8 @@ class ProviderManager:
             start_time = time.perf_counter()
             
             try:
-                # Detectar RunPod (SGLang - suporta json_schema)
-                is_runpod = "runpod" in provider.lower() or "runpod" in config.base_url.lower()
+                # Detectar SGLang (suporta json_schema)
+                is_sglang = "sglang" in provider.lower()
                 
                 # Obter max_output_tokens do provider para garantir valor válido
                 max_output_tokens = self._rate_limiter.get_max_output_tokens(provider)
@@ -503,20 +499,13 @@ class ProviderManager:
                     "max_tokens": max_output_tokens  # Garantir valor explícito e válido
                 }
                 
-                # SGLang (RunPod) suporta json_schema via response_format
-                # Outros providers também podem suportar json_schema ou json_object
+                # SGLang suporta json_schema via response_format
                 if response_format:
-                    # Verificar se é json_schema (SGLang structured output)
                     if response_format.get("type") == "json_schema":
-                        # SGLang suporta json_schema nativamente
                         request_params["response_format"] = response_format
                         logger.debug(f"{ctx_label}ProviderManager: {provider} usando json_schema (SGLang structured output)")
                     elif response_format.get("type") == "json_object":
-                        # Para providers que não suportam json_schema, usar json_object
-                        # RunPod (SGLang) também aceita json_object como fallback
-                        if is_runpod:
-                            # SGLang: preferir json_schema, mas json_object também funciona
-                            # Se não temos json_schema, usar json_object
+                        if is_sglang:
                             request_params["response_format"] = response_format
                             logger.debug(f"{ctx_label}ProviderManager: {provider} usando json_object (fallback)")
                         else:
@@ -551,7 +540,7 @@ class ProviderManager:
                         )
                         request_params.pop("response_format", None)
                         # Adicionar reforço no prompt se ainda não tiver
-                        if messages and messages[-1].get("role") == "user" and not is_runpod:
+                        if messages and messages[-1].get("role") == "user" and not is_sglang:
                             user_msg = messages[-1]["content"]
                             messages[-1]["content"] = f"""{user_msg}
 
@@ -604,8 +593,8 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido. Sem markdown, sem explicaçõ
                     diff = actual_prompt_tokens - estimated_tokens
                     diff_percent = (diff / estimated_tokens * 100) if estimated_tokens > 0 else 0
                     
-                    # Log detalhado para RunPod (comparação importante)
-                    if "runpod" in provider.lower() or "runpod" in config.base_url.lower():
+                    # Log detalhado para SGLang (comparação importante)
+                    if is_sglang:
                         if abs(diff_percent) > 10:  # Diferença > 10%
                             logger.warning(
                                 f"{ctx_label}ProviderManager: {provider} - Discrepância significativa de tokens: "

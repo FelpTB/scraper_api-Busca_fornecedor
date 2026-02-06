@@ -8,11 +8,21 @@ Há duas formas de rodar os workers: **um único container** (API + workers junt
 
 O **Dockerfile** está configurado para subir, no mesmo container:
 
-1. **Discovery worker** (em background)
-2. **Profile worker** (em background)
+1. **N Discovery workers** (em background; padrão: 2)
+2. **M Profile workers** (em background; padrão: 2)
 3. **API** (em foreground, expondo a porta)
 
-Você **não precisa fazer nada no Railway**: use o deploy padrão (um serviço, um container). O comando de início do container é `/app/scripts/start_web_and_workers.sh`, que sobe os dois workers e depois a API.
+**Variáveis de ambiente (opcionais):**
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `DISCOVERY_WORKERS` | 2 | Número de processos discovery_worker |
+| `PROFILE_WORKERS` | 2 | Número de processos profile_worker |
+| `PORT` | 8000 | Porta da API |
+
+Para usar ao máximo a placa (LLM), aumente `PROFILE_WORKERS` (ex.: 4). Para mais descoberta em paralelo, aumente `DISCOVERY_WORKERS`. Ajuste conforme CPU/memória do container.
+
+Você **não precisa fazer nada no Railway**: use o deploy padrão (um serviço, um container). O comando de início do container é `/app/scripts/start_web_and_workers.sh`, que sobe os workers e depois a API.
 
 - **Logs:** no mesmo serviço você verá linhas da API (`Running on http://...`, `Requisição Discovery recebida`) e dos workers (`[discovery_worker] Process starting`, `[profile_worker] Process starting`, `Discovery worker claimed job...`, etc.).
 - **Se quiser só a API** nesse serviço (sem workers), em **Settings** do serviço defina **Start Command** (custom):  

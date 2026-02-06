@@ -32,6 +32,16 @@
       "recommended_temperature": 0.0,
       "recommended_temperature_note": "Para JSON estruturado, usar temperature 0 para output determinístico.",
       "description": "Qwen 2.5 3B Instruct (SGLang/RunPod) - Provider Primário com Structured Output"
+    },
+    "Qwen/Qwen2.5-14B-Instruct": {
+      "rpm": 50000,
+      "tpm": 10000000,
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "weight": 50,
+      "supports_structured_output": true,
+      "structured_output_backend": "xgrammar",
+      "description": "Qwen 2.5 14B Instruct (SGLang) - Provider Primário"
     }
   },
   "google": {
