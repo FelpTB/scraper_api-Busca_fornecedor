@@ -29,13 +29,17 @@ class Settings:
     SERPSHOT_KEY: str = os.getenv("SERPSHOT_KEY", "")
     # Limite de requisições/segundo para a API Serpshot (0 = usar valor do JSON discovery/serper)
     SERPSHOT_RATE_PER_SECOND: int = int(os.getenv("SERPSHOT_RATE_PER_SECOND", "0") or "0")
+    # Batch writer: grava serper_results em lotes (1 conexão por lote; evita "too many clients")
+    SERPER_BATCH_SIZE: int = int(os.getenv("SERPER_BATCH_SIZE", "50") or "50")
+    SERPER_BATCH_INTERVAL_SEC: float = float(os.getenv("SERPER_BATCH_INTERVAL_SEC", "0.15") or "0.15")
 
     # --- Workers e performance ---
     N_WORKERS: int = int(os.getenv("N_WORKERS", "2"))
     CLAIM_BATCH_SIZE: int = int(os.getenv("CLAIM_BATCH_SIZE", "10"))
-    # Pool: min_size=0 evita manter conexões ociosas (reduz "too many clients")
+    # Pool: min_size=0 evita manter conexões ociosas. Com batch writer, 1 conn por lote para serper.
+    # Regra: (número de processos × MAX_SIZE) < max_connections do PostgreSQL (ex.: 100).
     DATABASE_POOL_MIN_SIZE: int = int(os.getenv("DATABASE_POOL_MIN_SIZE", "0"))
-    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "10"))
+    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "12"))
     LLM_CONCURRENCY_HARD_CAP: int = int(os.getenv("LLM_CONCURRENCY_HARD_CAP", "32"))
 
     # --- Validação obrigatória ---

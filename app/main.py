@@ -1,3 +1,9 @@
+# Limitar threads de OpenBLAS/OpenMP antes de qualquer import que use NumPy (evita "can't start new thread" no Railway).
+import os
+for _var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    if _var not in os.environ:
+        os.environ[_var] = "1"
+
 import asyncio
 import logging
 import time
@@ -34,6 +40,7 @@ from app.core.logging_utils import setup_logging
 from app.services.llm_manager import start_health_monitor
 from app.core.database import get_pool, close_pool, test_connection
 from app.core.run_queue_migration import run_queue_migration
+from app.services.serper_batch_writer import start_serper_batch_writer, stop_serper_batch_writer
 from app.core.vllm_client import check_vllm_health
 from app.api.v2.router import router as v2_router
 
@@ -69,6 +76,7 @@ async def startup_event():
         logger.warning(f"⚠️ Erro ao verificar saúde do vLLM: {e}")
     
     start_health_monitor()
+    await start_serper_batch_writer()
 
     logger.info("🚀 Aplicação inicializada com sucesso")
 
@@ -76,6 +84,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Executado quando a aplicação encerra"""
+    await stop_serper_batch_writer()
     await close_pool()
     logger.info("🔌 Aplicação encerrada")
 

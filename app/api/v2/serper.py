@@ -65,7 +65,7 @@ def _build_search_query(
 async def _process_serper_background(request: SerperRequest):
     """
     Processa busca Serper em background.
-    Conexões de banco são sempre fechadas ao fim (via with_connection em save_serper_results).
+    Resultados são enfileirados para gravação em batch (1 conexão por lote).
     """
     try:
         # 1. Construir query de busca
@@ -86,8 +86,8 @@ async def _process_serper_background(request: SerperRequest):
             request_id=""
         )
         
-        # 3. Salvar resultados no banco (conexão é sempre liberada após o INSERT)
-        serper_id = await db_service.save_serper_results(
+        # 3. Enfileirar para gravação em batch (1 conexão por lote; suporta ~100 req/s sem "too many clients")
+        db_service.enqueue_serper_results(
             cnpj_basico=request.cnpj_basico,
             results=results or [],
             query_used=query,
@@ -99,7 +99,7 @@ async def _process_serper_background(request: SerperRequest):
         
         logger.info(
             f"✅ [BACKGROUND] Serpshot busca concluída: cnpj={request.cnpj_basico}, "
-            f"results={len(results) if results else 0}, serper_id={serper_id}"
+            f"results={len(results) if results else 0} (gravado em batch)"
         )
     except Exception as e:
         logger.error(f"❌ [BACKGROUND] Erro ao processar busca Serpshot: {e}", exc_info=True)

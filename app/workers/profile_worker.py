@@ -3,12 +3,17 @@ Worker de processamento da fila queue_profile.
 Processo separado: claim -> run_profile_job -> ack/fail.
 Execute com: python -m app.workers.profile_worker
 """
+import os
+import sys
+# Limitar threads OpenBLAS/OpenMP antes de imports (evita "can't start new thread" no Railway).
+for _var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    if _var not in os.environ:
+        os.environ[_var] = "1"
+
 import asyncio
 import logging
-import os
 import signal
 import socket
-import sys
 
 try:
     from dotenv import load_dotenv

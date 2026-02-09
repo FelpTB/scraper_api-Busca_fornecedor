@@ -25,6 +25,8 @@ O **Dockerfile** está configurado para subir, no mesmo container:
 
 Para usar ao máximo a placa (LLM), aumente `N_WORKERS` (ex.: 16). Em deploy com muitos workers, defina `DATABASE_POOL_MAX_SIZE=2` ou `3` para não saturar o Postgres.
 
+**OpenBLAS / "can't start new thread":** dependências (ex.: NumPy via openai/ML) usam OpenBLAS, que por padrão cria muitas threads (ex.: 48) por processo. Com vários workers no mesmo container isso esgota o limite de threads e gera `pthread_create failed` e `RuntimeError: can't start new thread`. O script `start_web_and_workers.sh` e os entrypoints Python já definem `OPENBLAS_NUM_THREADS=1`, `OMP_NUM_THREADS=1` e `MKL_NUM_THREADS=1` antes dos imports. Se rodar workers em serviços separados (Opção B), defina essas variáveis no Railway (ex.: `OPENBLAS_NUM_THREADS=1`) para cada serviço que use muitas dependências numéricas.
+
 Você **não precisa fazer nada no Railway**: use o deploy padrão (um serviço, um container). O comando de início do container é `/app/scripts/start_web_and_workers.sh`, que sobe os workers e depois a API.
 
 - **Logs:** no mesmo serviço você verá linhas da API (`Running on http://...`, `Requisição Discovery recebida`) e dos workers (`[discovery_worker] Process starting`, `[profile_worker] Process starting`, `Discovery worker claimed job...`, etc.).

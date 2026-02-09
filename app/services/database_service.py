@@ -7,6 +7,7 @@ import logging
 from typing import List, Optional, Dict, Any
 from app.core.database import get_pool, with_connection
 from app.schemas.profile import CompanyProfile
+from app.services.serper_batch_writer import SerperPayload, enqueue_serper_payload
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,32 @@ class DatabaseService:
             return serper_id
 
         return await with_connection(_insert)
+
+    def enqueue_serper_results(
+        self,
+        cnpj_basico: str,
+        results: List[dict],
+        query_used: str,
+        company_name: Optional[str] = None,
+        razao_social: Optional[str] = None,
+        nome_fantasia: Optional[str] = None,
+        municipio: Optional[str] = None,
+    ) -> None:
+        """
+        Enfileira salvamento de resultados Serper para gravação em batch.
+        Uma única conexão grava vários registros por vez; ideal para alto volume (~100 req/s).
+        Não retorna ID; use get_serper_results(cnpj_basico) depois se precisar dos dados.
+        """
+        payload = SerperPayload(
+            cnpj_basico=cnpj_basico,
+            results=results,
+            query_used=query_used,
+            company_name=company_name,
+            razao_social=razao_social,
+            nome_fantasia=nome_fantasia,
+            municipio=municipio,
+        )
+        enqueue_serper_payload(payload)
     
     async def get_serper_results(self, cnpj_basico: str) -> Optional[Dict[str, Any]]:
         """

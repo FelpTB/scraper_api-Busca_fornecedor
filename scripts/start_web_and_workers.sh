@@ -2,6 +2,10 @@
 # Sobe API + N discovery workers + N profile workers no mesmo container.
 # Número de workers: N_WORKERS (default 2). Porta: PORT (default 8000).
 set -e
+# Evitar que OpenBLAS/OpenMP criem dezenas de threads por processo (Railway tem limite de threads).
+export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
 PORT="${PORT:-8000}"
 N_WORKERS="${N_WORKERS:-2}"
 
