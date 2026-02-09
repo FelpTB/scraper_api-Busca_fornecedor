@@ -1,1 +1,1 @@
-{"rate_per_second":8,"max_burst":25,"max_concurrent":20,"request_timeout":15,"connect_timeout":5,"max_retries":3,"retry_base_delay":1,"retry_max_delay":8,"rate_limiter_timeout":90,"rate_limiter_retry_timeout":30,"connection_semaphore_timeout":30}
+{"rate_per_second":250,"max_burst":300,"max_concurrent":350,"request_timeout":15,"connect_timeout":5,"max_retries":3,"retry_base_delay":1,"retry_max_delay":8,"rate_limiter_timeout":90,"rate_limiter_retry_timeout":30,"connection_semaphore_timeout":30}
