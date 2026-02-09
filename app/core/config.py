@@ -33,8 +33,9 @@ class Settings:
     # --- Workers e performance ---
     N_WORKERS: int = int(os.getenv("N_WORKERS", "2"))
     CLAIM_BATCH_SIZE: int = int(os.getenv("CLAIM_BATCH_SIZE", "10"))
-    DATABASE_POOL_MIN_SIZE: int = int(os.getenv("DATABASE_POOL_MIN_SIZE", "5"))
-    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "20"))
+    # Pool: min_size=0 evita manter conexões ociosas (reduz "too many clients")
+    DATABASE_POOL_MIN_SIZE: int = int(os.getenv("DATABASE_POOL_MIN_SIZE", "0"))
+    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "10"))
     LLM_CONCURRENCY_HARD_CAP: int = int(os.getenv("LLM_CONCURRENCY_HARD_CAP", "32"))
 
     # --- Validação obrigatória ---

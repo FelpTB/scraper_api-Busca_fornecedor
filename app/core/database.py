@@ -1,10 +1,11 @@
 """
 Conexão assíncrona com PostgreSQL via asyncpg.
 
-Uso: sempre usar `async with pool.acquire() as conn:` para operações.
+Uso: SEMPRE usar `async with pool.acquire() as conn:` para operações.
 Ao sair do bloco (fim do job ou exceção), a conexão é devolvida ao pool
-e não fica aberta. No shutdown do processo, chamar close_pool() para
-fechar todas as conexões.
+e não fica aberta. Nunca guardar `conn` fora do bloco.
+- min_size=0: não mantém conexões ociosas (evita "too many clients already").
+- No shutdown do processo, chamar close_pool() para fechar todas as conexões.
 """
 import asyncpg
 from typing import Optional
@@ -25,6 +26,7 @@ async def get_pool() -> asyncpg.Pool:
     Retorna pool de conexões (singleton).
     Cria pool na primeira chamada.
     Configura o search_path para garantir que o schema correto seja usado.
+    Conexões são sempre devolvidas ao pool ao sair de `async with pool.acquire() as conn`.
     
     Returns:
         asyncpg.Pool: Pool de conexões assíncrono
@@ -52,6 +54,7 @@ async def get_pool() -> asyncpg.Pool:
                     logger.error(f"❌ Erro crítico ao configurar search_path no init_connection: {e}")
                     raise
             
+            # min_size=0: não mantém conexões abertas quando ocioso (reduz risco de "too many clients")
             _pool = await asyncpg.create_pool(
                 settings.DATABASE_URL,
                 min_size=settings.DATABASE_POOL_MIN_SIZE,
@@ -83,6 +86,21 @@ async def close_pool():
             logger.warning("Erro ao fechar pool asyncpg: %s", e)
         finally:
             _pool = None
+
+
+async def with_connection(operation):
+    """
+    Executa uma operação assíncrona com uma conexão do pool.
+    A conexão é SEMPRE devolvida ao pool ao final (sucesso ou exceção).
+    Uso: result = await with_connection(lambda conn: conn.fetchrow(...))
+    """
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        try:
+            return await operation(conn)
+        finally:
+            # Garantir que não usamos conn após a operação; o async with já devolve ao pool
+            pass
 
 
 async def test_connection() -> bool:

@@ -5,7 +5,7 @@ Atualizado para usar o schema busca_fornecedor.
 import json
 import logging
 from typing import List, Optional, Dict, Any
-from app.core.database import get_pool
+from app.core.database import get_pool, with_connection
 from app.schemas.profile import CompanyProfile
 
 logger = logging.getLogger(__name__)
@@ -64,9 +64,7 @@ class DatabaseService:
         Returns:
             ID do registro criado
         """
-        pool = await get_pool()
-        async with pool.acquire() as conn:
-            # Garantir que estamos usando o schema correto - SEMPRE explícito
+        async def _insert(conn):
             query = f"""
                 INSERT INTO "{SCHEMA}".serper_results 
                     (cnpj_basico, company_name, razao_social, nome_fantasia, 
@@ -87,9 +85,11 @@ class DatabaseService:
                 len(results),
                 query_used
             )
-            serper_id = row['id']
+            serper_id = row["id"]
             logger.debug(f"✅ Serper results salvos: id={serper_id}, cnpj={cnpj_basico}, results={len(results)}")
             return serper_id
+
+        return await with_connection(_insert)
     
     async def get_serper_results(self, cnpj_basico: str) -> Optional[Dict[str, Any]]:
         """
@@ -147,19 +147,11 @@ class DatabaseService:
         Returns:
             ID do registro criado ou atualizado
         """
-        pool = await get_pool()
-        async with pool.acquire() as conn:
-            # Garantir que estamos usando o schema correto - SEMPRE explícito
+        async def _upsert(conn):
             query_check = f'SELECT id FROM "{SCHEMA}".website_discovery WHERE cnpj_basico = $1'
             logger.info(f"🔍 [SCHEMA={SCHEMA}] Verificando discovery")
-            # Verificar se já existe registro para este CNPJ
-            existing = await conn.fetchrow(
-                query_check,
-                cnpj_basico
-            )
-            
+            existing = await conn.fetchrow(query_check, cnpj_basico)
             if existing:
-                # Atualizar registro existente
                 query_update = f"""
                     UPDATE "{SCHEMA}".website_discovery 
                     SET website_url = $2,
@@ -181,10 +173,9 @@ class DatabaseService:
                     confidence_score,
                     llm_reasoning
                 )
-                discovery_id = row['id']
+                discovery_id = row["id"]
                 logger.debug(f"✅ Discovery atualizado: id={discovery_id}, cnpj={cnpj_basico}, status={discovery_status}")
             else:
-                # Criar novo registro
                 query_insert = f"""
                     INSERT INTO "{SCHEMA}".website_discovery 
                         (cnpj_basico, serper_id, website_url, discovery_status, 
@@ -202,10 +193,11 @@ class DatabaseService:
                     confidence_score,
                     llm_reasoning
                 )
-                discovery_id = row['id']
+                discovery_id = row["id"]
                 logger.debug(f"✅ Discovery criado: id={discovery_id}, cnpj={cnpj_basico}, status={discovery_status}")
-            
             return discovery_id
+
+        return await with_connection(_upsert)
     
     async def get_discovery(self, cnpj_basico: str) -> Optional[Dict[str, Any]]:
         """

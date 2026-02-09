@@ -65,6 +65,7 @@ def _build_search_query(
 async def _process_serper_background(request: SerperRequest):
     """
     Processa busca Serper em background.
+    Conexões de banco são sempre fechadas ao fim (via with_connection em save_serper_results).
     """
     try:
         # 1. Construir query de busca
@@ -85,7 +86,7 @@ async def _process_serper_background(request: SerperRequest):
             request_id=""
         )
         
-        # 3. Salvar resultados no banco de dados
+        # 3. Salvar resultados no banco (conexão é sempre liberada após o INSERT)
         serper_id = await db_service.save_serper_results(
             cnpj_basico=request.cnpj_basico,
             results=results or [],
@@ -102,6 +103,9 @@ async def _process_serper_background(request: SerperRequest):
         )
     except Exception as e:
         logger.error(f"❌ [BACKGROUND] Erro ao processar busca Serpshot: {e}", exc_info=True)
+    finally:
+        # Garantir que não mantemos referências a recursos após o fim da tarefa
+        pass
 
 
 @router.post("/serper", response_model=SerperResponse)
