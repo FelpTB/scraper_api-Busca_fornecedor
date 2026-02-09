@@ -89,8 +89,17 @@ class SerperManager:
             retry_max_delay: Delay máximo para retry (segundos)
         """
         serper_cfg = get_concurrency_section("discovery/serper", {})
-        self._rate_per_second = rate_per_second if rate_per_second is not None else serper_cfg.get("rate_per_second", 190.0)
-        self._max_burst = max_burst if max_burst is not None else serper_cfg.get("max_burst", 200)
+        # Variável de ambiente SERPSHOT_RATE_PER_SECOND (Railway) sobrescreve o JSON se > 0
+        env_rate = settings.SERPSHOT_RATE_PER_SECOND
+        self._rate_per_second = (
+            rate_per_second if rate_per_second is not None
+            else (env_rate if env_rate > 0 else serper_cfg.get("rate_per_second", 190.0))
+        )
+        default_burst = serper_cfg.get("max_burst", 200)
+        self._max_burst = (
+            max_burst if max_burst is not None
+            else (max(default_burst, self._rate_per_second + 50) if env_rate > 0 else default_burst)
+        )
         self._max_concurrent = max_concurrent if max_concurrent is not None else serper_cfg.get("max_concurrent", 1000)
         self._request_timeout = request_timeout if request_timeout is not None else serper_cfg.get("request_timeout", 15.0)
         self._connect_timeout = connect_timeout if connect_timeout is not None else serper_cfg.get("connect_timeout", 5.0)
@@ -290,7 +299,7 @@ class SerperManager:
             lr = (language or "en").replace("_", "-") if language else "en"
             hl = lr
             gl = country_code
-        num = min(100, max(1, num_results))
+        num = 30
         payload = json.dumps({
             "queries": [query],
             "type": "search",

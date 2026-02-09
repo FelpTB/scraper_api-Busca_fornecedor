@@ -1,6 +1,6 @@
 """
 Configuração central. Variáveis de ambiente permitidas (whitelist Railway):
-API_ACCESS_TOKEN, DATABASE_URL, LLM_URL, MODEL_NAME, SERPSHOT_KEY.
+API_ACCESS_TOKEN, DATABASE_URL, LLM_URL, MODEL_NAME, SERPSHOT_KEY, SERPSHOT_RATE_PER_SECOND.
 Todas as demais configurações são derivadas ou valores padrão em código.
 """
 import os
@@ -27,6 +27,8 @@ class Settings:
     LLM_URL: str = os.getenv("LLM_URL", "")
     MODEL_NAME: str = os.getenv("MODEL_NAME", "")
     SERPSHOT_KEY: str = os.getenv("SERPSHOT_KEY", "")
+    # Limite de requisições/segundo para a API Serpshot (0 = usar valor do JSON discovery/serper)
+    SERPSHOT_RATE_PER_SECOND: int = int(os.getenv("SERPSHOT_RATE_PER_SECOND", "0") or "0")
 
     # --- Workers e performance ---
     N_WORKERS: int = int(os.getenv("N_WORKERS", "2"))

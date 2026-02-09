@@ -15,6 +15,7 @@ import time
 from typing import Optional
 from dataclasses import dataclass
 
+from app.core.config import settings
 from app.services.concurrency_manager.config_loader import (
     get_section as get_concurrency_section,
 )
@@ -234,11 +235,22 @@ class TokenBucketRateLimiter:
 
 
 _SERPER_CFG = get_concurrency_section("discovery/serper", {})
+# Variável de ambiente SERPSHOT_RATE_PER_SECOND (Railway) sobrescreve o JSON se > 0
+_effective_rate = (
+    settings.SERPSHOT_RATE_PER_SECOND
+    if settings.SERPSHOT_RATE_PER_SECOND > 0
+    else _SERPER_CFG.get("rate_per_second", 190.0)
+)
+_effective_burst = (
+    max(_SERPER_CFG.get("max_burst", 200), _effective_rate + 50)
+    if settings.SERPSHOT_RATE_PER_SECOND > 0
+    else _SERPER_CFG.get("max_burst", 200)
+)
 
 # Instância singleton para uso no manager de busca (Serpshot)
 serper_rate_limiter = TokenBucketRateLimiter(
-    rate_per_second=_SERPER_CFG.get("rate_per_second", 190.0),  # margem de segurança
-    max_burst=_SERPER_CFG.get("max_burst", 200),
+    rate_per_second=_effective_rate,
+    max_burst=_effective_burst,
     name="serper"
 )
 
