@@ -145,6 +145,7 @@ class SerperManager:
         self._rate_limiter_retry_timeout = serper_cfg.get("rate_limiter_retry_timeout", 5.0)
         self._connection_semaphore_timeout = serper_cfg.get("connection_semaphore_timeout", 10.0)
         self._retry_after_max = serper_cfg.get("retry_after_max", 60.0)
+        self._retry_jitter = serper_cfg.get("retry_jitter", 2.0)  # segundos de jitter max
         
         # Rate limiter (controla taxa, NÃO concorrência)
         self._rate_limiter = TokenBucketRateLimiter(
@@ -219,7 +220,7 @@ class SerperManager:
         country: str = "br",
         language: str = "pt-br",
         request_id: str = ""
-    ) -> Tuple[List[Dict[str, str]], int]:
+    ) -> Tuple[List[Dict[str, str]], int, bool]:
         """
         Realiza busca no Google usando API Serpshot.
         
@@ -239,11 +240,12 @@ class SerperManager:
             request_id: ID da requisição
             
         Returns:
-            Tuple de (lista de resultados, número de retries)
+            Tuple de (lista de resultados, número de retries, total_failure)
+            total_failure=True quando retries esgotados e nenhum resultado (inserir vazio no DB).
         """
         if not settings.SERPSHOT_KEY:
             logger.warning("⚠️ SERPSHOT_KEY não configurada")
-            return [], 0
+            return [], 0, False
         
         import time as time_module
         
@@ -261,7 +263,7 @@ class SerperManager:
         
         if not rate_limit_acquired:
             logger.error(f"❌ Serpshot: Rate limit timeout para query: {query[:50]}...")
-            return [], 0
+            return [], 0, False
         
         # 2. Adquirir slot de conexão HTTP (controla RECURSOS)
         connection_semaphore = await self._get_connection_semaphore()
@@ -284,7 +286,7 @@ class SerperManager:
                 f"(timeout={self._connection_semaphore_timeout}s) | "
                 f"Vagas: {used}/{self._max_concurrent} usadas, {available} disponíveis"
             )
-            return [], 0
+            return [], 0, False
         
         conn_wait_ms = (time_module.perf_counter() - conn_start) * 1000
         
@@ -321,7 +323,7 @@ class SerperManager:
         country: str,
         language: str,
         request_id: str = ""
-    ) -> Tuple[List[Dict[str, str]], int]:
+    ) -> Tuple[List[Dict[str, str]], int, bool]:
         """Executa busca com retry logic via API Serpshot (POST /api/search/google)."""
         url = "https://api.serpshot.com/api/search/google"
         # Serpshot: queries é array (até 100); location US, IN, JP, BR, GB, DE, CA, FR, ID, MX, SG
@@ -363,14 +365,17 @@ class SerperManager:
                     retries_count += 1
                     # Usar Retry-After da API se disponível (429), senão backoff exponencial
                     if last_retry_after is not None:
-                        delay = last_retry_after
+                        base_delay = last_retry_after
                         delay_src = "Retry-After"
                     else:
-                        delay = min(
-                            self._retry_base_delay * (2 ** (attempt - 1)) + random.uniform(0, 0.5),
+                        base_delay = min(
+                            self._retry_base_delay * (2 ** (attempt - 1)),
                             self._retry_max_delay
                         )
                         delay_src = "backoff"
+                    # Jitter para evitar thundering herd: cada worker espera um pouco diferente
+                    jitter = random.uniform(0, min(self._retry_jitter, base_delay * 0.5))
+                    delay = base_delay + jitter
                     logger.warning(
                         f"🔄 Serpshot retry {attempt + 1}/{self._max_retries} "
                         f"após {delay:.1f}s (reason={last_error_type}, src={delay_src})"
@@ -423,7 +428,7 @@ class SerperManager:
                 if response.status_code >= 400:
                     self._failed_requests += 1
                     logger.error(f"❌ Serpshot client error: {response.status_code}")
-                    return [], retries_count
+                    return [], retries_count, True
                 
                 data = response.json()
                 # Serpshot: { "code": 200, "data": { "results": [...] } } ou data como lista (batch)
@@ -440,7 +445,7 @@ class SerperManager:
                 
                 self._successful_requests += 1
                 logger.info(f"✅ Serpshot: {len(results)} resultados retornados de {num} solicitados ({latency_ms:.0f}ms)")
-                return results, retries_count
+                return results, retries_count, False
                 
             except httpx.TimeoutException:
                 last_error_type = "timeout"
@@ -479,7 +484,7 @@ class SerperManager:
             f"❌ Serpshot falhou após {self._max_retries} tentativas: "
             f"[{last_error_type}] {last_error}"
         )
-        return [], retries_count
+        return [], retries_count, True
     
     def update_config(
         self,
@@ -585,5 +590,5 @@ async def search_serper(
     num_results: int = 100
 ) -> List[Dict[str, str]]:
     """Busca usando Serpshot API (função de conveniência)."""
-    results, _ = await serper_manager.search(query, num_results)
+    results, _, _ = await serper_manager.search(query, num_results)
     return results

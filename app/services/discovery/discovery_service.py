@@ -107,7 +107,7 @@ async def search_google_serper(query: str, num_results: int = 100, request_id: s
         return cached_results, 0  # Cache hit = 0 retries
     
     # 2. Buscar via Serpshot API
-    results, retries = await serper_manager.search(query, num_results, request_id=request_id)
+    results, retries, _ = await serper_manager.search(query, num_results, request_id=request_id)
     
     # 3. Armazenar em cache se houve resultados
     if results:

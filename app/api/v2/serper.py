@@ -78,7 +78,7 @@ async def _process_serper_background(request: SerperRequest):
         logger.info(f"🔍 [BACKGROUND] Serpshot busca: cnpj={request.cnpj_basico}, query='{query}'")
         
         # 2. Executar busca assíncrona via Serpshot
-        results, retries = await serper_manager.search(
+        results, retries, total_failure = await serper_manager.search(
             query=query,
             num_results=10,
             country="br",
@@ -87,6 +87,7 @@ async def _process_serper_background(request: SerperRequest):
         )
         
         # 3. Enfileirar para gravação em batch (1 conexão por lote; suporta ~100 req/s sem "too many clients")
+        # persist_if_empty=True apenas em falha total (retries esgotados); evita registros vazios em erros temporários
         db_service.enqueue_serper_results(
             cnpj_basico=request.cnpj_basico,
             results=results or [],
@@ -94,7 +95,8 @@ async def _process_serper_background(request: SerperRequest):
             company_name=request.nome_fantasia or request.razao_social,
             razao_social=request.razao_social,
             nome_fantasia=request.nome_fantasia,
-            municipio=request.municipio
+            municipio=request.municipio,
+            persist_if_empty=total_failure,
         )
         
         logger.info(

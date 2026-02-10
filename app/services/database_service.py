@@ -101,11 +101,14 @@ class DatabaseService:
         razao_social: Optional[str] = None,
         nome_fantasia: Optional[str] = None,
         municipio: Optional[str] = None,
+        persist_if_empty: bool = False,
     ) -> None:
         """
         Enfileira salvamento de resultados Serper para gravação em batch.
         Uma única conexão grava vários registros por vez; ideal para alto volume (~100 req/s).
         Não retorna ID; use get_serper_results(cnpj_basico) depois se precisar dos dados.
+        Se results estiver vazio e persist_if_empty=False, o batch writer não grava (evita registros vazios).
+        Use persist_if_empty=True apenas em falha total após retries.
         """
         payload = SerperPayload(
             cnpj_basico=cnpj_basico,
@@ -115,6 +118,7 @@ class DatabaseService:
             razao_social=razao_social,
             nome_fantasia=nome_fantasia,
             municipio=municipio,
+            persist_if_empty=persist_if_empty,
         )
         enqueue_serper_payload(payload)
     

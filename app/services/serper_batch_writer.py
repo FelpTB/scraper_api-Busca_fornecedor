@@ -32,6 +32,7 @@ class SerperPayload:
     razao_social: Optional[str] = None
     nome_fantasia: Optional[str] = None
     municipio: Optional[str] = None
+    persist_if_empty: bool = False
 
 
 _queue: Optional[asyncio.Queue] = None
@@ -49,6 +50,13 @@ def _get_queue() -> asyncio.Queue:
 async def _flush_batch(batch: List[SerperPayload]) -> None:
     if not batch:
         return
+    # Filtrar payloads vazios exceto quando persist_if_empty (falha total após retries)
+    to_insert = [p for p in batch if p.results or p.persist_if_empty]
+    skipped = len(batch) - len(to_insert)
+    if skipped:
+        logger.debug(f"📦 [BATCH] Ignorando {skipped} payload(s) vazio(s) (não-falha total)")
+    if not to_insert:
+        return
     async def _insert_batch(conn):
         query = f"""
             INSERT INTO "{SCHEMA}".serper_results 
@@ -57,7 +65,7 @@ async def _flush_batch(batch: List[SerperPayload]) -> None:
             VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)
             """
         async with conn.transaction():
-            for p in batch:
+            for p in to_insert:
                 await conn.execute(
                     query,
                     p.cnpj_basico,
@@ -69,13 +77,13 @@ async def _flush_batch(batch: List[SerperPayload]) -> None:
                     len(p.results),
                     p.query_used,
                 )
-        logger.info(f"📦 [BATCH] serper_results: {len(batch)} registros gravados (1 conexão)")
+        logger.info(f"📦 [BATCH] serper_results: {len(to_insert)} registros gravados (1 conexão)")
 
     try:
         await with_connection(_insert_batch)
     except Exception as e:
         logger.error(f"❌ [BATCH] Erro ao gravar lote de serper_results: {e}", exc_info=True)
-        for p in batch:
+        for p in to_insert:
             logger.warning(f"   Item perdido cnpj={p.cnpj_basico}")
 
 
