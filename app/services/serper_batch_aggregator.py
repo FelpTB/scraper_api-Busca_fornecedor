@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 _SERPER_CFG = get_config("discovery/serper", {})
 BATCH_MAX_SIZE = _SERPER_CFG.get("batch_aggregator_max_size", 100)
 BATCH_MAX_WAIT_MS = _SERPER_CFG.get("batch_aggregator_max_wait_ms", 200)
-NUM_RESULTS = 10
+NUM_RESULTS = 30
 
 
 @dataclass
