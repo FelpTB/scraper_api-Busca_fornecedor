@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 def _parse_serpshot_results(data: Any) -> List[Any]:
     """
-    Extrai lista de resultados da resposta da API Serpshot.
-    Suporta: data como dict (uma query) ou como lista (batch, uma entrada por query).
+    Extrai lista de resultados da resposta da API Serpshot (query única).
+    Suporta: data como dict (uma query) ou como lista (batch, pega primeira entrada).
     Ref: https://www.serpshot.com/docs
     """
     if not isinstance(data, dict):
@@ -41,7 +41,6 @@ def _parse_serpshot_results(data: Any) -> List[Any]:
     inner = data.get("data")
     if inner is None:
         return []
-    # Batch: data é lista de conjuntos de resultados (um por query)
     if isinstance(inner, list):
         if not inner:
             return []
@@ -52,6 +51,45 @@ def _parse_serpshot_results(data: Any) -> List[Any]:
     if not isinstance(raw, list):
         return []
     return raw
+
+
+def _parse_serpshot_results_batch(data: Any) -> List[List[Any]]:
+    """
+    Extrai lista de listas de resultados para resposta batch (múltiplas queries).
+    Retorna uma lista por query, na mesma ordem do array queries enviado.
+    Ref: https://www.serpshot.com/docs
+    """
+    if not isinstance(data, dict):
+        return []
+    inner = data.get("data")
+    if not isinstance(inner, list):
+        return []
+    out = []
+    for entry in inner:
+        if not isinstance(entry, dict):
+            out.append([])
+            continue
+        raw = entry.get("results")
+        out.append(raw if isinstance(raw, list) else [])
+    return out
+
+
+def _log_rate_limit_headers(response: httpx.Response, context: str = "") -> None:
+    """Extrai e registra cabeçalhos X-RateLimit-* para monitoramento de quotas."""
+    limit = response.headers.get("X-RateLimit-Limit")
+    remaining = response.headers.get("X-RateLimit-Remaining")
+    reset = response.headers.get("X-RateLimit-Reset")
+    if limit is not None or remaining is not None or reset is not None:
+        parts = []
+        if limit is not None:
+            parts.append(f"Limit={limit}")
+        if remaining is not None:
+            parts.append(f"Remaining={remaining}")
+        if reset is not None:
+            parts.append(f"Reset={reset}")
+        logger.debug(
+            f"Serpshot X-RateLimit {context}: {', '.join(parts)}"
+        )
 
 
 def _parse_retry_after(header_value: Optional[str], max_seconds: float = 60.0) -> Optional[float]:
@@ -396,22 +434,19 @@ class SerperManager:
                 self._total_requests += 1
                 self._total_latency_ms += latency_ms
                 
+                _log_rate_limit_headers(response, f"status={response.status_code}")
+                
                 if response.status_code == 429:
                     self._rate_limited_requests += 1
                     retry_after_val = response.headers.get("Retry-After")
                     parsed = _parse_retry_after(retry_after_val, self._retry_after_max)
                     if parsed is not None:
                         last_retry_after = parsed
-                        logger.warning(
-                            f"⚠️ Serpshot rate limit (429), "
-                            f"tentativa {attempt + 1}/{self._max_retries} "
-                            f"(Retry-After: {parsed:.1f}s)"
-                        )
-                    else:
-                        logger.warning(
-                            f"⚠️ Serpshot rate limit (429), "
-                            f"tentativa {attempt + 1}/{self._max_retries}"
-                        )
+                    ra_str = f"Retry-After={retry_after_val!r} (usado={parsed:.1f}s)" if parsed is not None else f"Retry-After={retry_after_val!r}"
+                    logger.warning(
+                        f"⚠️ Serpshot rate limit (429), "
+                        f"tentativa {attempt + 1}/{self._max_retries} ({ra_str})"
+                    )
                     last_error = "Rate limit (429)"
                     last_error_type = "rate_limit"
                     continue
@@ -485,6 +520,183 @@ class SerperManager:
             f"[{last_error_type}] {last_error}"
         )
         return [], retries_count, True
+    
+    async def search_batch(
+        self,
+        queries: List[str],
+        num_results: int = 30,
+        country: str = "br",
+        language: str = "pt-br",
+        request_id: str = ""
+    ) -> Tuple[List[List[Dict[str, str]]], int, bool]:
+        """
+        Realiza buscas em batch (até 100 queries por requisição).
+        Uma única chamada de API para múltiplas queries; otimiza throughput para Big Data.
+        
+        Args:
+            queries: Lista de termos de busca (máx 100)
+            num_results: Resultados por query
+            country: Código do país
+            language: Código do idioma
+            request_id: ID da requisição
+            
+        Returns:
+            Tuple de (lista de listas de resultados, retries_count, total_failure)
+        """
+        if not queries:
+            return [], 0, False
+        if not settings.SERPSHOT_KEY:
+            logger.warning("⚠️ SERPSHOT_KEY não configurada")
+            return [[] for _ in queries], 0, False
+        
+        batch_size = min(100, len(queries))
+        qs = queries[:batch_size]
+        
+        import time as time_module
+        rate_limit_acquired = await self._rate_limiter.acquire(timeout=self._rate_limiter_timeout)
+        if not rate_limit_acquired:
+            logger.error("❌ Serpshot: Rate limit timeout para batch")
+            return [[] for _ in qs], 0, False
+        
+        connection_semaphore = await self._get_connection_semaphore()
+        try:
+            await asyncio.wait_for(
+                connection_semaphore.acquire(),
+                timeout=self._connection_semaphore_timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error("❌ Serpshot: Timeout aguardando slot de conexão (batch)")
+            return [[] for _ in qs], 0, False
+        
+        try:
+            return await self._search_batch_with_retry(
+                qs, num_results, country, language, request_id
+            )
+        finally:
+            connection_semaphore.release()
+    
+    async def _search_batch_with_retry(
+        self,
+        queries: List[str],
+        num_results: int,
+        country: str,
+        language: str,
+        request_id: str = ""
+    ) -> Tuple[List[List[Dict[str, str]]], int, bool]:
+        """Executa batch com retry logic. Até 100 queries por requisição."""
+        url = "https://api.serpshot.com/api/search/google"
+        country_code = (country or "br").lower()
+        location = country_code.upper() if len(country_code) == 2 else "BR"
+        if location == "BR":
+            lr, hl, gl = "pt-BR", "pt-BR", "br"
+        else:
+            lr = hl = (language or "en").replace("_", "-") if language else "en"
+            gl = country_code
+        
+        payload = json.dumps({
+            "queries": queries,
+            "type": "search",
+            "num": min(30, num_results),
+            "page": 1,
+            "location": location,
+            "lr": lr,
+            "gl": gl,
+            "hl": hl
+        })
+        headers = {
+            "X-API-Key": settings.SERPSHOT_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        client = await self._get_client()
+        last_error = None
+        last_error_type = None
+        last_retry_after: Optional[float] = None
+        retries_count = 0
+        
+        for attempt in range(self._max_retries):
+            try:
+                if attempt > 0:
+                    retries_count += 1
+                    base_delay = (
+                        last_retry_after
+                        if last_retry_after is not None
+                        else min(
+                            self._retry_base_delay * (2 ** (attempt - 1)),
+                            self._retry_max_delay
+                        )
+                    )
+                    jitter = random.uniform(0, min(self._retry_jitter, base_delay * 0.5))
+                    delay = base_delay + jitter
+                    logger.warning(
+                        f"🔄 Serpshot batch retry {attempt + 1}/{self._max_retries} "
+                        f"após {delay:.1f}s"
+                    )
+                    await asyncio.sleep(delay)
+                    last_retry_after = None
+                    if not await self._rate_limiter.acquire(timeout=self._rate_limiter_retry_timeout):
+                        continue
+                
+                response = await client.post(url, headers=headers, content=payload)
+                _log_rate_limit_headers(response, f"status={response.status_code}")
+                
+                if response.status_code == 429:
+                    self._rate_limited_requests += 1
+                    retry_after_val = response.headers.get("Retry-After")
+                    parsed = _parse_retry_after(retry_after_val, self._retry_after_max)
+                    if parsed is not None:
+                        last_retry_after = parsed
+                    ra_str = f"Retry-After={retry_after_val!r}" + (f" (usado={parsed:.1f}s)" if parsed else "")
+                    logger.warning(
+                        f"⚠️ Serpshot batch rate limit (429), "
+                        f"tentativa {attempt + 1}/{self._max_retries} ({ra_str})"
+                    )
+                    last_error = "Rate limit (429)"
+                    last_error_type = "rate_limit"
+                    continue
+                
+                if response.status_code >= 500:
+                    last_error = f"Server error ({response.status_code})"
+                    last_error_type = "error"
+                    continue
+                
+                if response.status_code >= 400:
+                    self._failed_requests += 1
+                    logger.error(f"❌ Serpshot batch client error: {response.status_code}")
+                    return [[] for _ in queries], retries_count, True
+                
+                data = response.json()
+                raw_batch = _parse_serpshot_results_batch(data)
+                results_batch = []
+                for raw in raw_batch:
+                    items = []
+                    for item in (raw or []):
+                        if isinstance(item, dict):
+                            items.append({
+                                "title": (item.get("title") or "").strip(),
+                                "link": (item.get("link") or "").strip(),
+                                "snippet": (item.get("snippet") or "").strip(),
+                            })
+                    results_batch.append(items)
+                
+                self._successful_requests += 1
+                total_results = sum(len(r) for r in results_batch)
+                logger.info(
+                    f"✅ Serpshot batch: {len(queries)} queries, "
+                    f"{total_results} resultados totais"
+                )
+                return results_batch, retries_count, False
+                
+            except httpx.TimeoutException:
+                last_error_type = "timeout"
+                last_error = f"timeout após {self._request_timeout}s"
+            except Exception as e:
+                last_error_type = "error"
+                last_error = str(e) or "erro desconhecido"
+        
+        self._failed_requests += 1
+        logger.error(f"❌ Serpshot batch falhou após {self._max_retries} tentativas: [{last_error_type}] {last_error}")
+        return [[] for _ in queries], retries_count, True
     
     def update_config(
         self,
@@ -584,7 +796,7 @@ class SerperManager:
 serper_manager = SerperManager()
 
 
-# Função de conveniência
+# Funções de conveniência
 async def search_serper(
     query: str,
     num_results: int = 100
@@ -592,3 +804,13 @@ async def search_serper(
     """Busca usando Serpshot API (função de conveniência)."""
     results, _, _ = await serper_manager.search(query, num_results)
     return results
+
+
+async def search_serper_batch(
+    queries: List[str],
+    num_results: int = 30,
+    country: str = "br",
+    language: str = "pt-br"
+) -> Tuple[List[List[Dict[str, str]]], int, bool]:
+    """Busca em batch (até 100 queries por requisição)."""
+    return await serper_manager.search_batch(queries, num_results, country, language)

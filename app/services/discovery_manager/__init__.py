@@ -13,6 +13,7 @@ from .serper_manager import (
     SerperManager,
     serper_manager,
     search_serper,
+    search_serper_batch,
 )
 from .search_cache import (
     SearchCache,
@@ -28,6 +29,7 @@ __all__ = [
     "SerperManager",
     "serper_manager",
     "search_serper",
+    "search_serper_batch",
     # Cache
     "SearchCache",
     "search_cache",

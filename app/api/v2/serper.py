@@ -87,21 +87,22 @@ async def _process_serper_background(request: SerperRequest):
         )
         
         # 3. Enfileirar para gravação em batch (1 conexão por lote; suporta ~100 req/s sem "too many clients")
-        # persist_if_empty=True apenas em falha total (retries esgotados); evita registros vazios em erros temporários
-        db_service.enqueue_serper_results(
-            cnpj_basico=request.cnpj_basico,
-            results=results or [],
-            query_used=query,
-            company_name=request.nome_fantasia or request.razao_social,
-            razao_social=request.razao_social,
-            nome_fantasia=request.nome_fantasia,
-            municipio=request.municipio,
-            persist_if_empty=total_failure,
-        )
+        # Nunca gravar registros vazios; apenas gravar quando há resultados retornados
+        if results:
+            db_service.enqueue_serper_results(
+                cnpj_basico=request.cnpj_basico,
+                results=results,
+                query_used=query,
+                company_name=request.nome_fantasia or request.razao_social,
+                razao_social=request.razao_social,
+                nome_fantasia=request.nome_fantasia,
+                municipio=request.municipio,
+            )
         
         logger.info(
             f"✅ [BACKGROUND] Serpshot busca concluída: cnpj={request.cnpj_basico}, "
-            f"results={len(results) if results else 0} (gravado em batch)"
+            f"results={len(results) if results else 0}"
+            + (" (gravado em batch)" if results else " (sem gravação, resultados vazios)")
         )
     except Exception as e:
         logger.error(f"❌ [BACKGROUND] Erro ao processar busca Serpshot: {e}", exc_info=True)
