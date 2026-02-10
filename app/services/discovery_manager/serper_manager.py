@@ -16,6 +16,7 @@ import logging
 import json
 import random
 import time
+from email.utils import parsedate_to_datetime
 from typing import List, Dict, Optional, Any, Tuple
 
 import httpx
@@ -51,6 +52,40 @@ def _parse_serpshot_results(data: Any) -> List[Any]:
     if not isinstance(raw, list):
         return []
     return raw
+
+
+def _parse_retry_after(header_value: Optional[str], max_seconds: float = 60.0) -> Optional[float]:
+    """
+    Parseia o header Retry-After conforme RFC 7231.
+    
+    Pode ser:
+    - Número em segundos (ex: "120")
+    - HTTP-date (ex: "Wed, 21 Oct 2015 07:28:00 GMT")
+    
+    Returns:
+        Segundos a esperar, ou None se inválido/não presente.
+        Limitado a max_seconds.
+    """
+    import datetime as dt_module
+    if not header_value or not header_value.strip():
+        return None
+    val = header_value.strip()
+    # Número em segundos
+    try:
+        seconds = float(val)
+        return min(max(0, seconds), max_seconds) if seconds > 0 else None
+    except ValueError:
+        pass
+    # HTTP-date
+    try:
+        retry_dt = parsedate_to_datetime(val)
+        now = dt_module.datetime.now(dt_module.timezone.utc)
+        if retry_dt.tzinfo is None:
+            retry_dt = retry_dt.replace(tzinfo=dt_module.timezone.utc)
+        delta = (retry_dt - now).total_seconds()
+        return min(max(0, delta), max_seconds) if delta > 0 else None
+    except (ValueError, TypeError):
+        return None
 
 
 class SerperManager:
@@ -109,6 +144,7 @@ class SerperManager:
         self._rate_limiter_timeout = serper_cfg.get("rate_limiter_timeout", 10.0)
         self._rate_limiter_retry_timeout = serper_cfg.get("rate_limiter_retry_timeout", 5.0)
         self._connection_semaphore_timeout = serper_cfg.get("connection_semaphore_timeout", 10.0)
+        self._retry_after_max = serper_cfg.get("retry_after_max", 60.0)
         
         # Rate limiter (controla taxa, NÃO concorrência)
         self._rate_limiter = TokenBucketRateLimiter(
@@ -318,21 +354,32 @@ class SerperManager:
         client = await self._get_client()
         last_error = None
         last_error_type = None
+        last_retry_after: Optional[float] = None
         retries_count = 0
         
         for attempt in range(self._max_retries):
             try:
                 if attempt > 0:
                     retries_count += 1
-                    delay = min(
-                        self._retry_base_delay * (2 ** (attempt - 1)) + random.uniform(0, 0.5),
-                        self._retry_max_delay
-                    )
+                    # Usar Retry-After da API se disponível (429), senão backoff exponencial
+                    if last_retry_after is not None:
+                        delay = last_retry_after
+                        delay_src = "Retry-After"
+                    else:
+                        delay = min(
+                            self._retry_base_delay * (2 ** (attempt - 1)) + random.uniform(0, 0.5),
+                            self._retry_max_delay
+                        )
+                        delay_src = "backoff"
                     logger.warning(
                         f"🔄 Serpshot retry {attempt + 1}/{self._max_retries} "
-                        f"após {delay:.1f}s (reason={last_error_type})"
+                        f"após {delay:.1f}s (reason={last_error_type}, src={delay_src})"
                     )
+                    
                     await asyncio.sleep(delay)
+                    last_retry_after = None  # Usado apenas uma vez
+                    
+                    # Re-adquirir rate limit para retry (timeout configurável)
                     if not await self._rate_limiter.acquire(timeout=self._rate_limiter_retry_timeout):
                         logger.warning("⚠️ Serpshot: Rate limit timeout no retry")
                         continue
@@ -346,10 +393,20 @@ class SerperManager:
                 
                 if response.status_code == 429:
                     self._rate_limited_requests += 1
-                    logger.warning(
-                        f"⚠️ Serpshot rate limit (429), "
-                        f"tentativa {attempt + 1}/{self._max_retries}"
-                    )
+                    retry_after_val = response.headers.get("Retry-After")
+                    parsed = _parse_retry_after(retry_after_val, self._retry_after_max)
+                    if parsed is not None:
+                        last_retry_after = parsed
+                        logger.warning(
+                            f"⚠️ Serpshot rate limit (429), "
+                            f"tentativa {attempt + 1}/{self._max_retries} "
+                            f"(Retry-After: {parsed:.1f}s)"
+                        )
+                    else:
+                        logger.warning(
+                            f"⚠️ Serpshot rate limit (429), "
+                            f"tentativa {attempt + 1}/{self._max_retries}"
+                        )
                     last_error = "Rate limit (429)"
                     last_error_type = "rate_limit"
                     continue
