@@ -84,6 +84,18 @@ def _parse_serpshot_results_batch(data: Any) -> List[List[Any]]:
     return out
 
 
+def _log_raw_api_error(response: httpx.Response, context: str = "") -> None:
+    """Registra o corpo da resposta da API Serpshot exatamente como recebido."""
+    try:
+        raw_body = response.text
+        if raw_body:
+            logger.error(f"❌ Serpshot API raw error {context}: {raw_body}")
+        else:
+            logger.error(f"❌ Serpshot API error {context}: status={response.status_code} (body vazio)")
+    except Exception as e:
+        logger.error(f"❌ Serpshot API error (falha ao ler body): {e}")
+
+
 def _log_rate_limit_headers(response: httpx.Response, context: str = "") -> None:
     """Extrai e registra cabeçalhos X-RateLimit-* para monitoramento de quotas."""
     limit = response.headers.get("X-RateLimit-Limit")
@@ -194,6 +206,12 @@ class SerperManager:
         self._connection_semaphore_timeout = serper_cfg.get("connection_semaphore_timeout", 10.0)
         self._retry_after_max = serper_cfg.get("retry_after_max", 60.0)
         self._retry_jitter = serper_cfg.get("retry_jitter", 2.0)  # segundos de jitter max
+        self._queue_workers = serper_cfg.get("queue_workers", 0)  # 0=desligado, 1=fila única
+        
+        # Fila única + consumer controlado (quando queue_workers >= 1)
+        self._job_queue: Optional[asyncio.Queue] = None
+        self._consumer_tasks: List[asyncio.Task] = []
+        self._queue_lock = asyncio.Lock()
         
         # Rate limiter (controla taxa, NÃO concorrência)
         self._rate_limiter = TokenBucketRateLimiter(
@@ -219,8 +237,48 @@ class SerperManager:
         
         logger.info(
             f"SerpshotManager: rate={self._rate_per_second}/s, burst={self._max_burst}, "
-            f"max_concurrent={self._max_concurrent}, timeout={self._request_timeout}s"
+            f"max_concurrent={self._max_concurrent}, queue_workers={self._queue_workers}, "
+            f"timeout={self._request_timeout}s"
         )
+    
+    async def _ensure_queue_started(self) -> None:
+        """Inicia fila e consumer(s) se queue_workers >= 1."""
+        if self._queue_workers < 1:
+            return
+        async with self._queue_lock:
+            if self._job_queue is not None:
+                return
+            self._job_queue = asyncio.Queue()
+            for i in range(self._queue_workers):
+                t = asyncio.create_task(self._queue_consumer(), name=f"serpshot_consumer_{i}")
+                self._consumer_tasks.append(t)
+            logger.info(f"📥 Serpshot: Fila única iniciada com {self._queue_workers} consumer(s)")
+    
+    async def _queue_consumer(self) -> None:
+        """Consumer que processa jobs da fila (um por vez)."""
+        queue = self._job_queue
+        while queue is not None:
+            try:
+                job = await queue.get()
+                if job is None:
+                    break
+                job_type, args, future = job
+                try:
+                    if job_type == "search":
+                        result = await self._execute_single_search(*args)
+                    else:
+                        result = await self._execute_batch_search(*args)
+                    if not future.done():
+                        future.set_result(result)
+                except Exception as e:
+                    if not future.done():
+                        future.set_exception(e)
+                finally:
+                    queue.task_done()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"❌ Serpshot consumer error: {e}", exc_info=True)
     
     async def _get_connection_semaphore(self) -> asyncio.Semaphore:
         """Retorna semáforo de conexões (lazy initialization)."""
@@ -254,7 +312,16 @@ class SerperManager:
         return self._client
     
     async def close(self):
-        """Fecha o cliente HTTP global."""
+        """Fecha o cliente HTTP global e encerra consumers da fila."""
+        # Encerrar consumers
+        if self._job_queue is not None:
+            for _ in self._consumer_tasks:
+                await self._job_queue.put(None)
+            if self._consumer_tasks:
+                await asyncio.gather(*self._consumer_tasks, return_exceptions=True)
+                self._consumer_tasks.clear()
+            self._job_queue = None
+            logger.info("📥 Serpshot: Fila e consumers encerrados")
         async with self._client_lock:
             if self._client and not self._client.is_closed:
                 await self._client.aclose()
@@ -295,6 +362,23 @@ class SerperManager:
             logger.warning("⚠️ SERPSHOT_KEY não configurada")
             return [], 0, False
         
+        if self._queue_workers >= 1:
+            await self._ensure_queue_started()
+            future: asyncio.Future = asyncio.get_event_loop().create_future()
+            await self._job_queue.put(("search", (query, num_results, country, language, request_id), future))
+            return await future
+        
+        return await self._execute_single_search(query, num_results, country, language, request_id)
+    
+    async def _execute_single_search(
+        self,
+        query: str,
+        num_results: int,
+        country: str,
+        language: str,
+        request_id: str
+    ) -> Tuple[List[Dict[str, str]], int, bool]:
+        """Executa uma busca única (rate limit + semáforo + retry). Usado direto ou pelo consumer."""
         import time as time_module
         
         # 1. Aguardar rate limit (controla TAXA de envio)
@@ -448,6 +532,7 @@ class SerperManager:
                 
                 if response.status_code == 429:
                     self._rate_limited_requests += 1
+                    _log_raw_api_error(response, f"429 tentativa {attempt + 1}/{self._max_retries}")
                     retry_after_val = response.headers.get("Retry-After")
                     parsed = _parse_retry_after(retry_after_val, self._retry_after_max)
                     if parsed is not None:
@@ -462,6 +547,7 @@ class SerperManager:
                     continue
                 
                 if response.status_code >= 500:
+                    _log_raw_api_error(response, f"{response.status_code} tentativa {attempt + 1}/{self._max_retries}")
                     logger.warning(
                         f"⚠️ Serpshot server error ({response.status_code}), "
                         f"tentativa {attempt + 1}/{self._max_retries}"
@@ -472,7 +558,7 @@ class SerperManager:
                 
                 if response.status_code >= 400:
                     self._failed_requests += 1
-                    logger.error(f"❌ Serpshot client error: {response.status_code}")
+                    _log_raw_api_error(response, f"client error {response.status_code}")
                     return [], retries_count, True
                 
                 data = response.json()
@@ -562,11 +648,28 @@ class SerperManager:
         batch_size = min(100, len(queries))
         qs = queries[:batch_size]
         
+        if self._queue_workers >= 1:
+            await self._ensure_queue_started()
+            future: asyncio.Future = asyncio.get_event_loop().create_future()
+            await self._job_queue.put(("batch", (qs, num_results, country, language, request_id), future))
+            return await future
+        
+        return await self._execute_batch_search(qs, num_results, country, language, request_id)
+    
+    async def _execute_batch_search(
+        self,
+        queries: List[str],
+        num_results: int,
+        country: str,
+        language: str,
+        request_id: str
+    ) -> Tuple[List[List[Dict[str, str]]], int, bool]:
+        """Executa busca em batch (rate limit + semáforo + retry). Usado direto ou pelo consumer."""
         import time as time_module
         rate_limit_acquired = await self._rate_limiter.acquire(timeout=self._rate_limiter_timeout)
         if not rate_limit_acquired:
             logger.error("❌ Serpshot: Rate limit timeout para batch")
-            return [[] for _ in qs], 0, False
+            return [[] for _ in queries], 0, False
         
         connection_semaphore = await self._get_connection_semaphore()
         try:
@@ -576,11 +679,11 @@ class SerperManager:
             )
         except asyncio.TimeoutError:
             logger.error("❌ Serpshot: Timeout aguardando slot de conexão (batch)")
-            return [[] for _ in qs], 0, False
+            return [[] for _ in queries], 0, False
         
         try:
             return await self._search_batch_with_retry(
-                qs, num_results, country, language, request_id
+                queries, num_results, country, language, request_id
             )
         finally:
             connection_semaphore.release()
@@ -652,6 +755,7 @@ class SerperManager:
                 
                 if response.status_code == 429:
                     self._rate_limited_requests += 1
+                    _log_raw_api_error(response, f"batch 429 tentativa {attempt + 1}/{self._max_retries}")
                     retry_after_val = response.headers.get("Retry-After")
                     parsed = _parse_retry_after(retry_after_val, self._retry_after_max)
                     if parsed is not None:
@@ -666,13 +770,14 @@ class SerperManager:
                     continue
                 
                 if response.status_code >= 500:
+                    _log_raw_api_error(response, f"batch {response.status_code} tentativa {attempt + 1}/{self._max_retries}")
                     last_error = f"Server error ({response.status_code})"
                     last_error_type = "error"
                     continue
                 
                 if response.status_code >= 400:
                     self._failed_requests += 1
-                    logger.error(f"❌ Serpshot batch client error: {response.status_code}")
+                    _log_raw_api_error(response, f"batch client error {response.status_code}")
                     return [[] for _ in queries], retries_count, True
                 
                 data = response.json()

@@ -1,19 +1,18 @@
 """
 Endpoint Serper v2 - Busca assíncrona no Google via API Serpshot.
 Processamento em background - retorna imediatamente após aceitar requisição.
+Usa batch aggregator para agrupar múltiplas requisições em chamadas únicas à API.
 """
 import logging
 import asyncio
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 from app.schemas.v2.serper import SerperRequest, SerperResponse
-from app.services.discovery_manager.serper_manager import serper_manager
-from app.services.database_service import DatabaseService, get_db_service
+from app.services.serper_batch_aggregator import get_serper_batch_aggregator, SerperBatchItem
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-db_service = get_db_service()
 
 
 def _build_search_query(
@@ -64,51 +63,28 @@ def _build_search_query(
 
 async def _process_serper_background(request: SerperRequest):
     """
-    Processa busca Serper em background.
-    Resultados são enfileirados para gravação em batch (1 conexão por lote).
+    Enfileira busca Serper no agregador de batch.
+    Requisições simultâneas são agrupadas em chamadas de até 100 queries à API.
     """
     try:
-        # 1. Construir query de busca
         query = _build_search_query(
             razao_social=request.razao_social,
             nome_fantasia=request.nome_fantasia,
             municipio=request.municipio
         )
-        
-        logger.info(f"🔍 [BACKGROUND] Serpshot busca: cnpj={request.cnpj_basico}, query='{query}'")
-        
-        # 2. Executar busca assíncrona via Serpshot
-        results, retries, total_failure = await serper_manager.search(
+
+        item = SerperBatchItem(
+            cnpj_basico=request.cnpj_basico,
             query=query,
-            num_results=10,
-            country="br",
-            language="pt-br",
-            request_id=""
+            razao_social=request.razao_social,
+            nome_fantasia=request.nome_fantasia,
+            municipio=request.municipio,
         )
-        
-        # 3. Enfileirar para gravação em batch (1 conexão por lote; suporta ~100 req/s sem "too many clients")
-        # Nunca gravar registros vazios; apenas gravar quando há resultados retornados
-        if results:
-            db_service.enqueue_serper_results(
-                cnpj_basico=request.cnpj_basico,
-                results=results,
-                query_used=query,
-                company_name=request.nome_fantasia or request.razao_social,
-                razao_social=request.razao_social,
-                nome_fantasia=request.nome_fantasia,
-                municipio=request.municipio,
-            )
-        
-        logger.info(
-            f"✅ [BACKGROUND] Serpshot busca concluída: cnpj={request.cnpj_basico}, "
-            f"results={len(results) if results else 0}"
-            + (" (gravado em batch)" if results else " (sem gravação, resultados vazios)")
-        )
+        aggregator = get_serper_batch_aggregator()
+        await aggregator.submit(item)
+        logger.info(f"🔍 [BATCH] Requisição enfileirada: cnpj={request.cnpj_basico}, query='{query[:60]}'")
     except Exception as e:
-        logger.error(f"❌ [BACKGROUND] Erro ao processar busca Serpshot: {e}", exc_info=True)
-    finally:
-        # Garantir que não mantemos referências a recursos após o fim da tarefa
-        pass
+        logger.error(f"❌ [BATCH] Erro ao enfileirar busca Serpshot: {e}", exc_info=True)
 
 
 @router.post("/serper", response_model=SerperResponse)

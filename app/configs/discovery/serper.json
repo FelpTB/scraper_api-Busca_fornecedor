@@ -1,7 +1,10 @@
 {
-  "rate_per_second": 50,
-  "max_burst": 60,
-  "max_concurrent": 80,
+  "rate_per_second": 8,
+  "max_burst": 12,
+  "max_concurrent": 15,
+  "queue_workers": 1,
+  "batch_aggregator_max_size": 100,
+  "batch_aggregator_max_wait_ms": 200,
   "request_timeout": 60,
   "connect_timeout": 10,
   "max_retries": 6,

@@ -41,6 +41,7 @@ from app.services.llm_manager import start_health_monitor
 from app.core.database import get_pool, close_pool, test_connection
 from app.core.run_queue_migration import run_queue_migration
 from app.services.serper_batch_writer import start_serper_batch_writer, stop_serper_batch_writer
+from app.services.serper_batch_aggregator import start_serper_batch_aggregator, stop_serper_batch_aggregator
 from app.core.vllm_client import check_vllm_health
 from app.api.v2.router import router as v2_router
 
@@ -77,6 +78,7 @@ async def startup_event():
     
     start_health_monitor()
     await start_serper_batch_writer()
+    await start_serper_batch_aggregator()
 
     logger.info("🚀 Aplicação inicializada com sucesso")
 
@@ -84,6 +86,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Executado quando a aplicação encerra"""
+    await stop_serper_batch_aggregator()
     await stop_serper_batch_writer()
     await close_pool()
     logger.info("🔌 Aplicação encerrada")

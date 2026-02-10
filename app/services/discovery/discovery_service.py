@@ -116,6 +116,57 @@ async def search_google_serper(query: str, num_results: int = 100, request_id: s
     return results, retries
 
 
+async def search_google_serper_batch(
+    queries: List[str],
+    num_results: int = 100,
+    request_id: str = ""
+) -> Tuple[List[Dict[str, str]], int]:
+    """
+    Realiza buscas em batch via Serpshot (até 100 queries em 1 requisição).
+    Usa cache por query; apenas queries não cacheadas geram chamada à API.
+    
+    Returns:
+        Tuple de (lista plana de resultados, total de retries)
+    """
+    if not queries:
+        return [], 0
+    
+    # 1. Verificar cache para cada query
+    cache_results: Dict[int, Optional[List[Dict[str, str]]]] = {}
+    uncached: List[Tuple[int, str]] = []
+    for i, q in enumerate(queries):
+        cached = await search_cache.get(q, num_results)
+        cache_results[i] = cached
+        if cached is None:
+            uncached.append((i, q))
+    
+    if not uncached:
+        all_results = []
+        for i in range(len(queries)):
+            all_results.extend(cache_results[i] or [])
+        logger.debug(f"🔍 Serpshot batch (cache hit): {len(queries)} queries")
+        return all_results, 0
+    
+    # 2. Buscar apenas queries não cacheadas em 1 chamada batch
+    uncached_queries = [q for _, q in uncached]
+    batch_results, retries, _ = await serper_manager.search_batch(
+        uncached_queries, num_results, country="br", language="pt-br", request_id=request_id
+    )
+    
+    # 3. Atualizar cache e mapear resultados
+    for (orig_idx, q), res_list in zip(uncached, batch_results):
+        if res_list:
+            await search_cache.set(q, res_list, num_results)
+        cache_results[orig_idx] = res_list if res_list else []
+    
+    # 4. Montar lista plana na ordem original
+    all_results = []
+    for i in range(len(queries)):
+        all_results.extend(cache_results.get(i) or [])
+    
+    return all_results, retries
+
+
 async def close_serper_client():
     """Fecha o cliente HTTP global (chamar no shutdown da aplicação)."""
     await serper_manager.close()
@@ -227,31 +278,12 @@ async def find_company_website(
         logger.warning(f"{ctx_label}⚠️ Sem Nome Fantasia ou Razão Social para busca.")
         return None
 
-    # 2. EXECUTAR BUSCAS EM PARALELO
-    all_results = []
+    # 2. EXECUTAR BUSCAS VIA SEARCH_BATCH (1 requisição para múltiplas queries)
     serper_start = time.time()
-    total_retries = 0
-    
-    search_tasks = [search_google_serper(q, num_results=SERPER_NUM_RESULTS, request_id=request_id) for q in queries]
-    query_results = await asyncio.gather(*search_tasks, return_exceptions=True)
-    
+    all_results, total_retries = await search_google_serper_batch(
+        queries, num_results=SERPER_NUM_RESULTS, request_id=request_id
+    )
     serper_duration = (time.time() - serper_start) * 1000
-    
-    failed_queries = 0
-    for i, query_result in enumerate(query_results):
-        if isinstance(query_result, Exception):
-            logger.warning(f"{ctx_label}⚠️ Query {i+1} falhou: {query_result}")
-            failed_queries += 1
-            continue
-        
-        # query_result é uma tupla (results, retries)
-        if isinstance(query_result, tuple) and len(query_result) == 2:
-            results, retries = query_result
-            all_results.extend(results)
-            total_retries += retries
-        else:
-            # Fallback para compatibilidade
-            all_results.extend(query_result if isinstance(query_result, list) else [])
     
     # 3. FILTRAR RESULTADOS
     filtered_results = _filter_search_results(all_results, ctx_label)
