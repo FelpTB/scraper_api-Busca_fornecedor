@@ -29,6 +29,16 @@ from .rate_limiter import TokenBucketRateLimiter
 
 logger = logging.getLogger(__name__)
 
+# Caractere NUL (\u0000) é rejeitado pelo PostgreSQL em text/jsonb
+_NUL = "\x00"
+
+
+def _sanitize_for_postgres(value: str) -> str:
+    """Remove NUL (\u0000) que PostgreSQL rejeita em text/jsonb."""
+    if not value:
+        return value
+    return value.replace(_NUL, "")
+
 
 def _parse_serpshot_results(data: Any) -> List[Any]:
     """
@@ -473,9 +483,9 @@ class SerperManager:
                     if not isinstance(item, dict):
                         continue
                     results.append({
-                        "title": (item.get("title") or "").strip(),
-                        "link": (item.get("link") or "").strip(),
-                        "snippet": (item.get("snippet") or "").strip(),
+                        "title": _sanitize_for_postgres((item.get("title") or "").strip()),
+                        "link": _sanitize_for_postgres((item.get("link") or "").strip()),
+                        "snippet": _sanitize_for_postgres((item.get("snippet") or "").strip()),
                     })
                 
                 self._successful_requests += 1
@@ -673,9 +683,9 @@ class SerperManager:
                     for item in (raw or []):
                         if isinstance(item, dict):
                             items.append({
-                                "title": (item.get("title") or "").strip(),
-                                "link": (item.get("link") or "").strip(),
-                                "snippet": (item.get("snippet") or "").strip(),
+                                "title": _sanitize_for_postgres((item.get("title") or "").strip()),
+                                "link": _sanitize_for_postgres((item.get("link") or "").strip()),
+                                "snippet": _sanitize_for_postgres((item.get("snippet") or "").strip()),
                             })
                     results_batch.append(items)
                 
