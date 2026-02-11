@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 # Copiar requirements e instalar dependências em um único passo (menos camadas = menos risco de "context canceled").
 # Cache de pip acelera rebuilds quando o Railway mantém o cache.
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache/pip,id=railway-pip \
     pip install --upgrade pip setuptools wheel \
     && pip install -r requirements.txt
 
