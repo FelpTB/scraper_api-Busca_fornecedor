@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.4
-# Cache do pip entre builds no Railway (acelera retries). Requer BuildKit.
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -19,11 +17,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements e instalar dependências em um único passo (menos camadas = menos risco de "context canceled").
-# Cache de pip acelera rebuilds quando o Railway mantém o cache.
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip,id=railway-pip \
-    pip install --upgrade pip setuptools wheel \
-    && pip install -r requirements.txt
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Instalar navegadores do Playwright (necessário para crawl4ai)
 # Apenas chromium para economizar espaço/tempo. Build pode levar alguns minutos.
