@@ -17,7 +17,7 @@
 --     - lista_clientes: List[str]
 --     - estudos_caso: List[EstudoCaso] (titulo, nome_cliente, industria, desafio, solucao, resultado)
 --   - contato: Contato (emails, telefones, url_linkedin, url_site, endereco_matriz, localizacoes)
---   - fontes: List[str]
+--   - fontes: apenas em profile_json/full_profile (não há coluna dedicada)
 -- ============================================================================
 
 -- Criar schema se não existir
@@ -55,10 +55,7 @@ CREATE TABLE IF NOT EXISTS busca_fornecedor.company_profile (
     url_site VARCHAR(500), -- contato.url_site
     endereco_matriz TEXT, -- contato.endereco_matriz
     
-    -- Fontes - baseado em CompanyProfile.fontes
-    fontes TEXT[], -- fontes (array de URLs/fontes)
-    
-    -- Campos JSONB para armazenar estrutura completa
+    -- Campos JSONB para armazenar estrutura completa (inclui fontes no JSON)
     profile_json JSONB, -- Perfil completo em formato JSON (estrutura CompanyProfile)
     full_profile JSONB, -- Cópia completa do perfil (backup)
     

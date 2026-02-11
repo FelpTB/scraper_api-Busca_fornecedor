@@ -373,8 +373,9 @@ class DatabaseService:
     ) -> int:
         """
         Salva perfil completo da empresa no schema busca_fornecedor.
-        Usa campos em português (identidade, classificacao, contato, fontes).
+        Usa campos em português (identidade, classificacao, contato).
         Inclui salvamento nas tabelas auxiliares (locations, services, products, etc).
+        O campo fontes permanece apenas em profile_json/full_profile (JSON).
 
         Args:
             cnpj_basico: CNPJ básico da empresa
@@ -409,8 +410,6 @@ class DatabaseService:
                 url_site = (cont.url_site if cont else None) or None
                 endereco_matriz = (cont.endereco_matriz if cont else None) or None
 
-                fontes = list(profile.fontes) if profile.fontes else []
-
                 n_exibicoes = 0
                 recebe_email = False
 
@@ -428,8 +427,8 @@ class DatabaseService:
                         SET nome_empresa = $2, descricao = $3, ano_fundacao = $4, faixa_funcionarios = $5,
                             industria = $6, modelo_negocio = $7, publico_alvo = $8, cobertura_geografica = $9,
                             emails = $10, telefones = $11, url_linkedin = $12, url_site = $13,
-                            endereco_matriz = $14, fontes = $15, n_exibicoes = $16, recebe_email = $17,
-                            profile_json = $18::jsonb, full_profile = $19::jsonb, updated_at = NOW()
+                            endereco_matriz = $14, n_exibicoes = $15, recebe_email = $16,
+                            profile_json = $17::jsonb, full_profile = $18::jsonb, updated_at = NOW()
                         WHERE cnpj = $1
                         RETURNING id
                     """
@@ -450,7 +449,6 @@ class DatabaseService:
                         url_linkedin,
                         url_site,
                         endereco_matriz,
-                        fontes,
                         n_exibicoes,
                         recebe_email,
                         profile_json,
@@ -463,9 +461,9 @@ class DatabaseService:
                         INSERT INTO "{SCHEMA}".company_profile
                             (nome_empresa, cnpj, descricao, ano_fundacao, faixa_funcionarios,
                              industria, modelo_negocio, publico_alvo, cobertura_geografica,
-                             emails, telefones, url_linkedin, url_site, endereco_matriz, fontes,
+                             emails, telefones, url_linkedin, url_site, endereco_matriz,
                              n_exibicoes, recebe_email, profile_json, full_profile)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19::jsonb)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17::jsonb, $18::jsonb)
                         RETURNING id
                     """
                     logger.info(f"🔍 [SCHEMA={SCHEMA}] INSERT company_profile")
@@ -485,7 +483,6 @@ class DatabaseService:
                         url_linkedin,
                         url_site,
                         endereco_matriz,
-                        fontes,
                         n_exibicoes,
                         recebe_email,
                         profile_json,
