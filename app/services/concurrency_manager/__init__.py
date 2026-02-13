@@ -27,6 +27,7 @@ from .config_loader import (
     load_config,
     get_section,
     reset_cache,
+    load_sglang_targets,
 )
 
 __all__ = [
@@ -45,6 +46,7 @@ __all__ = [
     "load_config",
     "get_section",
     "reset_cache",
+    "load_sglang_targets",
 ]
 
 

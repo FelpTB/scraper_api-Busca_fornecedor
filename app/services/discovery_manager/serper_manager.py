@@ -469,7 +469,7 @@ class SerperManager:
             lr = (language or "en").replace("_", "-") if language else "en"
             hl = lr
             gl = country_code
-        num = 30
+        num = min(10, num_results)
         payload = json.dumps({
             "queries": [query],
             "type": "search",
@@ -620,7 +620,7 @@ class SerperManager:
     async def search_batch(
         self,
         queries: List[str],
-        num_results: int = 30,
+        num_results: int = 10,
         country: str = "br",
         language: str = "pt-br",
         request_id: str = ""
@@ -709,7 +709,7 @@ class SerperManager:
         payload = json.dumps({
             "queries": queries,
             "type": "search",
-            "num": min(30, num_results),
+            "num": min(10, num_results),
             "page": 1,
             "location": location,
             "lr": lr,
@@ -923,7 +923,7 @@ async def search_serper(
 
 async def search_serper_batch(
     queries: List[str],
-    num_results: int = 30,
+    num_results: int = 10,
     country: str = "br",
     language: str = "pt-br"
 ) -> Tuple[List[List[Dict[str, str]]], int, bool]:

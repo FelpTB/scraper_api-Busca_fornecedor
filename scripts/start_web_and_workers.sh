@@ -16,12 +16,18 @@ while [ "$i" -le "$N_WORKERS" ]; do
   i=$((i + 1))
 done
 
-i=1
-while [ "$i" -le "$N_WORKERS" ]; do
-  echo "[start] Iniciando profile_worker #$i em background..."
-  python -m app.workers.profile_worker &
-  i=$((i + 1))
-done
+# Profile workers: por instância SGLang (sglang_targets.json) ou N_WORKERS genérico
+if python scripts/run_profile_workers_by_sglang.py; then
+  echo "[start] Profile workers iniciados via sglang_targets.json"
+else
+  i=1
+  while [ "$i" -le "$N_WORKERS" ]; do
+    echo "[start] Iniciando profile_worker #$i em background..."
+    python -m app.workers.profile_worker &
+    i=$((i + 1))
+  done
+  echo "[start] Workers: $N_WORKERS discovery, $N_WORKERS profile"
+fi
 
-echo "[start] Workers: $N_WORKERS discovery, $N_WORKERS profile. Iniciando API..."
+echo "[start] Iniciando API..."
 exec hypercorn app.main:app --bind "[::]:${PORT}"

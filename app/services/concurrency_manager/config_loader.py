@@ -47,3 +47,15 @@ def reset_cache() -> None:
     """Limpa cache em memória (útil para testes)."""
     global _CONFIG_CACHE
     _CONFIG_CACHE = {}
+
+
+def load_sglang_targets(use_cache: bool = True) -> list:
+    """
+    Carrega instâncias SGLang de app/configs/sglang_targets.json.
+    Usado pelo launcher para orquestrar workers por GPU.
+    Retorna lista de dicts com keys: name, base_url, workers.
+    Se o arquivo não existir ou estiver vazio, retorna [].
+    """
+    data = load_config("sglang_targets", use_cache=use_cache)
+    instances = data.get("instances") if isinstance(data, dict) else []
+    return list(instances) if isinstance(instances, list) else []
