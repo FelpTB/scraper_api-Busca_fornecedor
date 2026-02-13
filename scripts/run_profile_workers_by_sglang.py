@@ -9,6 +9,7 @@ Uso: python scripts/run_profile_workers_by_sglang.py
 """
 import os
 import sys
+import time
 import subprocess
 
 # Garantir que o project root está no path
@@ -48,6 +49,7 @@ def main():
         env["SGLANG_BASE_URL"] = base_url
         env["SGLANG_INSTANCE_NAME"] = name
         env["SGLANG_WORKERS_GROUP"] = str(workers)
+        stagger_sec = float(os.environ.get("STAGGER_PROFILE_SEC", "0.2"))
         for i in range(workers):
             total += 1
             subprocess.Popen(
@@ -57,6 +59,8 @@ def main():
                 stdout=None,
                 stderr=None,
             )
+            if i < workers - 1 and stagger_sec > 0:
+                time.sleep(stagger_sec)
         print(f"[start] Instância {name}: {workers} profile_worker(s) (base_url={base_url})", flush=True)
     if total:
         print(f"[start] Total: {total} profile_worker(s) por sglang_targets.json", flush=True)

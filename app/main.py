@@ -69,12 +69,16 @@ async def startup_event():
     except Exception as e:
         logger.error(f"❌ Erro ao inicializar banco de dados: {e}")
     
-    # Health check do vLLM
+    # Health check do vLLM (nunca falhar startup: workers podem usar SGLANG_BASE_URL; API pode não ter LLM_URL)
     try:
         vllm_health = await check_vllm_health()
         logger.info(f"🔍 vLLM Health: {vllm_health}")
+    except asyncio.CancelledError:
+        logger.warning("⚠️ vLLM health check cancelado; API sobe sem depender do vLLM")
     except Exception as e:
         logger.warning(f"⚠️ Erro ao verificar saúde do vLLM: {e}")
+    except BaseException as e:
+        logger.warning(f"⚠️ vLLM health check falhou: {e}; API sobe mesmo assim")
     
     start_health_monitor()
     await start_serper_batch_writer()
