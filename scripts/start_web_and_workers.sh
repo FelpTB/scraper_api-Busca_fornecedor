@@ -2,7 +2,7 @@
 # Sobe API + N discovery workers + N profile workers no mesmo container.
 # Número de workers: N_WORKERS (default 2). Porta: PORT (default 8000).
 # Regra: (processos × DATABASE_POOL_MAX_SIZE) < max_connections do PostgreSQL (ex.: Railway 100).
-# Em produção sem multi-GPU: use fallback (sem sglang_targets.json) ou poucos workers por instância.
+# No Railway: defina MAX_TOTAL_PROFILE_WORKERS=4 ou 8 e opcionalmente DATABASE_POOL_MAX_SIZE=2.
 set -e
 # Evitar que OpenBLAS/OpenMP criem dezenas de threads por processo (Railway tem limite de threads).
 export OPENBLAS_NUM_THREADS="${OPENBLAS_NUM_THREADS:-1}"
