@@ -21,17 +21,7 @@ try:
 except ImportError:
     pass
 
-# Log de instância SGLang quando o worker está pinado a uma GPU (variáveis do launcher)
-_sglang_url = os.environ.get("SGLANG_BASE_URL", "").strip()
-_sglang_instance = os.environ.get("SGLANG_INSTANCE_NAME", "").strip() or "default"
-_sglang_workers_group = os.environ.get("SGLANG_WORKERS_GROUP", "")
-if _sglang_url:
-    print(
-        f"[PROFILE_WORKER] instance={_sglang_instance} url={_sglang_url} workers_group={_sglang_workers_group or 'N/A'}",
-        flush=True,
-    )
-else:
-    print("[profile_worker] Process starting (python -m app.workers.profile_worker)", flush=True)
+print("[profile_worker] Process starting (python -m app.workers.profile_worker)", flush=True)
 sys.stdout.flush()
 sys.stderr.flush()
 
@@ -55,20 +45,11 @@ async def run_worker():
     """Loop principal: claim batch -> fetch chunks batch -> process cada job -> ack/fail."""
     queue = get_queue_service()
     db_service = get_db_service()
-    sglang_instance = os.environ.get("SGLANG_INSTANCE_NAME", "").strip() or None
-    if sglang_instance:
-        logger.info(
-            "Profile worker started, worker_id=%s, claim_batch_size=%s, sglang_instance=%s",
-            WORKER_ID,
-            CLAIM_BATCH_SIZE,
-            sglang_instance,
-        )
-    else:
-        logger.info(
-            "Profile worker started, worker_id=%s, claim_batch_size=%s",
-            WORKER_ID,
-            CLAIM_BATCH_SIZE,
-        )
+    logger.info(
+        "Profile worker started, worker_id=%s, claim_batch_size=%s",
+        WORKER_ID,
+        CLAIM_BATCH_SIZE,
+    )
     empty_cycles = 0
     while True:
         jobs = await queue.claim(WORKER_ID, limit=CLAIM_BATCH_SIZE)

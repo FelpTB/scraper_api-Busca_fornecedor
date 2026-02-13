@@ -469,7 +469,7 @@ class SerperManager:
             lr = (language or "en").replace("_", "-") if language else "en"
             hl = lr
             gl = country_code
-        num = min(10, num_results)
+        num = 10
         payload = json.dumps({
             "queries": [query],
             "type": "search",

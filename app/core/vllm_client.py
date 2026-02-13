@@ -132,15 +132,7 @@ async def check_vllm_health() -> Dict[str, Any]:
         }
     """
     start = time.perf_counter()
-    if not (getattr(settings, "VLLM_BASE_URL", None) or "").strip():
-        return {
-            "status": "skipped",
-            "reason": "VLLM_BASE_URL not set (workers may use SGLANG_BASE_URL per instance)",
-            "latency_ms": 0,
-            "model": getattr(settings, "VLLM_MODEL", ""),
-            "endpoint": "",
-        }
-
+    
     try:
         # Health: SGLang/vLLM expõe /health na raiz (sem /v1). BASE_V1 = .../v1 → base_sem_v1 + '/health'
         async with httpx.AsyncClient(timeout=10.0) as client:

@@ -1,6 +1,0 @@
-{
-  "instances": [],
-  "_example": {
-    "description": "Ao adicionar instâncias SGLang, use: name, base_url (com /v1), workers (ex.: 16 por instância)"
-  }
-}

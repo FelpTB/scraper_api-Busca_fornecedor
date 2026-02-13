@@ -1,7 +1,6 @@
 """
 Configuração central. Variáveis de ambiente permitidas (whitelist Railway):
-API_ACCESS_TOKEN, DATABASE_URL, LLM_URL, MODEL_NAME, SERPSHOT_KEY, SERPSHOT_RATE_PER_SECOND,
-DATABASE_POOL_MIN_SIZE, DATABASE_POOL_MAX_SIZE.
+API_ACCESS_TOKEN, DATABASE_URL, LLM_URL, MODEL_NAME, SERPSHOT_KEY, SERPSHOT_RATE_PER_SECOND.
 Todas as demais configurações são derivadas ou valores padrão em código.
 """
 import os
@@ -40,7 +39,7 @@ class Settings:
     # Pool: min_size=0 evita manter conexões ociosas. Com batch writer, 1 conn por lote para serper.
     # Regra: (número de processos × MAX_SIZE) < max_connections do PostgreSQL (ex.: 100).
     DATABASE_POOL_MIN_SIZE: int = int(os.getenv("DATABASE_POOL_MIN_SIZE", "0"))
-    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "2"))
+    DATABASE_POOL_MAX_SIZE: int = int(os.getenv("DATABASE_POOL_MAX_SIZE", "12"))
     LLM_CONCURRENCY_HARD_CAP: int = int(os.getenv("LLM_CONCURRENCY_HARD_CAP", "32"))
 
     # --- Validação obrigatória ---

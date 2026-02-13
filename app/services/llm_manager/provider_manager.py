@@ -7,13 +7,9 @@ Integrado com RateLimiter v2.0 para controle separado de RPM e TPM.
 v3.2: Integração com rate limiter que controla RPM e TPM separadamente
       - Antes de cada chamada, adquire slot de RPM E tokens de TPM
       - Estima tokens da requisição baseado no conteúdo das mensagens
-
-v3.5: Modo por instância SGLang — quando SGLANG_BASE_URL está definida, apenas
-      um provider (SGLang) é registrado, sem balanceamento nem fallback.
 """
 
 import asyncio
-import os
 import time
 import logging
 import random
@@ -99,24 +95,9 @@ class ProviderManager:
                 self.add_provider(config)
         else:
             self._load_default_providers()
-
-    def _is_sglang_fixed_mode(self) -> bool:
-        """True quando o processo está pinado a uma instância SGLang (variável SGLANG_BASE_URL)."""
-        return bool(os.environ.get("SGLANG_BASE_URL", "").strip())
-
-    def _build_base_v1(self, url: str) -> str:
-        """Garante que a URL termine com /v1 (API OpenAI-compatible)."""
-        if not url:
-            return ""
-        return url if url.rstrip("/").endswith("/v1") else url.rstrip("/") + "/v1"
-
+    
     def _load_default_providers(self):
         """Carrega providers das configurações do sistema."""
-        # Modo por instância SGLang: um único provider, sem fallback
-        if self._is_sglang_fixed_mode():
-            self._load_sglang_fixed_provider_only()
-            return
-
         limits = self._load_limits_from_file()
         safety_margin = limits.get("config", {}).get("safety_margin", 0.8)
         
@@ -286,48 +267,7 @@ class ProviderManager:
                 "OpenRouter2": False,
                 "OpenRouter3": False
             }
-
-    def _load_sglang_fixed_provider_only(self):
-        """
-        Registra apenas o provider SGLang da instância atual (SGLANG_BASE_URL).
-        Sem outros providers e sem fallback. Usado quando o processo está pinado a uma GPU.
-        """
-        base_url_raw = os.environ.get("SGLANG_BASE_URL", "").strip()
-        if not base_url_raw:
-            return
-        base_url = self._build_base_v1(base_url_raw)
-        model = getattr(settings, "RUNPOD_MODEL", None) or getattr(settings, "VLLM_MODEL", None) or os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-3B-Instruct")
-        api_key = getattr(settings, "RUNPOD_API_KEY", None) or getattr(settings, "VLLM_API_KEY", None) or "buscafornecedor"
-
-        limits = self._load_limits_from_file()
-        runpod_config = limits.get("runpod", {})
-        # Resolver modelo para limites (mesma lógica que rate_limiter: runpod/Qwen ou fallback)
-        model_limits = runpod_config.get(model) or runpod_config.get("Qwen/Qwen2.5-3B-Instruct") or runpod_config.get("mistralai/Ministral-3-8B-Instruct-2512", {})
-        rpm = model_limits.get("rpm", 30000)
-        tpm = model_limits.get("tpm", 5000000)
-        safety_margin = limits.get("config", {}).get("safety_margin", 0.8)
-        hard_cap = getattr(settings, "LLM_CONCURRENCY_HARD_CAP", 32)
-        runpod_concurrent = min(hard_cap, max(800, int(rpm * safety_margin / 15)))
-
-        config = ProviderConfig(
-            name="SGLang",
-            api_key=api_key or "buscafornecedor",
-            base_url=base_url,
-            model=model,
-            max_concurrent=runpod_concurrent,
-            priority=90,
-            weight=50,
-            enabled=True,
-        )
-        self.add_provider(config)
-        instance_name = os.environ.get("SGLANG_INSTANCE_NAME", "default")
-        logger.info(
-            "ProviderManager: modo instância SGLang — único provider registrado "
-            "(instance=%s, base_url=%s)",
-            instance_name,
-            base_url,
-        )
-
+    
     def add_provider(self, config: ProviderConfig):
         """Adiciona um provider e categoriza por prioridade."""
         if not config.api_key:
